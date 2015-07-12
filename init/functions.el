@@ -754,5 +754,34 @@ or if CONDITION had no actions, after all other CONDITIONs."
         (browse-url-generic-args '("--enable-user-stylesheet")))
     (apply #'browse-url url args)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Use the MSYS bash shell on Windows
+
+;; Adapted from http://stackoverflow.com/questions/235254/how-can-i-run-cygwin-bash-shell-from-within-emacs
+(defun windows-to-unixy-path (path)
+  "Convert a Windows-formatted PATH to one compatible with bash."
+  (let* ((path1 (replace-regexp-in-string "\\([A-Za-z]\\):" "/\\1" path))
+         (path2 (replace-regexp-in-string "\\\\" "/" path1))
+         (path3 (replace-regexp-in-string " " "\\\\ " path2))
+         (path4 (replace-regexp-in-string ";" ":" path3)))
+    path4))
+
+;; Start up a bash shell within Emacs
+(defun bash ()
+  "Run the MSYS bash shell."
+  (interactive)
+  (let ((explicit-shell-file-name (concat msys-home "bash")))
+    ;;(windows-to-unixy-path)
+    (setenv "PS1" "\\W$ ")
+    (call-interactively 'shell)))
+
+;; Shell scripts to call Windows batch files (or executables?) look like this:
+;; #!/bin/sh
+;; #
+;; # Call lein.bat from an MSYS bash shell.
+;;
+;; "$SHELL" //c "lein.bat $1 $2 $3 $4 $5"
+
+
 (provide 'functions)
 ;;; functions.el ends here

@@ -33,6 +33,12 @@
                       (or (buffer-file-name) load-file-name))
   "The directory where the user's configuration files are kept.")
 
+;; TODO: Look to see which machine and OS we are on, and set this
+;; variable appropriately. 
+(defvar msys-home "C:/Users/Rod/Apps/MinGW/msys/1.0/bin/"
+  "The path to the user's MSYS installation.")
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
 
