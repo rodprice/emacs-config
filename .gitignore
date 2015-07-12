@@ -1,0 +1,16 @@
+auto-save-list
+backup
+server
+elpa
+custom.el
+places
+url/
+.org-id-locations
+\#*
+org-mode-config.el
+*~
+.#*
+\#*\#
+*.log
+.DS_Store
+org-clock-save.el
