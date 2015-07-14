@@ -98,12 +98,12 @@
           yas/prompt-functions)))
 
 ;; Make the highlight face fit the Tango theme
-(require 'themes)
-(defface yas/field-highlight-face
-  `((((class color) (background light)) (:background ,dark-chameleon))
-    (t (:background ,dark-plum)))
-  "The face used to highlight the currently active field of a snippet"
-  :group 'yasnippet)
+;; (require 'themes)
+;; (defface yas/field-highlight-face
+;;   `((((class color) (background light)) (:background ,dark-chameleon))
+;;     (t (:background ,dark-plum)))
+;;   "The face used to highlight the currently active field of a snippet"
+;;   :group 'yasnippet)
 
 ;; Completion functions to try when the user asks for completion
 (setq hippie-expand-try-functions-list

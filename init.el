@@ -33,11 +33,17 @@
                       (or (buffer-file-name) load-file-name))
   "The directory where the user's configuration files are kept.")
 
-;; TODO: Look to see which machine and OS we are on, and set this
-;; variable appropriately. 
-(defvar msys-home "C:/Users/Rod/Apps/MinGW/msys/1.0/bin/"
+(defvar msys-home ""
   "The path to the user's MSYS installation.")
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load system-specific configuration
+
+(add-to-list 'load-path (concat dotfiles-dir "init"))
+
+(setq system-name-short (car (split-string system-name "\\.")))
+(require (intern (concat system-name-short "-preload")))
+(unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -53,6 +59,7 @@
   '(hc-zenburn-theme
     autopair
     dired-details+
+    maxframe
     pager
     whole-line-or-region
     hippie-exp
@@ -82,12 +89,10 @@
  :font "-outline-Lucida Console-normal-normal-normal-mono-16-*-*-*-c-*-iso8859-1")
 
 ;; Set up load path
-;; (add-to-list 'load-path dotfiles-dir)
 (add-to-list 'load-path (concat dotfiles-dir "site-lisp"))
-;; (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 
 ;; These will be used in every session
-;; (require 'cl)
+(require 'cl)
 (require 'saveplace)
 (require 'ffap)
 (require 'uniquify)
@@ -101,9 +106,8 @@
 (load custom-file 'noerror)
 
 ;; Init... Set up window appearance, color theme, etc
+(require 'functions)
 (add-to-list 'load-path (concat dotfiles-dir "init"))
-(add-to-list 'exec-path (concat dotfiles-dir "scripts"))
-(require 'functions)                    ; load the include function
 (include 'settings)
 (include 'bindings)
 
@@ -122,10 +126,8 @@
 (include 'my-tab)
 (include 'my-wlor)
 
-;; Load system-specific configuration
-(message "\nCustomizations for %s" system-name)
 (setq system-name-short (car (split-string system-name "\\.")))
-(include (intern system-name-short))
+(include (intern (concat system-name-short "-postload")))
 (unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 (provide 'init)
