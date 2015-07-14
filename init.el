@@ -29,15 +29,13 @@
 
 ;;; Code:
 
-(defvar dotfiles-dir (file-name-directory
-                      (or (buffer-file-name) load-file-name))
-  "The directory where the user's configuration files are kept.")
-
-;; TODO: Look to see which machine and OS we are on, and set this
-;; variable appropriately. 
-(defvar msys-home "C:/Users/Rod/Apps/MinGW/msys/1.0/bin/"
-  "The path to the user's MSYS installation.")
-
+;; These will be used in every session
+(require 'cl)
+(require 'saveplace)
+(require 'ffap)
+(require 'uniquify)
+(require 'ansi-color)
+(require 'recentf)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -47,15 +45,37 @@
   (server-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tell emacs a few things about myself and it's environment
+
+(setq user-full-name "Rodney Price")
+;; TODO change email depending on where I am
+(setq user-mail-address "rod@thirdoption.info")
+
+;; Load system-specific configuration
+(message "\nCustomizations for %s" system-name)
+(setq system-name-short (car (split-string system-name "\\.")))
+(include (intern system-name-short))
+(unintern system-name-short)  ; remove symbol to avoid name collisions later
+
+;; TODO: Look to see which machine and OS we are on, and set this
+;; variable appropriately. 
+(defvar msys-home "C:/Users/Rod/Apps/MinGW/msys/1.0/bin/"
+  "The path to the user's MSYS installation.")
+
+(defvar dotfiles-dir (file-name-directory
+                      (or (buffer-file-name) load-file-name))
+  "The directory where the user's configuration files are kept.")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use packages from ELPA and MELPA whenever possible
 
 (defvar my-packages
   '(hc-zenburn-theme
     autopair
     dired-details+
+    hippie-exp
     pager
     whole-line-or-region
-    hippie-exp
     yasnippet)
   "A list of packages that should always be available.")
 
@@ -86,14 +106,6 @@
 (add-to-list 'load-path (concat dotfiles-dir "site-lisp"))
 ;; (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 
-;; These will be used in every session
-;; (require 'cl)
-(require 'saveplace)
-(require 'ffap)
-(require 'uniquify)
-(require 'ansi-color)
-(require 'recentf)
-
 ;; Load automatically generated lisp files
 (setq autoload-file (concat dotfiles-dir "loaddefs.el"))
 (load autoload-file 'noerror)
@@ -121,12 +133,6 @@
 (include 'my-shell-script)
 (include 'my-tab)
 (include 'my-wlor)
-
-;; Load system-specific configuration
-(message "\nCustomizations for %s" system-name)
-(setq system-name-short (car (split-string system-name "\\.")))
-(include (intern system-name-short))
-(unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 (provide 'init)
 ;;; init.el ends here
