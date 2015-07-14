@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+
 ;; These will be used in every session
 (require 'cl)
 (require 'saveplace)
@@ -36,6 +37,22 @@
 (require 'uniquify)
 (require 'ansi-color)
 (require 'recentf)
+
+(defvar dotfiles-dir (file-name-directory
+                      (or (buffer-file-name) load-file-name))
+  "The directory where the user's configuration files are kept.")
+
+(defvar msys-home ""
+  "The path to the user's MSYS installation.")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load system-specific configuration
+
+(add-to-list 'load-path (concat dotfiles-dir "init"))
+
+(setq system-name-short (car (split-string system-name "\\.")))
+(require (intern (concat system-name-short "-preload")))
+(unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -45,17 +62,11 @@
   (server-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Tell emacs a few things about myself and it's environment
+;; Tell emacs a few things about myself and its environment
 
 (setq user-full-name "Rodney Price")
 ;; TODO change email depending on where I am
 (setq user-mail-address "rod@thirdoption.info")
-
-;; Load system-specific configuration
-(message "\nCustomizations for %s" system-name)
-(setq system-name-short (car (split-string system-name "\\.")))
-(include (intern system-name-short))
-(unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 ;; TODO: Look to see which machine and OS we are on, and set this
 ;; variable appropriately. 
@@ -74,6 +85,7 @@
     autopair
     dired-details+
     hippie-exp
+    maxframe
     pager
     whole-line-or-region
     yasnippet)
@@ -101,11 +113,6 @@
  'default nil
  :font "-outline-Lucida Console-normal-normal-normal-mono-16-*-*-*-c-*-iso8859-1")
 
-;; Set up load path
-;; (add-to-list 'load-path dotfiles-dir)
-(add-to-list 'load-path (concat dotfiles-dir "site-lisp"))
-;; (add-to-list 'load-path "/usr/share/emacs/site-lisp")
-
 ;; Load automatically generated lisp files
 (setq autoload-file (concat dotfiles-dir "loaddefs.el"))
 (load autoload-file 'noerror)
@@ -113,9 +120,7 @@
 (load custom-file 'noerror)
 
 ;; Init... Set up window appearance, color theme, etc
-(add-to-list 'load-path (concat dotfiles-dir "init"))
-(add-to-list 'exec-path (concat dotfiles-dir "scripts"))
-(require 'functions)                    ; load the include function
+(require 'functions)
 (include 'settings)
 (include 'bindings)
 
@@ -133,6 +138,11 @@
 (include 'my-shell-script)
 (include 'my-tab)
 (include 'my-wlor)
+
+(setq system-name-short (car (split-string system-name "\\.")))
+(include (intern (concat system-name-short "-postload")))
+(unintern system-name-short)  ; remove symbol to avoid name collisions later
+
 
 (provide 'init)
 ;;; init.el ends here
