@@ -45,16 +45,24 @@
 (defvar msys-home ""
   "The path to the user's MSYS installation.")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Load system-specific configuration
-
+;; Set up the emacs load path
 (add-to-list 'load-path (concat dotfiles-dir "init"))
+(add-to-list 'load-path (concat dotfiles-dir "base"))
 (add-to-list 'load-path (concat dotfiles-dir "site"))
+(add-to-list 'load-path (concat dotfiles-dir "mode"))
+
+;; Init... Set up window appearance, color theme, etc
+(require 'functions)
+(include 'settings)
+(include 'bindings)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load site-specific configuration
 
 (setq system-name-short
       (concat (car (split-string system-name "\\.")) "-preload"))
-(message (concat "Loading " system-name-short))
-(require (intern system-name-short))
+(include (intern system-name-short))
 (unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -71,22 +79,14 @@
 ;; TODO change email depending on where I am
 (setq user-mail-address "rod@thirdoption.info")
 
-;; TODO: Look to see which machine and OS we are on, and set this
-;; variable appropriately. 
-(defvar msys-home "C:/Users/Rod/Apps/MinGW/msys/1.0/bin/"
-  "The path to the user's MSYS installation.")
-
-(defvar dotfiles-dir (file-name-directory
-                      (or (buffer-file-name) load-file-name))
-  "The directory where the user's configuration files are kept.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use packages from ELPA and MELPA whenever possible
 
 (defvar my-packages
-  '(hc-zenburn-theme
+  '(auto-complete
     autopair
     dired-details+
+    hc-zenburn-theme
     hippie-exp
     pager
     whole-line-or-region
@@ -121,31 +121,59 @@
 (setq custom-file (concat dotfiles-dir "custom.el"))
 (load custom-file 'noerror)
 
-;; Init... Set up window appearance, color theme, etc
-(require 'functions)
-(include 'settings)
-(include 'bindings)
-
 ;; Base... Include user-written packages to be used in every session
-(add-to-list 'load-path (concat dotfiles-dir "base"))
 (include 'my-autopair)
 (include 'my-bookmarks)
-(include 'my-chrome)
-(include 'my-dired)
+;; (include 'my-dired)
 (include 'my-ediff)
 (include 'my-info)
 (include 'my-occur)
 (include 'my-pager)
-;(include 'my-point-stack)
 (include 'my-shell-script)
-(include 'my-tab)
+;(include 'my-tab)
 (include 'my-wlor)
 
-(setq system-name-short (car (split-string system-name "\\.")))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Auto-complete configuration
+;; TODO integrate with my-tab and my-minitab
+
+;; Autocomplete configuration
+(require 'auto-complete-config)
+(ac-config-default)                     ; perhaps should be mode-specific
+(setq ac-auto-start nil)                ; don't start automatically
+(define-key ac-mode-map                 ; TAB starts autocompletion
+  (kbd "TAB") 'auto-complete)
+;; (setq-default
+;;  ac-sources
+;;  '(ac-source-abbrev
+;;    ac-source-dictionary
+;;    ac-source-words-in-same-mode-buffers))
+
+;; TODO move these hooks to mode-specific setup
+(add-hook 'emacs-lisp-mode-hook 'ac-emacs-lisp-mode-setup)
+(add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
+(add-hook 'ruby-mode-hook 'ac-ruby-mode-setup)
+(add-hook 'css-mode-hook 'ac-css-mode-setup)
+(add-hook 'auto-complete-mode-hook 'ac-common-setup)
+(global-auto-complete-mode t)
+
+;; Clojure CIDER mode
+;; (require 'ac-cider)
+;; (add-hook 'cider-mode-hook 'ac-flyspell-workaround)
+;; (add-hook 'cider-mode-hook 'ac-cider-setup)
+;; (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
+;; (eval-after-load "auto-complete"
+;;   '(progn
+;;      (add-to-list 'ac-modes 'cider-mode)
+;;      (add-to-list 'ac-modes 'cider-repl-mode)))
+;; (defun set-auto-complete-as-completion-at-point-function ()
+;;   (setq completion-at-point-functions '(auto-complete)))
+;; (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+;; (add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
 (setq system-name-short
       (concat (car (split-string system-name "\\.")) "-postload"))
-(message (concat "Loading " system-name-short))
-(require (intern system-name-short))
+(include (intern system-name-short))
 (unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 

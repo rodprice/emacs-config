@@ -746,6 +746,8 @@ or if CONDITION had no actions, after all other CONDITIONs."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interface to web browsers
+;; TODO move this functionality to site-specific place, since it may
+;; change for every new machine it runs on
 
 (defun browse-url-chrome (url &rest args)
   (interactive (browse-url-interactive-arg "URL: "))
