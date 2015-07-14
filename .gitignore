@@ -1,11 +1,11 @@
 auto-save-list
-backup
-server
-elpa
+backup/
+server/
+elpa/
+site/
 custom.el
 places
 recentf
-AURO-SUFL015316
 url/
 .org-id-locations
 \#*
@@ -16,3 +16,4 @@ org-mode-config.el
 *.log
 .DS_Store
 org-clock-save.el
+ido.last

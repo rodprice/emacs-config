@@ -49,9 +49,12 @@
 ;; Load system-specific configuration
 
 (add-to-list 'load-path (concat dotfiles-dir "init"))
+(add-to-list 'load-path (concat dotfiles-dir "site"))
 
-(setq system-name-short (car (split-string system-name "\\.")))
-(require (intern (concat system-name-short "-preload")))
+(setq system-name-short
+      (concat (car (split-string system-name "\\.")) "-preload"))
+(message (concat "Loading " system-name-short))
+(require (intern system-name-short))
 (unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -85,7 +88,6 @@
     autopair
     dired-details+
     hippie-exp
-    maxframe
     pager
     whole-line-or-region
     yasnippet)
@@ -140,7 +142,10 @@
 (include 'my-wlor)
 
 (setq system-name-short (car (split-string system-name "\\.")))
-(include (intern (concat system-name-short "-postload")))
+(setq system-name-short
+      (concat (car (split-string system-name "\\.")) "-postload"))
+(message (concat "Loading " system-name-short))
+(require (intern system-name-short))
 (unintern system-name-short)  ; remove symbol to avoid name collisions later
 
 
