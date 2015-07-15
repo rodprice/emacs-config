@@ -39,6 +39,18 @@
 (add-to-list 'auto-mode-alist '("[mM]akefile"      . makefile-mode))
 (add-to-list 'auto-mode-alist '("\\.s43"           . gas-mode))
 
+;; Use the MELPA as well as the GNU package archives
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
+;; Don't run twice. See http://stackoverflow.com/questions/11127109/emacs-24-package-system-initialization-problems
+(setq package-enable-at-startup nil)
+(package-initialize)
+;; Make sure that everything in `my-packages` is loaded
+(dolist (p my-packages)
+  (unless (package-installed-p p)
+    (package-install p)))
+
 ;; Use UTF-8 throughout
 (prefer-coding-system       'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -59,6 +71,9 @@
 ;; Show line numbers in buffers
 (require 'linum)
 (linum-on)
+
+(require 'discover)
+(global-discover-mode 1)
 
 ;; If no other mode is specified, use text mode.
 (setq default-major-mode 'text-mode)

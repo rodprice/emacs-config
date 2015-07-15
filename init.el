@@ -45,6 +45,18 @@
 (defvar msys-home ""
   "The path to the user's MSYS installation.")
 
+(defvar my-packages
+  '(auto-complete
+    autopair
+    dired-details+
+    discover
+    hc-zenburn-theme
+    hippie-exp
+    pager
+    whole-line-or-region
+    yasnippet)
+  "A list of packages that should always be available.")
+
 ;; Set up the emacs load path
 (add-to-list 'load-path (concat dotfiles-dir "init"))
 (add-to-list 'load-path (concat dotfiles-dir "base"))
@@ -55,7 +67,6 @@
 (require 'functions)
 (include 'settings)
 (include 'bindings)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load site-specific configuration
@@ -82,28 +93,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use packages from ELPA and MELPA whenever possible
 
-(defvar my-packages
-  '(auto-complete
-    autopair
-    dired-details+
-    hc-zenburn-theme
-    hippie-exp
-    pager
-    whole-line-or-region
-    yasnippet)
-  "A list of packages that should always be available.")
-
-;; Use the MELPA as well as the GNU package archives
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "http://melpa.org/packages/") t)
-;; Don't run twice. See http://stackoverflow.com/questions/11127109/emacs-24-package-system-initialization-problems
-(setq package-enable-at-startup nil)
-(package-initialize)
-;; Make sure that everything in `my-packages` is loaded
-(dolist (p my-packages)
-  (unless (package-installed-p p)
-    (package-install p)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window appearance
