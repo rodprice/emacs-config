@@ -30,14 +30,6 @@
 ;;; Code:
 
 
-;; These will be used in every session
-(require 'cl)
-(require 'saveplace)
-(require 'ffap)
-(require 'uniquify)
-(require 'ansi-color)
-(require 'recentf)
-
 (defvar dotfiles-dir (file-name-directory
                       (or (buffer-file-name) load-file-name))
   "The directory where the user's configuration files are kept.")
@@ -57,24 +49,14 @@
     yasnippet)
   "A list of packages that should always be available.")
 
-;; Set up the emacs load path
-(add-to-list 'load-path (concat dotfiles-dir "init"))
-(add-to-list 'load-path (concat dotfiles-dir "base"))
-(add-to-list 'load-path (concat dotfiles-dir "site"))
-(add-to-list 'load-path (concat dotfiles-dir "mode"))
-
-;; Init... Set up window appearance, color theme, etc
-(require 'functions)
-(include 'settings)
-(include 'bindings)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Load site-specific configuration
+;; Load some site-specific configuration before anything else
 
-(setq system-name-short
-      (concat (car (split-string system-name "\\.")) "-preload"))
-(include (intern system-name-short))
-(unintern system-name-short)  ; remove symbol to avoid name collisions later
+(let* ((system-name-short (car (split-string system-name "\\.")))
+       (site-path (concat dotfiles-dir "site/"))
+       (file-name (concat site-path system-name-short "-preload")))
+  ;; fail silently
+  (load file-name 'noerror 'nomessage))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -84,15 +66,23 @@
   (server-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set up the emacs load path
+
+(add-to-list 'load-path (concat dotfiles-dir "init"))
+(add-to-list 'load-path (concat dotfiles-dir "base"))
+(add-to-list 'load-path (concat dotfiles-dir "mode"))
+
+;; Init... Set up window appearance, color theme, etc
+(require 'functions)
+(include 'settings)
+(include 'bindings)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tell emacs a few things about myself and its environment
 
 (setq user-full-name "Rodney Price")
 ;; TODO change email depending on where I am
 (setq user-mail-address "rod@thirdoption.info")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Use packages from ELPA and MELPA whenever possible
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window appearance
@@ -160,10 +150,14 @@
 ;; (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
 ;; (add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
 
-(setq system-name-short
-      (concat (car (split-string system-name "\\.")) "-postload"))
-(include (intern system-name-short))
-(unintern system-name-short)  ; remove symbol to avoid name collisions later
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load the rest of the site-specific configuration
+
+(let* ((system-name-short (car (split-string system-name "\\.")))
+       (site-path (concat dotfiles-dir "site/"))
+       (file-name (concat site-path system-name-short "-postload")))
+  ;; fail silently
+  (load file-name 'noerror 'nomessage))
 
 
 (provide 'init)

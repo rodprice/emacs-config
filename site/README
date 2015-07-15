@@ -1,0 +1,20 @@
+Files in this directory include configuration (variables, other
+settings) to be loaded only on specific machines. Two files are
+loaded:
+
+    <system-name-short>-preload.el
+    <system-name-short>-postload.el
+
+The string system-name-short is the name of the system, found as
+follows: 
+
+    (system-name-short (car (split-string system-name "\\.")))
+
+The preload file is loaded before anything else is evaluated in the
+init.el file, while the postload file is run after everything else is
+evaluated in the init.el file.
+
+The preload file is useful for loading variables needed by other
+initialization functions, such as url-proxy-services which sets up
+proxies if this machine is behind a firewall. The postload file can be
+used for other machine-specific customizations.

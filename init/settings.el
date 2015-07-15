@@ -26,6 +26,14 @@
 
 (require 'functions)
 
+;; These will be used in every session
+(require 'cl)
+(require 'saveplace)
+(require 'ffap)
+(require 'uniquify)
+(require 'ansi-color)
+(require 'recentf)
+
 ;; Modes that I haven't configured yet
 (add-to-list 'auto-mode-alist '("COMMIT_EDITMSG$"  . diff-mode))
 (add-to-list 'auto-mode-alist '("\\.css$"          . css-mode))
