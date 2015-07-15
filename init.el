@@ -122,7 +122,7 @@
 (ac-config-default)                     ; perhaps should be mode-specific
 (setq ac-auto-start nil)                ; don't start automatically
 (define-key ac-mode-map                 ; TAB starts autocompletion
-  (kbd "TAB") 'auto-complete)
+  [tab] 'auto-complete)
 ;; (setq-default
 ;;  ac-sources
 ;;  '(ac-source-abbrev
@@ -136,14 +136,6 @@
 (add-hook 'css-mode-hook 'ac-css-mode-setup)
 (add-hook 'auto-complete-mode-hook 'ac-common-setup)
 (global-auto-complete-mode t)
-
-
-;; see http://www.emacswiki.org/emacs/iflipb
-;; Flip through buffers with arrow keys
-(require 'iflipb)
-(setq iflipb-wrap-around t)
-(global-set-key (kbd "<M-right>") 'iflipb-next-buffer)
-(global-set-key (kbd "<M-left>") 'iflipb-previous-buffer)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

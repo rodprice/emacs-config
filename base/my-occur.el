@@ -22,9 +22,13 @@
 ;; (kbd `C-o') Call occur on the current buffer.
 (define-key global-map (kbd "C-o") 'my-occur)
 
+;; (kbd `M-o') Call occur on all buffers with the same major mode.
+(define-key global-map (kbd "M-o") 'my-multi-occur)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode-specific key bindings
+;; TODO these key bindings don't seem to be having an effect in the *occur* buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (kbd `q') Leave occur mode.
@@ -56,30 +60,59 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defvar source-buffer nil
+  "The buffer being searched.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode-specific functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar source-buffer nil
-  "The buffer being searched.")
+;; See https://www.masteringemacs.org/article/searching-buffers-occur-mode
+(defun get-buffers-matching-mode (mode)
+  "Returns a list of buffers where their major-mode is equal to MODE"
+  (let ((buffer-mode-matches '()))
+   (dolist (buf (buffer-list))
+     (with-current-buffer buf
+       (if (eq mode major-mode)
+           (add-to-list 'buffer-mode-matches buf))))
+   buffer-mode-matches))
+
+;; TODO make (next-error-follow-minor-mode) work in the *occur* window
+;; (add-hook 'occur-hook 'next-error-follow-minor-mode) ; doesn't work
 
 (defun my-occur (&optional arg)
   "Open the occur buffer in a narrow vertical window on the
 right-hand side of the frame.  Returns the new occur buffer."
-  (interactive
-   (list (if (and (symbolp 'arg)
-                  (boundp 'arg)
-                  (> (length arg) 0))
-             (read-string (format "Regexp: %s" arg) nil nil arg)
-           (read-string "Regexp: "))))
+  (interactive)
   (setq source-buffer (current-buffer))
   (window-configuration-to-register ?y)
-  (occur arg)
+  (occur (car (occur-read-primary-args)))
   (let ((occur-buffer (get-buffer "*Occur*")))
     (if (not occur-buffer)
         (message "There are no results.")
       (delete-other-windows)
-      (let ((window (split-window-horizontally 95)))
+      (let ((window (split-window-horizontally 75)))
+        (setq buffer (pop-to-buffer occur-buffer t))
+        (setq truncate-lines t)
+        (my-occur-linum-off)
+        occur-buffer))))
+
+(defun my-multi-occur (&optional arg)
+  "Open the occur buffer in a narrow vertical window on the
+right-hand side of the frame.  Search all buffers with the 
+same major mode of the current buffer.  Returns the new occur 
+buffer."
+  (interactive)
+  (setq source-buffer (current-buffer))
+  (window-configuration-to-register ?y)
+  (multi-occur
+   (get-buffers-matching-mode major-mode)
+   (car (occur-read-primary-args)))
+  (let ((occur-buffer (get-buffer "*Occur*")))
+    (if (not occur-buffer)
+        (message "There are no results.")
+      (delete-other-windows)
+      (let ((window (split-window-horizontally 75)))
         (setq buffer (pop-to-buffer occur-buffer t))
         (setq truncate-lines t)
         (my-occur-linum-off)

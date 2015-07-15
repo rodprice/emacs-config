@@ -80,7 +80,16 @@
 (require 'linum)
 (linum-on)
 
-;; Use easier syntax in re-builder?
+;; Flip through buffers with arrow keys
+(require 'iflipb)
+(setq iflipb-wrap-around t)
+(global-set-key (kbd "<C-kp-right>") 'iflipb-next-buffer)
+(global-set-key (kbd "<C-kp-6>") 'iflipb-next-buffer)
+(global-set-key (kbd "<C-kp-left>") 'iflipb-previous-buffer)
+(global-set-key (kbd "<C-kp-4>") 'iflipb-next-buffer)
+
+;; When creating a new file from ido-switch-buffer,
+;; use the appropriate major mode
 (setq-default major-mode 'major-mode-from-name)
 
 (require 'discover)
