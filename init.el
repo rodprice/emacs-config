@@ -40,10 +40,11 @@
 (defvar my-packages
   '(auto-complete
     autopair
+    deft
     dired-details+
     discover
     hc-zenburn-theme
-    hippie-exp
+    iflipb
     pager
     whole-line-or-region
     yasnippet)
@@ -136,19 +137,20 @@
 (add-hook 'auto-complete-mode-hook 'ac-common-setup)
 (global-auto-complete-mode t)
 
-;; Clojure CIDER mode
-;; (require 'ac-cider)
-;; (add-hook 'cider-mode-hook 'ac-flyspell-workaround)
-;; (add-hook 'cider-mode-hook 'ac-cider-setup)
-;; (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
-;; (eval-after-load "auto-complete"
-;;   '(progn
-;;      (add-to-list 'ac-modes 'cider-mode)
-;;      (add-to-list 'ac-modes 'cider-repl-mode)))
-;; (defun set-auto-complete-as-completion-at-point-function ()
-;;   (setq completion-at-point-functions '(auto-complete)))
-;; (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
-;; (add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
+;; see http://www.emacswiki.org/emacs/iflipb
+;; Flip through buffers with arrow keys
+(require 'iflipb)
+(setq iflipb-wrap-around t)
+(global-set-key (kbd "<M-right>") 'iflipb-next-buffer)
+(global-set-key (kbd "<M-left>") 'iflipb-previous-buffer)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Configure major modes
+
+(include 'my-org-mode)
+(include 'my-clojure-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration

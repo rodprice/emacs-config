@@ -784,6 +784,18 @@ or if CONDITION had no actions, after all other CONDITIONs."
 ;;
 ;; "$SHELL" //c "lein.bat $1 $2 $3 $4 $5"
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Create a new file from the switch buffer menu
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; http://www.reddit.com/r/emacs/comments/2188jl/my_lovehate_relationship_with_emacs/
+(defun major-mode-from-name ()
+  "Choose proper mode for buffers created by switch-to-buffer."
+  (if (boundp 'auto-mode-failed)
+      (fundamental-mode)
+    (let ((buffer-file-name (or buffer-file-name (buffer-name)))
+          (auto-mode-failed nil))
+      (set-auto-mode))))
 
 (provide 'functions)
 ;;; functions.el ends here

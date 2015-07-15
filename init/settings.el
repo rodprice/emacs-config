@@ -80,6 +80,9 @@
 (require 'linum)
 (linum-on)
 
+;; Use easier syntax in re-builder?
+(setq-default major-mode 'major-mode-from-name)
+
 (require 'discover)
 (global-discover-mode 1)
 
