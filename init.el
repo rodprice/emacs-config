@@ -41,10 +41,10 @@
   '(auto-complete
     autopair
     deft
-    dired-details+
     discover
     hc-zenburn-theme
     iflipb
+    omn-mode
     pager
     whole-line-or-region
     yasnippet)
@@ -104,7 +104,6 @@
 ;; Base... Include user-written packages to be used in every session
 (include 'my-autopair)
 (include 'my-bookmarks)
-;; (include 'my-dired)
 (include 'my-ediff)
 (include 'my-info)
 (include 'my-occur)
