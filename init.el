@@ -116,6 +116,17 @@
 ;; Auto-complete configuration
 ;; TODO integrate with my-tab and my-minitab
 
+;; yasnippet configuration
+(require 'yasnippet)
+(yas-global-mode t)
+;; Remove yasnippet's default tab key binding
+(define-key yas-minor-mode-map (kbd "<tab>") nil)
+(define-key yas-minor-mode-map (kbd "TAB") nil)
+;; Distinguish C-i from TAB
+(define-key input-decode-map [?\C-i] [C-i])
+;; Bind C-i to yasnippet
+(define-key yas-minor-mode-map (kbd "<C-i>") 'yas-expand)
+
 ;; Autocomplete configuration
 (require 'auto-complete-config)
 (ac-config-default)                     ; perhaps should be mode-specific
