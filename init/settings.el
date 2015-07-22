@@ -48,12 +48,14 @@
 (add-to-list 'auto-mode-alist '("\\.s43"           . gas-mode))
 
 ;; Use the MELPA as well as the GNU package archives
-(require 'package)
+(require 'package)  
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/") t)
 ;; Don't run twice. See http://stackoverflow.com/questions/11127109/emacs-24-package-system-initialization-problems
 (setq package-enable-at-startup nil)
 (package-initialize)
+;; TODO figure out how to do this only when necessary
+(package-refresh-contents)
 ;; Make sure that everything in `my-packages` is loaded
 (dolist (p my-packages)
   (unless (package-installed-p p)
