@@ -40,10 +40,12 @@
 (defvar my-packages
   '(auto-complete
     autopair
+    clojure-mode
     deft
     discover
     hc-zenburn-theme
     iflipb
+    inf-clojure
     omn-mode
     pager
     whole-line-or-region
@@ -152,7 +154,7 @@
 ;; Configure major modes
 
 (include 'my-org-mode)
-(include 'my-clojure-mode)
+(include 'my-clojure-mode)              ; nothing in there yet
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
