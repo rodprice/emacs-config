@@ -24,6 +24,7 @@
 
 ;;; Code:
 
+(add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
 
 ;; Clojure CIDER mode
 ;; (require 'ac-cider)
