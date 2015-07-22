@@ -20,7 +20,9 @@
 
 ;;; Commentary:
 
-;; See 
+;; If the repl does not respond on Windows, create a file .jline.rc in
+;; your home directory and include the line "jline.terminal=unsupported"
+;; in the file.
 
 ;;; Code:
 
