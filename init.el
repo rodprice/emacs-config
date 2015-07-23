@@ -41,7 +41,6 @@
   '(auto-complete
     autopair
     clojure-mode
-    deft
     discover
     hc-zenburn-theme
     iflipb
@@ -154,7 +153,7 @@
 ;; Configure major modes
 
 (include 'my-org-mode)
-(include 'my-clojure-mode)              ; nothing in there yet
+(include 'my-clojure-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration

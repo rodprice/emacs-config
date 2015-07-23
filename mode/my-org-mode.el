@@ -21,36 +21,42 @@
 ;;; Commentary:
 
 ;; See http://orgmode.org/worg/org-tutorials/orgtutorial_dto.html
-;; Org-mode setup tutorial at
-;; http://sachachua.com/blog/2015/02/learn-take-notes-efficiently-org-mode/
-;; Org-remember mode at
-;; http://blog.gabrielsaldana.org/quick-note-taking-with-emacs-and-org-capture/
-
-;; Deft description at http://jblevins.org/projects/deft/
+;; Org-mode setup tutorial at http://doc.norang.ca/org-mode.html
 
 ;;; Code:
 
 
-(include 'deft)
-;; Create org files by default
-(setq deft-extensions
-      '("org" "md" "markdown" "txt" "text"))
-(global-set-key [f1] 'deft)
-(global-set-key (kbd "C-x C-g") 'deft-find-file)
-;; Make readable filenames
-(setq deft-use-filename-as-title nil)
-(setq deft-use-filter-string-for-filename t)
-
-(add-hook 'deft-mode-hook 'split-window)
-
-(include 'org)
+(require 'org)
+;; TODO move these bindings to bindings.el??
+;; Key bindings to be used globally
 (define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-cc" 'org-capture)
 (define-key global-map "\C-ca" 'org-agenda)
-(setq org-log-done t)
+(define-key global-map "\C-cb" 'org-switchb)
 
-;; Any org file in the default deft directory is an agenda file
+(setq org-log-done t)
+(setq org-default-notes-file
+      (concat org-directory "/notes.org"))
+
+;; Use ido completion within org files
+(setq org-outline-path-complete-in-steps nil)
+(setq org-completion-use-ido t)
+;; Agenda files live in org-directory
 (setq org-agenda-files
-      (directory-files deft-directory nil ".+\\.org\\b"))
+      (list org-directory))
+
+;; Templates for org capture mode
+(setq org-capture-templates
+      (quote (("t" "todo" entry (file org-default-notes-file)
+               "** TODO %?\n%U\n")
+              ("l" "linked todo" entry (file org-def)
+               "** TODO %?\n%U\n%a\n")
+              ("n" "note" entry (file org-default-notes-file)
+               "** %? :NOTE:\n%U\n")
+              ("p" "phone call" entry (file org-default-notes-file)
+               "** PHONE %? :PHONE:\n%U")
+              ("m" "meeting" entry (file org-default-notes-file)
+               "** MEETING with %? :MEETING:\n%U"))))
 
 (provide 'my-org-mode)
 ;;; my-org-mode.el ends here
