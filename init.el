@@ -45,6 +45,7 @@
     hc-zenburn-theme
     iflipb
     inf-clojure
+    markdown-mode
     omn-mode
     pager
     whole-line-or-region

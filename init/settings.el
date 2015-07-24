@@ -96,8 +96,8 @@
 (require 'discover)
 (global-discover-mode 1)
 
-;; If no other mode is specified, use text mode.
-(setq default-major-mode 'text-mode)
+;; If no other mode is specified, use markdown mode.
+(setq default-major-mode 'markdown-mode)
 ;; Short answers always, please
 (defalias 'yes-or-no-p 'y-or-n-p)
 ;; Seed the random-number generator
