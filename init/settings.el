@@ -79,7 +79,20 @@
 
 ;; Show line numbers in buffers
 (require 'linum)
-(linum-on)
+(global-linum-mode)
+;; Highlight the line number beside the current line
+(require 'hlinum)
+(hlinum-activate)
+;; Customize the face of the line number on the current line
+(set-face-bold 'linum-highlight-face t)
+;; Works only when using hc-zenburn-theme
+(when (boundp 'hc-zenburn-colors-alist)
+  (set-face-background
+   'linum-highlight-face
+   (cdr (assoc "hc-zenburn-bg" hc-zenburn-colors-alist)))
+  (set-face-foreground
+   'linum-highlight-face
+   (cdr (assoc "hc-zenburn-green+3" hc-zenburn-colors-alist))))
 
 ;; Flip through buffers with arrow keys
 (require 'iflipb)

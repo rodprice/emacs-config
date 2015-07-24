@@ -43,6 +43,7 @@
     clojure-mode
     discover
     hc-zenburn-theme
+    hlinum
     iflipb
     inf-clojure
     markdown-mode
