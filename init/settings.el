@@ -77,6 +77,16 @@
       truncate-partial-width-windows nil
       uniquify-buffer-name-style 'forward)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window appearance
+
+(load-theme 'hc-zenburn t)
+
+;; Make the default font readable for my old eyes
+(set-face-attribute
+ 'default nil
+ :font "-outline-Lucida Console-normal-normal-normal-mono-16-*-*-*-c-*-iso8859-1")
+
 ;; Show line numbers in buffers
 (require 'linum)
 (global-linum-mode)

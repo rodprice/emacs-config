@@ -88,16 +88,6 @@
 ;; TODO change email depending on where I am
 (setq user-mail-address "rod@thirdoption.info")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Window appearance
-
-(load-theme 'hc-zenburn t)
-
-;; Make the default font readable for my old eyes
-(set-face-attribute
- 'default nil
- :font "-outline-Lucida Console-normal-normal-normal-mono-16-*-*-*-c-*-iso8859-1")
-
 ;; Load automatically generated lisp files
 (setq autoload-file (concat dotfiles-dir "loaddefs.el"))
 (load autoload-file 'noerror)
