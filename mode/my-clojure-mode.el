@@ -32,6 +32,8 @@
 ;; Use paredit to make parens easier to work with
 (require 'paredit)
 (add-hook 'clojure-mode-hook 'paredit-mode)
+;; Put paredit commands in a menu for easy reference
+(require 'paredit-menu)
 
 
 ;; Clojure CIDER mode
