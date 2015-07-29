@@ -26,7 +26,13 @@
 
 ;;; Code:
 
+;; This minor mode looks like inferior lisp mode - simple
 (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
+
+;; Use paredit to make parens easier to work with
+(require 'paredit)
+(add-hook 'clojure-mode-hook 'paredit-mode)
+
 
 ;; Clojure CIDER mode
 ;; (require 'ac-cider)

@@ -49,6 +49,7 @@
     markdown-mode
     omn-mode
     pager
+    paredit
     whole-line-or-region
     yasnippet)
   "A list of packages that should always be available.")
