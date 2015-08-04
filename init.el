@@ -44,8 +44,10 @@
     discover
     hc-zenburn-theme
     hlinum
+    hydra
     iflipb
     inf-clojure
+    lispy
     markdown-mode
     omn-mode
     pager
@@ -77,6 +79,7 @@
 (add-to-list 'load-path (concat dotfiles-dir "init"))
 (add-to-list 'load-path (concat dotfiles-dir "base"))
 (add-to-list 'load-path (concat dotfiles-dir "mode"))
+(add-to-list 'load-path (concat dotfiles-dir "other"))
 
 ;; Init... Set up window appearance, color theme, etc
 (require 'functions)
@@ -135,7 +138,6 @@
 ;;    ac-source-words-in-same-mode-buffers))
 
 ;; TODO move these hooks to mode-specific setup
-(add-hook 'emacs-lisp-mode-hook 'ac-emacs-lisp-mode-setup)
 (add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
 (add-hook 'ruby-mode-hook 'ac-ruby-mode-setup)
 (add-hook 'css-mode-hook 'ac-css-mode-setup)
@@ -146,8 +148,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Configure major modes
 
-(include 'my-org-mode)
 (include 'my-clojure-mode)
+(include 'my-elisp-mode)
+(include 'my-org-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
