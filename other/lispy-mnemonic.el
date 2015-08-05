@@ -337,7 +337,7 @@
 (define-minor-mode lispy-mnemonic-mode
   "Mnemonic key bindings (and hydras) for Lispy."
   :init-value nil
-  :lighter " 💡"
+  :lighter " lispy"
   :keymap lispy-mnemonic-mode-map
   :after-hook (when lispy-mnemonic-restore-bindings
                 (lispy-mnemonic--restore-bindings)))

@@ -26,8 +26,14 @@
 
 (require 'lispy-mnemonic)
 (add-hook 'emacs-lisp-mode-hook 'ac-emacs-lisp-mode-setup)
-(add-hook 'emacs-lisp-mode-hook 'lispy-mnemonic-mode)
 
+;; Use lispy rather than autopair in elisp buffers
+(add-hook 'emacs-lisp-mode-hook
+          #'(lambda ()
+              (if (< emacs-major-version 24)
+                  (setq autopair-dont-activate t)
+                (autopair-mode -1))))
+(add-hook 'emacs-lisp-mode-hook 'lispy-mnemonic-mode)
 
 (provide 'my-elisp-mode)
 ;;; my-elisp-mode.el ends here

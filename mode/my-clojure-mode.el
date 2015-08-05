@@ -29,12 +29,13 @@
 ;; This minor mode looks like inferior lisp mode - simple
 (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
 
-;; Use paredit to make parens easier to work with
-(require 'paredit)
-(add-hook 'clojure-mode-hook 'paredit-mode)
-;; Put paredit commands in a menu for easy reference
-(require 'paredit-menu)
-
+;; Use lispy rather than autopair in clojure buffers
+(add-hook 'clojure-mode-hook
+          #'(lambda ()
+              (if (< emacs-major-version 24)
+                  (setq autopair-dont-activate t)
+                (autopair-mode -1))))
+(add-hook 'clojure-mode-hook 'lispy-mnemonic-mode)
 
 ;; Clojure CIDER mode
 ;; (require 'ac-cider)
