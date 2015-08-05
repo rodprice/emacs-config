@@ -569,7 +569,7 @@ easy reading."
 
 ;; Association lists
 
-(require 'assoc)
+;; (require 'assoc)
 
 (defun pop-alist (alist-symbol key)
   "Returns the pair RESULT with key KEY from ALIST, removing
