@@ -51,6 +51,7 @@
     markdown-mode
     omn-mode
     pager
+    use-package
     whole-line-or-region
     yasnippet)
   "A list of packages that should always be available.")
@@ -114,6 +115,7 @@
 
 ;; yasnippet configuration
 (require 'yasnippet)
+(setq yas-verbosity 2)
 (yas-global-mode t)
 ;; Remove yasnippet's default tab key binding
 (define-key yas-minor-mode-map (kbd "<tab>") nil)

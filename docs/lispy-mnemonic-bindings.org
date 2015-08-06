@@ -1,0 +1,380 @@
+#+TITLE: Bindings
+Below you will find a list of key sequences and associated commands.
+There are three special cases:
+
+1. If a key sequence is *unbound*, this means that neither =lispy= nor
+   =lispy-mnemonic= binds it.
+
+   In other words: You can bind the sequence to any command you like
+   without affecting default bindings provided by =lispy= or
+   =lispy-mnemonic=.
+
+2. If a key sequence is *available*, this means:
+
+   - =lispy-mnemonic= does /not/ bind it.
+   - =lispy= binds it, but the command that it is bound to has been
+     given an alternative binding in =lispy-mnemonic=.
+
+   In other words: If you bind the sequence to a command of your
+   choice, you will override a default binding provided by =lispy=,
+   but you won't affect any default bindings provided by
+   =lispy-mnemonic=. The command that =lispy= binds this sequence to
+   will /not/ become unbound.
+
+3. If a key sequence is *endangered*, this means:
+
+   - =lispy-mnemonic= does /not/ bind it.
+   - =lispy= binds it, and the command that it is bound to has /not/
+     been given an alternative binding in =lispy-mnemonic= (yet).
+
+   In other words: If you bind the sequence to a command of your
+   choice, you will override a default binding provided by =lispy=,
+   and the command that =lispy= binds this sequence to will become
+   unbound.
+
+* Table of Contents
+  - [[#global-bindings][Global bindings]]
+  - [[#local-bindings][Local bindings]]
+    - [[#a-z][a-z]]
+    - [[#a-z-1][A-Z]]
+  - [[#hydras][Hydras]]
+    - [[#lispy-ace-a][Lispy Ace]]
+    - [[#lispy-debug-s-d][Lispy Debug]]
+    - [[#lispy-eval-e][Lispy Eval]]
+    - [[#lispy-format-f][Lispy Format]]
+    - [[#lispy-goto-g][Lispy Goto]]
+    - [[#lispy-mark-s-m-m][Lispy Mark]]
+    - [[#lispy-move-m][Lispy Move]]
+    - [[#lispy-outline-o][Lispy Outline]]
+    - [[#lispy-raise-r][Lispy Raise]]
+    - [[#lispy-slurp-][Lispy Slurp]]
+    - [[#lispy-x-s-x-x][Lispy X]]
+  - [[#unbound-commands][Unbound commands]]
+
+* Global bindings
+  :PROPERTIES:
+  :CUSTOM_ID: global-bindings
+  :END:
+  | Binding    | Command name                   | Orig | Mnemonic                                         |
+  |------------+--------------------------------+------+--------------------------------------------------|
+  | `          | lispy-backtick                 | yes  |                                                  |
+  | '          | lispy-tick                     | yes  |                                                  |
+  | "          | [[http://oremacs.com/lispy/#lispy-quotes][lispy-quotes]]                   | yes  |                                                  |
+  | (          | [[http://oremacs.com/lispy/#lispy-parens][lispy-parens]]                   | yes  |                                                  |
+  | )          | [[http://oremacs.com/lispy/#lispy-right-nostring][lispy-right-nostring]]           | yes  |                                                  |
+  | [          | [[http://oremacs.com/lispy/#lispy-brackets][lispy-brackets]]                 |      |                                                  |
+  | {          | [[http://oremacs.com/lispy/#lispy-braces][lispy-braces]]                   | yes  |                                                  |
+  | :          | lispy-colon                    | yes  |                                                  |
+  | ;          | [[http://oremacs.com/lispy/#lispy-comment][lispy-comment]]                  | yes  |                                                  |
+  | #          | lispy-hash                     | yes  |                                                  |
+  | ^          | lispy-hat                      | yes  |                                                  |
+  | s-d        | [[#lispy-debug-s-d][Hydra: Lispy Debug]]             |      |                                                  |
+  | s-i        | lispy-iedit                    |      |                                                  |
+  | s-j        | lispy-join                     |      |                                                  |
+  | s-l        | [[http://oremacs.com/lispy/#lispy-left][lispy-left]]                     |      |                                                  |
+  | s-m        | [[#lispy-mark-s-m-m][Hydra: Lispy Mark]]              |      |                                                  |
+  | s-o        | [[http://oremacs.com/lispy/#lispy-out-forward-newline][lispy-out-forward-newline]]      |      | Enhanced version of =open-line=                  |
+  | s-r        | [[http://oremacs.com/lispy/#lispy-right][lispy-right]]                    |      |                                                  |
+  | s-s        | lispy-split                    |      |                                                  |
+  | s-u        | lispy-splice                   |      | *Unwrap* sexp containing point                   |
+  | s-x        | [[#lispy-x-s-x-x][Hydra: Lispy X]]                 |      |                                                  |
+  | C-(, C-)   | [[http://oremacs.com/lispy/#lispy-arglist-inline][lispy-arglist-inline]]           |      | Arglist of =defun= surrounded by =()=            |
+  | C-;        | [[http://oremacs.com/lispy/#lispy-describe-inline][lispy-describe-inline]]          |      | "Comment" on function or currently-marked symbol |
+  | C-.        | [[http://oremacs.com/lispy/#lispy-kill-at-point][lispy-kill-at-point]]            |      |                                                  |
+  | C-1        | [[http://oremacs.com/lispy/#lispy-string-oneline][lispy-string-oneline]]           |      |                                                  |
+  | C-a        | lispy-move-beginning-of-line   | yes  |                                                  |
+  | C-d        | [[http://oremacs.com/lispy/#lispy-delete][lispy-delete]]                   | yes  |                                                  |
+  | C-e        | [[http://oremacs.com/lispy/#lispy-move-end-of-line][lispy-move-end-of-line]]         | yes  |                                                  |
+  | C-j        | lispy-newline-and-indent       | yes  |                                                  |
+  | C-k        | [[http://oremacs.com/lispy/#lispy-kill][lispy-kill]]                     | yes  |                                                  |
+  | C-y        | [[http://oremacs.com/lispy/#lispy-yank][lispy-yank]]                     | yes  |                                                  |
+  | DEL        | [[http://oremacs.com/lispy/#lispy-delete-backward][lispy-delete-backward]]          | yes  |                                                  |
+  | RET        | lispy-newline-and-indent-plain | yes  |                                                  |
+  | M-*        | [[http://oremacs.com/lispy/#pop-tag-mark][pop-tag-mark]]                   | yes  |                                                  |
+  | M-d        | [[http://oremacs.com/lispy/#lispy-kill-word][lispy-kill-word]]                | yes  |                                                  |
+  | M-k        | [[http://oremacs.com/lispy/#lispy-kill-sentence][lispy-kill-sentence]]            | yes  |                                                  |
+  | M-n        | [[http://oremacs.com/lispy/#lispy-forward][lispy-forward]]                  |      | Equivalent to =forward-list= (=C-M-n=)           |
+  | M-o        | [[http://oremacs.com/lispy/#lispy-parens-down][lispy-parens-down]]              |      | Enhanced version of =open-line=                  |
+  | M-p        | [[http://oremacs.com/lispy/#lispy-backward][lispy-backward]]                 |      | Equivalent to =backward-list= (=C-M-p=)          |
+  | M-q        | lispy-fill                     | yes  | =M-q= runs =fill-paragraph=                      |
+  | M-DEL      | [[http://oremacs.com/lispy/#lispy-backward-kill-word][lispy-backward-kill-word]]       | yes  |                                                  |
+  | <backtab>  | [[http://oremacs.com/lispy/#lispy-shifttab][lispy-shifttab]]                 | yes  |                                                  |
+  | <M-left>   | lispy-outline-left             | yes  |                                                  |
+  | <M-right>  | lispy-outline-right            | yes  |                                                  |
+  | <M-return> | lispy-meta-return              | yes  |                                                  |
+  |------------+--------------------------------+------+--------------------------------------------------|
+
+* Local bindings
+  :PROPERTIES:
+  :CUSTOM_ID: local-bindings
+  :END:
+** a-z
+   :PROPERTIES:
+   :CUSTOM_ID: a-z
+   :END:
+   | Binding | Command name       | Orig | Mnemonic                                |
+   |---------+--------------------+------+-----------------------------------------|
+   | a       | [[#lispy-ace-a][Hydra: Lispy Ace]]   |      |                                         |
+   | b       | lispy-back         | yes  |                                         |
+   | c       | [[http://oremacs.com/lispy/#lispy-clone][lispy-clone]]        | yes  |                                         |
+   | d       | [[http://oremacs.com/lispy/#lispy-down][lispy-down]]         |      |                                         |
+   | e       | [[#lispy-eval-e][Hydra: Lispy Eval]]  |      |                                         |
+   | f       | [[http://oremacs.com/lispy/#lispy-flow][lispy-flow]]         | yes  |                                         |
+   | g       | [[#lispy-goto-g][Hydra: Lispy Goto]]  |      |                                         |
+   | h       | *available*        |      |                                         |
+   | i       | [[http://oremacs.com/lispy/#lispy-tab][lispy-tab]]          | yes  | =C-i= is =TAB=                          |
+   | j       | *available*        |      |                                         |
+   | k       | *available*        |      |                                         |
+   | l       | [[http://oremacs.com/lispy/#lispy-left][lispy-left]]         |      |                                         |
+   | m       | [[#lispy-mark-s-m-m][Hydra: Lispy Mark]]  |      |                                         |
+   | n       | [[http://oremacs.com/lispy/#lispy-forward][lispy-forward]]      |      | Equivalent to =forward-list= (=C-M-n=)  |
+   | o       | [[http://oremacs.com/lispy/#lispy-occur][lispy-occur]]        |      |                                         |
+   | p       | [[http://oremacs.com/lispy/#lispy-backward][lispy-backward]]     |      | Equivalent to =backward-list= (=C-M-p=) |
+   | q       | *available*        |      |                                         |
+   | r       | [[http://oremacs.com/lispy/#lispy-right][lispy-right]]        |      |                                         |
+   | s       | [[http://oremacs.com/lispy/#lispy-different][lispy-different]]    |      | *Switch* to other side of current sexp  |
+   | t       | *available*        |      |                                         |
+   | u       | [[http://oremacs.com/lispy/#lispy-up][lispy-up]]           |      |                                         |
+   | v       | [[http://oremacs.com/lispy/#lispy-view][lispy-view]]         | yes  |                                         |
+   | w       | [[http://oremacs.com/lispy/#lispy-new-copy][lispy-new-copy]]     |      | =M-w= copies region                     |
+   | x       | [[#lispy-x-s-x-x][Hydra: Lispy X]]     |      |                                         |
+   | y       | *available*        |      |                                         |
+   | z       | lispy-repeat       |      | =C-x z= runs =repeat=                   |
+   | ~       | lispy-tilde        | yes  |                                         |
+   | *       | [[http://oremacs.com/lispy/#pop-tag-mark][pop-tag-mark]]       |      | Default binding: =M-*=                  |
+   | /       | [[http://oremacs.com/lispy/#lispy-undo][lispy-undo]]         |      | =C-/= runs =undo=                       |
+   | <       | [[#lispy-slurp-][Hydra: Lispy Slurp]] |      |                                         |
+   | >       | [[#lispy-slurp-][Hydra: Lispy Slurp]] |      |                                         |
+   |---------+--------------------+------+-----------------------------------------|
+
+** A-Z
+   :PROPERTIES:
+   :CUSTOM_ID: a-z-1
+   :END:
+   | Binding | Command name             | Orig | Mnemonic                          |
+   |---------+--------------------------+------+-----------------------------------|
+   | A       | [[http://oremacs.com/lispy/#lispy-beginning-of-defun][lispy-beginning-of-defun]] | yes  | =C-M-a= runs =beginning-of-defun= |
+   | B       | *available*              |      |                                   |
+   | C       | [[http://oremacs.com/lispy/#lispy-convolute][lispy-convolute]]          | yes  |                                   |
+   | D       | [[http://oremacs.com/lispy/#lispy-describe][lispy-describe]]           |      |                                   |
+   | E       | [[http://oremacs.com/lispy/#lispy-ediff-regions][lispy-ediff-regions]]      |      |                                   |
+   | F       | [[#lispy-format-f][Hydra: Lispy Format]]      |      |                                   |
+   | G       | *available*              |      |                                   |
+   | H       | *available*              |      |                                   |
+   | I       | [[http://oremacs.com/lispy/#lispy-shifttab][lispy-shifttab]]           | yes  | =C-S-i= is =S-TAB=                |
+   | J       | *available*              |      |                                   |
+   | K       | *available*              |      |                                   |
+   | L       | *available*              |      |                                   |
+   | M       | [[#lispy-move-m][Hydra: Lispy Move]]        |      |                                   |
+   | N       | [[http://oremacs.com/lispy/#lispy-narrow][lispy-narrow]]             | yes  |                                   |
+   | O       | [[#lispy-outline-o][Hydra: Lispy Outline]]     |      |                                   |
+   | P       | [[http://oremacs.com/lispy/#lispy-paste][lispy-paste]]              | yes  |                                   |
+   | Q       | *available*              |      |                                   |
+   | R       | [[#lispy-raise-r][Hydra: Lispy Raise]]       |      |                                   |
+   | S       | [[http://oremacs.com/lispy/#lispy-stringify][lispy-stringify]]          | yes  |                                   |
+   | T       | [[http://oremacs.com/lispy/#lispy-ert][lispy-ert]]                | yes  | Run *tests*                       |
+   | U       | lispy-unstringify        |      |                                   |
+   | V       | [[http://oremacs.com/lispy/#lispy-visit][lispy-visit]]              | yes  |                                   |
+   | W       | [[http://oremacs.com/lispy/#lispy-widen][lispy-widen]]              | yes  |                                   |
+   | X       | *unbound*                |      |                                   |
+   | Y       | *unbound*                |      |                                   |
+   | Z       | *available*              |      |                                   |
+   | SPC     | [[http://oremacs.com/lispy/#lispy-space][lispy-space]]              | yes  |                                   |
+   |---------+--------------------------+------+-----------------------------------|
+
+* Hydras
+  :PROPERTIES:
+  :CUSTOM_ID: hydras
+  :END:
+** Lispy Ace: =a=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-ace-a
+   :END:
+
+   | Binding | Command name             |
+   |---------+--------------------------|
+   | c       | [[http://oremacs.com/lispy/#lispy-ace-char][lispy-ace-char]]           |
+   | p       | [[http://oremacs.com/lispy/#lispy-ace-paren][lispy-ace-paren]]          |
+   | r       | [[http://oremacs.com/lispy/#lispy-ace-symbol-replace][lispy-ace-symbol-replace]] |
+   | s       | [[http://oremacs.com/lispy/#lispy-ace-symbol][lispy-ace-symbol]]         |
+   | w       | [[http://oremacs.com/lispy/#lispy-ace-subword][lispy-ace-subword]]        |
+   | d       | [[http://oremacs.com/lispy/#lispy-goto-def-ace][lispy-goto-def-ace]]       |
+   | t       | [[http://oremacs.com/lispy/#lispy-teleport][lispy-teleport]]           |
+   |---------+--------------------------|
+
+** Lispy Debug: =s-d=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-debug-s-d
+   :END:
+
+   | Binding | Command name        |
+   |---------+---------------------|
+   | e       | [[http://oremacs.com/lispy/#lispy-edebug][lispy-edebug]]        |
+   | s       | [[http://oremacs.com/lispy/#lispy-debug-step-in][lispy-debug-step-in]] |
+   | S       | [[http://oremacs.com/lispy/#lispy-edebug-stop][lispy-edebug-stop]]   |
+   | d       | [[http://oremacs.com/lispy/#lispy-describe][lispy-describe]]      |
+   |---------+---------------------|
+
+** Lispy Eval: =e=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-eval-e
+   :END:
+
+   | Binding | Command name            |
+   |---------+-------------------------|
+   | e       | [[http://oremacs.com/lispy/#lispy-eval][lispy-eval]]              |
+   | r       | [[http://oremacs.com/lispy/#lispy-eval-and-replace][lispy-eval-and-replace]]  |
+   | o       | [[http://oremacs.com/lispy/#lispy-eval-other-window][lispy-eval-other-window]] |
+   | i       | [[http://oremacs.com/lispy/#lispy-eval-and-insert][lispy-eval-and-insert]]   |
+   | c       | [[http://oremacs.com/lispy/#lispy-eval-and-comment][lispy-eval-and-comment]]  |
+   |---------+-------------------------|
+
+** Lispy Format: =F=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-format-f
+   :END:
+
+   | Binding | Command name    |
+   |---------+-----------------|
+   | o       | [[http://oremacs.com/lispy/#lispy-oneline][lispy-oneline]]   |
+   | m       | [[http://oremacs.com/lispy/#lispy-multiline][lispy-multiline]] |
+   |---------+-----------------|
+
+** Lispy Goto: =g=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-goto-g
+   :END:
+
+   | Binding | Command name          |
+   |---------+-----------------------|
+   | a       | [[http://oremacs.com/lispy/#lispy-goto-def-ace][lispy-goto-def-ace]]    |
+   | d       | [[http://oremacs.com/lispy/#lispy-goto-def-down][lispy-goto-def-down]]   |
+   | f       | [[http://oremacs.com/lispy/#lispy-follow][lispy-follow]]          |
+   | g       | [[http://oremacs.com/lispy/#lispy-goto][lispy-goto]]            |
+   | l       | [[http://oremacs.com/lispy/#lispy-goto-local][lispy-goto-local]]      |
+   | p       | [[http://oremacs.com/lispy/#lispy-goto-projectile][lispy-goto-projectile]] |
+   | r       | [[http://oremacs.com/lispy/#lispy-goto-recursive][lispy-goto-recursive]]  |
+   | s       | [[http://oremacs.com/lispy/#lispy-goto-symbol][lispy-goto-symbol]]     |
+   | .       | [[http://oremacs.com/lispy/#lispy-goto-symbol][lispy-goto-symbol]]     |
+   | *       | [[http://oremacs.com/lispy/#pop-tag-mark][pop-tag-mark]]          |
+   |---------+-----------------------|
+
+** Lispy Mark: =s-m=, =m=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-mark-s-m-m
+   :END:
+
+   | Binding | Command name      |
+   |---------+-------------------|
+   | m       | [[http://oremacs.com/lispy/#lispy-mark][lispy-mark]]        |
+   | c       | lispy-mark-car    |
+   | l       | [[http://oremacs.com/lispy/#lispy-mark-list][lispy-mark-list]]   |
+   | s       | [[http://oremacs.com/lispy/#lispy-mark-symbol][lispy-mark-symbol]] |
+   | L       | lispy-mark-left   |
+   | R       | lispy-mark-right  |
+   | >       | lispy-slurp       |
+   | <       | lispy-barf        |
+   |---------+-------------------|
+
+** Lispy Move: =M=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-move-m
+   :END:
+
+   | Binding | Command name     |
+   |---------+------------------|
+   | d       | [[http://oremacs.com/lispy/#lispy-move-down][lispy-move-down]]  |
+   | l       | [[http://oremacs.com/lispy/#lispy-move-left][lispy-move-left]]  |
+   | r       | [[http://oremacs.com/lispy/#lispy-move-right][lispy-move-right]] |
+   | u       | [[http://oremacs.com/lispy/#lispy-move-up][lispy-move-up]]    |
+   |---------+------------------|
+
+** Lispy Outline: =O=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-outline-o
+   :END:
+
+   | Binding | Command name             |
+   |---------+--------------------------|
+   | i       | [[http://oremacs.com/lispy/#lispy-tab][lispy-tab]]                |
+   | I       | [[http://oremacs.com/lispy/#lispy-shifttab][lispy-shifttab]]           |
+   | n       | [[http://oremacs.com/lispy/#lispy-outline-next][lispy-outline-next]]       |
+   | p       | [[http://oremacs.com/lispy/#lispy-outline-prev][lispy-outline-prev]]       |
+   | c       | lispy-outline-goto-child |
+   | l       | lispy-outline-left       |
+   | r       | lispy-outline-right      |
+   |---------+--------------------------|
+
+** Lispy Raise: =R=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-raise-r
+   :END:
+
+   | Binding | Command name     |
+   |---------+------------------|
+   | r       | [[http://oremacs.com/lispy/#lispy-raise][lispy-raise]]      |
+   | s       | [[http://oremacs.com/lispy/#lispy-raise-some][lispy-raise-some]] |
+   |---------+------------------|
+
+** Lispy Slurp: =>=, =<=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-slurp-
+   :END:
+
+   | Binding | Command name     |
+   |---------+------------------|
+   | >       | [[http://oremacs.com/lispy/#lispy-slurp][lispy-slurp]]      |
+   | d       | [[http://oremacs.com/lispy/#lispy-down-slurp][lispy-down-slurp]] |
+   | u       | [[http://oremacs.com/lispy/#lispy-up-slurp][lispy-up-slurp]]   |
+   | <       | [[http://oremacs.com/lispy/#lispy-barf][lispy-barf]]       |
+   |---------+------------------|
+
+** Lispy X: =s-x=, =x=
+   :PROPERTIES:
+   :CUSTOM_ID: lispy-x-s-x-x
+   :END:
+
+   | Binding | Command name           |
+   |---------+------------------------|
+   | f       | [[http://oremacs.com/lispy/#lispy-flatten][lispy-flatten]]          |
+   | c       | [[http://oremacs.com/lispy/#lispy-to-cond][lispy-to-cond]]          |
+   | d       | [[http://oremacs.com/lispy/#lispy-to-defun][lispy-to-defun]]         |
+   | i       | [[http://oremacs.com/lispy/#lispy-to-ifs][lispy-to-ifs]]           |
+   | l       | [[http://oremacs.com/lispy/#lispy-to-lambda][lispy-to-lambda]]        |
+   | r       | [[http://oremacs.com/lispy/#lispy-eval-and-replace][lispy-eval-and-replace]] |
+   | b       | lispy-bind-variable    |
+   | u       | [[http://oremacs.com/lispy/#lispy-unbind-variable][lispy-unbind-variable]]  |
+   |---------+------------------------|
+
+* Unbound commands
+  :PROPERTIES:
+  :CUSTOM_ID: unbound-commands
+  :END:
+  The following table lists commands that currently lack a mnemonic
+  key binding. Not all of them are unbound: If Lispy provides global
+  and/or local bindings for a given command, these are listed in the
+  second and third column of the table, respectively.
+
+  | Command name                  | Lispy global | Lispy local |
+  |-------------------------------+--------------+-------------|
+  | lispy-alt-line                |              |             |
+  | lispy-arglist                 |              |             |
+  | lispy-build-semanticdb        |              |             |
+  | lispy-clockwise               |              |             |
+  | lispy-counterclockwise        |              |             |
+  | lispy-cursor-ace              | C-4 m        |             |
+  | lispy-cursor-down             | C-7          |             |
+  | lispy-expr-canonical-p        |              |             |
+  | lispy-font-lock-ensure        |              |             |
+  | lispy-goto-mode               |              |             |
+  | lispy-knight-down             |              |             |
+  | lispy-knight-up               |              |             |
+  | lispy-open-line               | <C-return>   |             |
+  | lispy-other-mode              |              |             |
+  | lispy-other-space             |              |             |
+  | lispy-quit                    |              |             |
+  | lispy-store-region-and-buffer | C-4 B        |             |
+  | lispy-transform-mode          |              |             |
+  | lispy-view-test               | C-4 v        |             |
+  |-------------------------------+--------------+-------------|
+

@@ -1,0 +1,3 @@
+* Emacs
+** A long init.el using use-packages
+https://github.com/itsjeyd/.emacs.d
