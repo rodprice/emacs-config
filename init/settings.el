@@ -214,6 +214,29 @@ the mouse."
 ;; Use idutils from within emacs
 (autoload 'gid "idutils")
 
+;; Search files using the git grep function.
+;; 
+;; http://stackoverflow.com/questions/25633490/how-can-i-use-m-x-rgrep-with-the-git-grep-command-in-emacs
+;; This assumes that the Windows git is installed on the user's system. See
+;; https://msysgit.github.io/
+(require 'grep)
+(when (string-equal system-type "windows-nt")
+  (grep-apply-setting 'grep-template      ; M-x lgrep command
+                      "git --no-pager grep --no-color --line-number <C> <R>")
+  (grep-apply-setting 'grep-find-template ; M-x rgrep command
+                      "git --no-pager grep --no-color --line-number <C> <R>")
+  (grep-apply-setting 'grep-command       ; M-x grep command
+                      "git --no-pager grep --no-color --line-number "))
+;; (grep-expand-template "git --no-pager grep --no-color --line-number <C> <R>" REGEXP)
+;; replaces <R> with REGEXP in the template. If the REGEXP contains upper-case letters,
+;; the search is case-sensitive (option "-i"), otherwise it is not. Or is it the other
+;; way around?
+
+;; TODO fix grep and lgrep. Emacs inserts a NUL after the search regexp. Makes a mess.
+
+;; Helm-git-grep https://github.com/yasuyk/helm-git-grep is perhaps a better way to do this.
+;; Or a lighter-weight version with Ivy: http://oremacs.com/2015/04/19/git-grep-ivy/
+
 
 (provide 'settings)
 ;;; settings.el ends here
