@@ -151,6 +151,7 @@
 (include 'my-clojure-mode)
 (include 'my-elisp-mode)
 (include 'my-org-mode)
+(include 'my-prolog-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
