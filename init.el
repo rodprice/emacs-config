@@ -48,6 +48,7 @@
     iflipb
     inf-clojure
     lispy
+    magit
     markdown-mode
     omn-mode
     pager
