@@ -45,18 +45,24 @@
 (setq org-agenda-files
       (list org-directory))
 
+((defvar org-default-journal-file
+   (concat org-directory "/journal.org")
+   "Default file for journal entries."))
+
 ;; Templates for org capture mode
 (setq org-capture-templates
-      (quote (("t" "todo" entry (file org-default-notes-file)
-               "** TODO %?\n%U\n")
-              ("l" "linked todo" entry (file org-def)
-               "** TODO %?\n%U\n%a\n")
-              ("n" "note" entry (file org-default-notes-file)
-               "** %? :NOTE:\n%U\n")
-              ("p" "phone call" entry (file org-default-notes-file)
-               "** PHONE %? :PHONE:\n%U")
-              ("m" "meeting" entry (file org-default-notes-file)
-               "** MEETING with %? :MEETING:\n%U"))))
+      '(("t" "todo" entry (file org-default-notes-file)
+         "** TODO %?\n%U\n")
+        ("l" "linked todo" entry (file org-def)
+         "** TODO %?\n%U\n%a\n")
+        ("n" "note" entry (file org-default-notes-file)
+         "** %? :NOTE:\n%U\n")
+        ("p" "phone call" entry (file org-default-notes-file)
+         "** PHONE %? :PHONE:\n%U")
+        ("m" "meeting" entry (file org-default-notes-file)
+         "** MEETING with %? :MEETING:\n%U")
+        ("j" "journal" entry (file+datetree org-default-journal-file)
+         "** %?\nEntered on %U\n  %a")))
 
 (provide 'my-org-mode)
 ;;; my-org-mode.el ends here
