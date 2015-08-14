@@ -29,10 +29,7 @@
 (autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
 (autoload 'prolog-mode "prolog" "Major mode for editing Prolog programs." t)
 (setq prolog-system 'swi)
-(setq auto-mode-alist
-      (append '(("\\.pro$" . prolog-mode)
-                auto-mode-alist))
-
+(add-to-list 'auto-mode-alist '("\\.pro\\'" . prolog-mode))
 
 (provide 'my-prolog-mode)
 ;;; my-prolog-mode.el ends here
