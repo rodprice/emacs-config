@@ -37,9 +37,13 @@
 (setq org-log-done t)
 (setq org-default-notes-file
       (concat org-directory "/notes.org"))
+(setq org-archive-location
+      (concat org-directory "/archives.org::* From %s"))
 
 ;; Use ido completion within org files
-(setq org-outline-path-complete-in-steps nil)
+;; See http://stackoverflow.com/questions/26651382/emacs-org-mode-refile-using-the-goto-interface
+(setq org-refile-use-outline-path t)
+(setq org-outline-path-complete-in-steps t)
 (setq org-completion-use-ido t)
 ;; Agenda files live in org-directory
 (setq org-agenda-files
