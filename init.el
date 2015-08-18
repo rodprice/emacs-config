@@ -53,6 +53,7 @@
     pager
     use-package
     whole-line-or-region
+    wolfram-mode
     yasnippet)
   "A list of packages that should always be available.")
 
