@@ -49,9 +49,9 @@
 (setq org-agenda-files
       (list org-directory))
 
-((defvar org-default-journal-file
+(defvar org-default-journal-file
    (concat org-directory "/journal.org")
-   "Default file for journal entries."))
+   "Default file for journal entries.")
 
 ;; Templates for org capture mode
 (setq org-capture-templates
