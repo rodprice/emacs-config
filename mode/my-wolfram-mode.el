@@ -27,9 +27,14 @@
 
 (autoload 'wolfram-mode "wolfram-mode" nil t)
 (autoload 'run-wolfram "wolfram-mode" nil t)
+(add-to-list 'auto-mode-alist
+             '("\\.m$" . wolfram-mode)
+             '("\\.tr$" . wolfram-mode))
 
 ;; TODO fix this path
-(setq wolfram-program "/Applications/Mathematica.app/Contents/MacOS/MathKernel")
+(setq wolfram-program
+      "\"C:/Program Files/Wolfram Research/Mathematica/9.0/MathKernel.exe\"")
+
 (add-to-list 'auto-mode-alist '("\\.m$" . wolfram-mode))
 
 (provide 'my-wolfram-mode)
