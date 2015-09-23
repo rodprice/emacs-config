@@ -41,6 +41,7 @@
   '(auto-complete
     autopair
     clojure-mode
+    csv-mode
     discover
     hc-zenburn-theme
     hlinum
