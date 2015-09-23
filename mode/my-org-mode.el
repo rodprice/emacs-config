@@ -68,5 +68,12 @@
         ("j" "journal" entry (file+datetree org-default-journal-file)
          "** %?\nEntered on %U\n  %a")))
 
+;; Insert a time stamp in the current org buffer non-interactively
+(defun insert-todays-time-stamp ()
+  (let ((current-prefix-arg '(16)))
+    (progn
+      (call-interactively 'org-time-stamp-inactive)
+      nil)))
+
 (provide 'my-org-mode)
 ;;; my-org-mode.el ends here
