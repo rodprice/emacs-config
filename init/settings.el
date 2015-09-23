@@ -153,6 +153,8 @@
 (setq browse-url-browser-function 'browse-url-chrome)
 ;;(setq browse-url-browser-function 'browse-url-firefox)
 ;;(setq browse-url-browser-function 'w3m-browse-url)
+;; Set default column at which to wrap paragraphs to 80
+(setq-default fill-column 80)
 
 ;; Put the places file inside the emacs subdir
 (setq-default save-place t)
