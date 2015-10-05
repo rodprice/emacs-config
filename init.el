@@ -71,7 +71,7 @@
 ;; Make emacs run the server so emacsclientw can connect
 
 (require 'server)
-(unless (server-running-p)
+(unless (eq (server-running-p) t)
   (server-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
