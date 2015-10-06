@@ -1,0 +1,17 @@
+
+;; ----- smex-history -----
+(
+ package-list-packages
+ sh-mode
+ cd
+ 5x5
+ arp
+ dbx
+ dig
+)
+
+;; ----- smex-data -----
+(
+ (sh-mode . 2)
+ (package-list-packages . 3)
+)
