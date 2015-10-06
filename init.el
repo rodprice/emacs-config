@@ -3,22 +3,67 @@
 ;; Stop flycheck from whining about a commentary section
 ;;; Code:
 
-;; Make sure the emacs server is running
-(server-start)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load some site-specific configuration before anything else
 
-;; Set up proxies on Raytheon machines (Aurora site)
-(defvar url-proxy-services
-      '(("no_proxy" . "ray.com")
-        ("http" . "proxy.ext.ray.com:80")
-        ("https" . "proxy.ext.ray.com:80")))
+(defvar dotfiles-dir (file-name-directory
+                      (or (buffer-file-name) load-file-name))
+  "The directory where the user's configuration files are kept.")
+
+(let* ((system-name-short (car (split-string system-name "\\.")))
+       (site-path (concat dotfiles-dir "site/"))
+       (file-name (concat site-path system-name-short "-preload")))
+  ;; fail silently
+  (load file-name 'noerror 'nomessage))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Make emacs run the server so emacsclientw can connect
+
+(require 'server)
+(unless (eq (server-running-p) t)
+  (server-start))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set up use-package for use with MELPA
 
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
+(setq package-enable-at-startup nil)
+(add-to-list 'package-archives
+	     '("melpa" . "http://melpa.org/packages/") t)
 (package-initialize)
 
-(require 'graphene)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
 
-(load-theme 'hc-zenburn t)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load packages and configure them
+
+(use-package graphene
+	     :ensure t)
+
+(use-package hc-zenburn-theme
+	     :ensure t
+	     :config
+       (progn
+         (load-theme 'hc-zenburn t)
+         ;; Make the default font readable for my old eyes
+         (set-face-attribute
+          'default nil
+          :font "-outline-Lucida Console-normal-normal-normal-mono-14-*-*-*-c-*-iso8859-1")))
+
+
+	     
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load the rest of the site-specific configuration
+
+(let* ((system-name-short (car (split-string system-name "\\.")))
+       (site-path (concat dotfiles-dir "site/"))
+       (file-name (concat site-path system-name-short "-postload")))
+  ;; fail silently
+  (load file-name 'noerror 'nomessage))
+
 
 (provide 'init)
 ;;; init.el ends here
