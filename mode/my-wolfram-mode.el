@@ -35,7 +35,5 @@
 (setq wolfram-program
       "\"C:/Program Files/Wolfram Research/Mathematica/9.0/MathKernel.exe\"")
 
-(add-to-list 'auto-mode-alist '("\\.m$" . wolfram-mode))
-
 (provide 'my-wolfram-mode)
 ;;; my-wolfram-mode.el ends here
