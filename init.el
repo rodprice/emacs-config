@@ -41,19 +41,17 @@
 ;; Load packages and configure them
 
 (use-package graphene
-	     :ensure t)
+  :ensure t
+  :init
+  (setq graphene-default-font "Consolas-11"))
 
 (use-package hc-zenburn-theme
-	     :ensure t
-	     :config
-       (progn
-         (load-theme 'hc-zenburn t)
-         ;; Make the default font readable for my old eyes
-         (set-face-attribute
-          'default nil
-          :font "-outline-Lucida Console-normal-normal-normal-mono-14-*-*-*-c-*-iso8859-1")))
+  :ensure t
+  :config
+  (load-theme 'hc-zenburn t))
 
-
+(use-package ack
+  :ensure t)
 	     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
@@ -64,6 +62,9 @@
   ;; fail silently
   (load file-name 'noerror 'nomessage))
 
+(setq default-frame-alist
+      '((width . 100) ; character
+        (height . 40))) ; lines
 
 (provide 'init)
 ;;; init.el ends here
