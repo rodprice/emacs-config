@@ -62,9 +62,5 @@
   ;; fail silently
   (load file-name 'noerror 'nomessage))
 
-(setq default-frame-alist
-      '((width . 100) ; character
-        (height . 40))) ; lines
-
 (provide 'init)
 ;;; init.el ends here
