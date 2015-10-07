@@ -6,15 +6,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load some site-specific configuration before anything else
 
+(require 'functions)
 (defvar dotfiles-dir (file-name-directory
                       (or (buffer-file-name) load-file-name))
   "The directory where the user's configuration files are kept.")
 
-(let* ((system-name-short (car (split-string system-name "\\.")))
-       (site-path (concat dotfiles-dir "site/"))
-       (file-name (concat site-path system-name-short "-preload")))
-  ;; fail silently
-  (load file-name 'noerror 'nomessage))
+(load-site-file "-preload")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -61,10 +58,6 @@
        (file-name (concat site-path system-name-short "-postload")))
   ;; fail silently
   (load file-name 'noerror 'nomessage))
-
-(setq default-frame-alist
-      '((width . 100) ; character
-        (height . 40))) ; lines
 
 (provide 'init)
 ;;; init.el ends here
