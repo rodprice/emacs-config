@@ -1,20 +1,15 @@
 ;;; Package --- Init file for graphene setup for emacs
 ;;; Commentary:
-;; Stop flycheck from whining about a commentary section
 ;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load some site-specific configuration before anything else
 
-(defvar dotfiles-dir
-  (file-name-directory
-   (or (buffer-file-name) load-file-name))
-  "The directory where the user's configuration files are kept.")
-
 ;; Set up load paths within .emacs.d
-(add-to-list 'load-path (concat dotfiles-dir "init/"))
-(add-to-list 'load-path (concat dotfiles-dir "mode/"))
-(add-to-list 'load-path (concat dotfiles-dir "site/"))
+(add-to-list 'load-path (concat user-emacs-directory "init/"))
+(add-to-list 'load-path (concat user-emacs-directory "mode/"))
+(add-to-list 'load-path (concat user-emacs-directory "site/"))
+(add-to-list 'load-path (concat user-emacs-directory "graphene/"))
 
 ;; See README in ~/.emacs.d/site/
 (load (concat system-name "-preload") 'noerror)
@@ -47,7 +42,6 @@
 ;; Load packages and configure them
 
 (use-package graphene
-  :ensure t
   :init
   (setq graphene-default-font "Consolas-11"))
 
@@ -67,6 +61,7 @@
          ("M-o u" . unhighlight-regexp))
   :config
   (setq hi-lock-auto-select-face t)
+;; Use instead bold Pink (standard error face)
   (setq hi-lock-face-defaults '("hi-black-b" "hi-pink")))
 
 ;; Placeholder for what looks like a great HTML, CSS, JavaScript dev package
@@ -80,6 +75,7 @@
   :mode "\\.json\\'")
 
 (use-package whole-line-or-region
+  :ensure t
   :bind ("C-w" . whole-line-or-region-kill-region))
 
 ;; Load my own initialization functions
