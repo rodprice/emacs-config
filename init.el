@@ -35,17 +35,12 @@
 	     '("melpa" . "http://melpa.org/packages/") t)
 (package-initialize)
 
+;; See https://github.com/jwiegley/use-package
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
-(require 'use-package)
-
-;; Preferred setup according to https://github.com/jwiegley/use-package
-;;(eval-when-compile
-;;  (require 'use-package))
-;;(require 'diminish)  ; if you use :diminish
-;;(require 'bind-key)  ; if you use any :bind variant
-
+(eval-when-compile
+  (require 'use-package))
 (setq use-package-verbose t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,8 +76,11 @@
 
 ;; Disable this if you want to use skewer-mode
 (use-package js-mode
-  :disabled t
+  :disabled nil
   :mode "\\.json\\'")
+
+(use-package whole-line-or-region
+  :bind ("C-w" . whole-line-or-region-kill-region))
 
 ;; Load my own initialization functions
 (use-package functions
