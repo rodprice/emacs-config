@@ -9,7 +9,7 @@
 (add-to-list 'load-path (concat user-emacs-directory "init/"))
 (add-to-list 'load-path (concat user-emacs-directory "mode/"))
 (add-to-list 'load-path (concat user-emacs-directory "site/"))
-(add-to-list 'load-path (concat user-emacs-directory "graphene/"))
+(add-to-list 'load-path (concat user-emacs-directory "dist/"))
 
 ;; See README in ~/.emacs.d/site/
 (load (concat system-name "-preload") 'noerror)
@@ -27,6 +27,8 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
+	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+(add-to-list 'package-archives
 	     '("melpa" . "http://melpa.org/packages/") t)
 (package-initialize)
 
@@ -41,14 +43,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
-(use-package graphene
-  :init
-  (setq graphene-default-font "Consolas-11"))
-
-(use-package hc-zenburn-theme
+(use-package zenburn-theme
   :ensure t
   :config
-  (load-theme 'hc-zenburn t))
+  (load-theme 'zenburn t))
 
 ;; Needs setup (external perl install, perl code for ack)
 (use-package ack
@@ -82,6 +80,11 @@
 (use-package functions
   :config
   (setq ring-bell-function 'echo-area-bell))
+
+(use-package graphene
+  :disabled t
+  :init
+  (setq graphene-default-font "Consolas-11"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
