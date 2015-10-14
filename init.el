@@ -57,7 +57,7 @@
 ;; Highlight all regexps in a buffer
 (use-package hi-lock
   :ensure t
-  :bind (("M-o r" . highlight-regexp)
+  :bind (("M-o h" . highlight-regexp)
          ("M-o u" . unhighlight-regexp))
   :config
   (setq hi-lock-auto-select-face t)
