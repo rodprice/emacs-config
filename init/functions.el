@@ -16,7 +16,8 @@ This function assumes that ALIST has the same form as `auto-mode-alist' and frie
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use git grep for the grep command. This code is adapted from `vc-git-grep'.
 
-(defun find (regexp &optional files dir)
+(require 'vc-git)
+(defun git-grep (regexp &optional files dir)
   "Run either 'git grep', if inside a project under git version control,
 or 'grep' otherwise, searching for REGEXP in FILES in directory DIR.
 
