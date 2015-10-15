@@ -28,13 +28,13 @@
 	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 
 ;; Local archive. This is for packages that are not available on the
-;; MELPA Stable or GNU package archives, but may be available on MELPA
-;; or Marmalade. Simply adding MELPA or Marmalade to package-archives
-;; results in all packages being downloaded from these archives. I
-;; prefer versioned packages, so I set up this local archive to store
-;; local versions of packages not available on GNU of MELPA Stable. It
-;; also gives me the opportunity to clean up the mess all too often
-;; found in these unversioned packages.
+;; MELPA Stable or GNU package archives, but may be available on
+;; MELPA.  Simply adding MELPA to package-archives results in all
+;; packages being downloaded from these archives. I prefer versioned
+;; packages, so I set up this local archive to store local versions of
+;; packages not available on GNU of MELPA Stable. It also gives me the
+;; opportunity to clean up the mess all too often found in these
+;; unversioned packages.
 (require 'package-x)
 (defvar local-archive
   (expand-file-name "local/" user-emacs-directory)
@@ -84,6 +84,11 @@
 (use-package js-mode
   :disabled nil
   :mode "\\.json\\'")
+
+(use-package markdown-mode
+  :ensure t
+  :mode "\\.md\\'"
+  :pin melpa-stable)
 
 (use-package whole-line-or-region
   :ensure t
