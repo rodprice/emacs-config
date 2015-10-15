@@ -48,6 +48,11 @@
   :type 'string
   :group 'graphene)
 
+(defcustom graphene-initial-geometry '(80 38 100 100)
+  "The initial frame geometry to use when no geometry file is present."
+  :type (list :integer :integer :integer :integer)
+  :group 'graphene)
+
 (let ((sys
        (cond ((eq system-type 'darwin) "osx")
              ((eq system-type 'gnu/linux) "linux")
@@ -94,7 +99,7 @@
       (with-temp-buffer
         (insert-file-contents graphene-geometry-file)
         (read (buffer-string)))
-    '(140 60 0 0)))
+    graphene-initial-geometry))
 
 (defun graphene-save-frame-geometry ()
   "Save current frame geometry settings."
@@ -103,7 +108,29 @@
 
 (defun graphene-get-geometry ()
   "Get the current geometry of the active frame."
-  (list (frame-width) (frame-height) (frame-parameter nil 'top) (frame-parameter nil 'left)))
+  (mapcar
+   (apply-partially 'frame-parameter nil)
+   (list 'width 'height 'top 'left)))
+;; Include 'fullscreen?
+
+;; Returns (top left bottom right) measured in pixels
+(defun graphene-get-geometry-pixels ()
+  "Get the current geometry, measured in pixels, of the active frame."
+  (let ((width (frame-pixel-width))
+	(height (frame-pixel-height))
+	(top (eval (frame-parameter nil 'top)))
+	(left (eval (frame-parameter nil 'left))))
+    (list top left (+ top width) (+ left height))))
+
+(defun graphene-get-margins-pixels ()
+  "Return the margins remaining on each side of the frame, measured in pixels."
+  (let ((frame-size (graphene-get-geometry-pixels))
+	(display-size (cdr (assq 'workarea (frame-monitor-attributes)))))
+    (list
+     (- (nth 0 frame-size) (nth 0 display-size))      ; left side of the frame
+     (- (nth 1 frame-size) (nth 1 display-size))      ; top side of the frame
+     (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
+     (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
 
 (defun graphene-set-geometry ()
   "Set the default frame geometry using the values loaded from graphene-geometry-file."

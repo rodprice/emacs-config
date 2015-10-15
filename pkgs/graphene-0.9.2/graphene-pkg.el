@@ -2,7 +2,7 @@
   '((dash "2.10.0")
     (exec-path-from-shell "1.9")
     (ppd-sr-speedbar "0.0.4")
-    (sr-speedbar "20140505")
+    (sr-speedbar "0.1.10")
     (ido-ubiquitous "3.6")
     (smex "3.0")
     (web-mode "11.2")
