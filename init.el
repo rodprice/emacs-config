@@ -6,10 +6,10 @@
 ;; Load some site-specific configuration before anything else
 
 ;; Set up load paths within .emacs.d
-(add-to-list 'load-path (concat user-emacs-directory "init/"))
-(add-to-list 'load-path (concat user-emacs-directory "mode/"))
-(add-to-list 'load-path (concat user-emacs-directory "site/"))
-(add-to-list 'load-path (concat user-emacs-directory "dist/"))
+(add-to-list 'load-path (expand-file-name "init/" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "mode/" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
 
 ;; See README in ~/.emacs.d/site/
 (load (concat system-name "-preload") 'noerror)
@@ -29,7 +29,7 @@
 (add-to-list 'package-archives
 	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/") t)
+	     `("local" . ,(expand-file-name "pkgs/")) t)
 (package-initialize)
 
 ;; See https://github.com/jwiegley/use-package
@@ -46,7 +46,8 @@
 (use-package zenburn-theme
   :ensure t
   :config
-  (load-theme 'zenburn t))
+  (load-theme 'zenburn t)
+  :pin melpa-stable)
 
 ;; Needs setup (external perl install, perl code for ack)
 (use-package ack
@@ -74,7 +75,8 @@
 
 (use-package whole-line-or-region
   :ensure t
-  :bind ("C-w" . whole-line-or-region-kill-region))
+  :bind ("C-w" . whole-line-or-region-kill-region)
+  :pin melpa-stable)
 
 ;; Load my own initialization functions
 (use-package functions
@@ -84,7 +86,9 @@
 (use-package graphene
   :disabled t
   :init
-  (setq graphene-default-font "Consolas-11"))
+  (setq graphene-default-font "Consolas-11")
+  :pin melpa-stable)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration

@@ -7,9 +7,7 @@
 ;; Copyright (C) 2008, 2009, Andy Stewart, all rights reserved.
 ;; Copyright (C) 2009, Peter Lunicks, all rights reversed.
 ;; Created: 2008
-;; Version: 20140914.2339
-;; Package-Version: 20150804.951
-;; X-Original-Version: 0.1.10
+;; Version: 0.1.10
 ;; Last-Updated: 2014-08-03 11:30:00
 ;; URL: http://www.emacswiki.org/emacs/download/sr-speedbar.el
 ;; Keywords: speedbar, sr-speedbar.el
