@@ -1,6 +1,7 @@
 auto-save-list
 backup/
 server/
+local/
 elpa/
 site/
 temp/
