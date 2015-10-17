@@ -48,11 +48,6 @@
   :type 'string
   :group 'graphene)
 
-(defcustom graphene-initial-geometry '(80 38 100 100)
-  "The initial frame geometry to use when no geometry file is present."
-  :type (list :integer :integer :integer :integer)
-  :group 'graphene)
-
 (let ((sys
        (cond ((eq system-type 'darwin) "osx")
              ((eq system-type 'gnu/linux) "linux")
@@ -89,6 +84,10 @@
         (when (fboundp mode) (funcall mode -1)))
       '(scroll-bar-mode tool-bar-mode blink-cursor-mode))
 
+;; These are the same values that a bare-naked emacs uses on initial startup
+(defvar graphene-initial-geometry '(80 38 100 100)
+  "The initial frame geometry to use when no geometry file is present.")
+
 (defvar graphene-geometry-file
   (expand-file-name ".graphene-geometry" user-emacs-directory)
   "The file where frame geometry settings are saved.")
@@ -100,11 +99,6 @@
         (insert-file-contents graphene-geometry-file)
         (read (buffer-string)))
     graphene-initial-geometry))
-
-(defun graphene-save-frame-geometry ()
-  "Save current frame geometry settings."
-  (with-temp-file graphene-geometry-file
-    (print (graphene-get-geometry) (current-buffer))))
 
 (defun graphene-get-geometry ()
   "Get the current geometry of the active frame."
@@ -131,6 +125,11 @@
      (- (nth 1 frame-size) (nth 1 display-size))      ; top side of the frame
      (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
      (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
+
+(defun graphene-save-frame-geometry ()
+  "Save current frame geometry settings."
+  (with-temp-file graphene-geometry-file
+    (print (graphene-get-geometry) (current-buffer))))
 
 (defun graphene-set-geometry ()
   "Set the default frame geometry using the values loaded from graphene-geometry-file."
