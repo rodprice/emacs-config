@@ -5,6 +5,7 @@ local/
 elpa/
 site/
 temp/
+pkgs/*.tar
 custom.el
 places
 recentf

@@ -106,6 +106,51 @@
   (setq graphene-default-font "Consolas-11")
   :pin melpa-stable)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Packages required for graphene
+
+(use-package dash
+  :ensure t
+  :pin melpa-stable)
+
+(use-package exec-path-from-shell
+  :ensure t
+  :pin melpa-stable)
+
+(use-package ppd-sr-speedbar
+  :ensure t
+  :pin local)
+
+(use-package ido-ubiquitous
+  :ensure t
+  :pin melpa-stable)
+
+(use-package smex
+  :ensure t
+  :pin melpa-stable)
+
+(use-package web-mode
+  :ensure t
+  :pin melpa-stable)
+
+(use-package smartparens
+  :ensure t
+  :pin melpa-stable)
+
+(use-package flycheck
+  :ensure t
+  :pin melpa-stable)
+
+;; Ick
+(use-package company
+  :ensure t
+  :pin melpa-stable)
+
+;; Temporary setup for development of my own graphene version
+(add-to-list
+ 'load-path
+ (expand-file-name "pkgs/graphene-0.9.2" user-emacs-directory))
+;;(require 'graphene)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
