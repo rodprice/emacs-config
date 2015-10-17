@@ -85,7 +85,7 @@
       '(scroll-bar-mode tool-bar-mode blink-cursor-mode))
 
 ;; These are the same values that a bare-naked emacs uses on initial startup
-(defvar graphene-initial-geometry '(80 38 100 100)
+(defvar graphene-initial-geometry '(nil 80 38 100 100)
   "The initial frame geometry to use when no geometry file is present.")
 
 (defvar graphene-geometry-file
@@ -94,37 +94,24 @@
 
 (defun graphene-load-frame-geometry ()
   "Load saved frame geometry settings."
-  (if (file-readable-p graphene-geometry-file)
-      (with-temp-buffer
-        (insert-file-contents graphene-geometry-file)
-        (read (buffer-string)))
-    graphene-initial-geometry))
+  (let ((geometry
+	 (if (file-readable-p graphene-geometry-file)
+	     (with-temp-buffer
+	       (insert-file-contents graphene-geometry-file)
+	       (read (buffer-string)))
+	   graphene-initial-geometry)))
+    (if	(equal (length geometry) 4)
+	 (progn
+	   (message
+	    "Old-style .graphene-geometry file ignored; default geometry used")
+	   graphene-initial-geometry)
+	geometry)))
 
 (defun graphene-get-geometry ()
   "Get the current geometry of the active frame."
   (mapcar
    (apply-partially 'frame-parameter nil)
-   (list 'width 'height 'top 'left)))
-;; Include 'fullscreen?
-
-;; Returns (top left bottom right) measured in pixels
-(defun graphene-get-geometry-pixels ()
-  "Get the current geometry, measured in pixels, of the active frame."
-  (let ((width (frame-pixel-width))
-	(height (frame-pixel-height))
-	(top (eval (frame-parameter nil 'top)))
-	(left (eval (frame-parameter nil 'left))))
-    (list top left (+ top width) (+ left height))))
-
-(defun graphene-get-margins-pixels ()
-  "Return the margins remaining on each side of the frame, measured in pixels."
-  (let ((frame-size (graphene-get-geometry-pixels))
-	(display-size (cdr (assq 'workarea (frame-monitor-attributes)))))
-    (list
-     (- (nth 0 frame-size) (nth 0 display-size))      ; left side of the frame
-     (- (nth 1 frame-size) (nth 1 display-size))      ; top side of the frame
-     (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
-     (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
+   (list 'fullscreen 'width 'height 'top 'left)))
 
 (defun graphene-save-frame-geometry ()
   "Save current frame geometry settings."
@@ -134,16 +121,14 @@
 (defun graphene-set-geometry ()
   "Set the default frame geometry using the values loaded from graphene-geometry-file."
   (let ((geom (graphene-load-frame-geometry)))
-    (let ((f-width (nth 0 geom))
-          (f-height (nth 1 geom))
-          (f-top (nth 2 geom))
-          (f-left (nth 3 geom)))
-      (setq default-frame-alist
-            (append default-frame-alist
-                    `((width . ,f-width)
-                      (height . ,f-height)
-                      (top . ,f-top)
-                      (left . ,f-left)))))))
+    (setq default-frame-alist
+	  (append
+	   default-frame-alist
+	   `((fullscreen . ,(nth 0 geom))
+	     (width . ,(nth 1 geom))
+	     (height . ,(nth 2 geom))
+	     (top . ,(nth 3 geom))
+	     (left . ,(nth 4 geom)))))))
 
 (defun graphene-set-fonts ()
   "Set up default fonts."
@@ -181,5 +166,25 @@
     (menu-bar-mode -1)))
 
 (add-hook 'after-init-hook 'graphene-look-startup-after-init)
+
+
+;; Returns (top left bottom right) measured in pixels
+(defun graphene-get-geometry-pixels ()
+  "Get the current geometry, measured in pixels, of the active frame."
+  (let ((width (frame-pixel-width))
+	(height (frame-pixel-height))
+	(top (eval (frame-parameter nil 'top)))
+	(left (eval (frame-parameter nil 'left))))
+    (list top left (+ top width) (+ left height))))
+
+(defun graphene-get-margins-pixels ()
+  "Return the margins remaining on each side of the frame, measured in pixels."
+  (let ((frame-size (graphene-get-geometry-pixels))
+	(display-size (cdr (assq 'workarea (frame-monitor-attributes)))))
+    (list
+     (- (nth 0 frame-size) (nth 0 display-size))      ; left side of the frame
+     (- (nth 1 frame-size) (nth 1 display-size))      ; top side of the frame
+     (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
+     (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
 
 (provide 'graphene-look)
