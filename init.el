@@ -61,19 +61,29 @@
   (load-theme 'hc-zenburn t)
   :pin local)
 
-;; Needs setup (external perl install, perl code for ack)
-(use-package ack
-  :disabled t)
-
-;; Highlight all regexps in a buffer
-(use-package hi-lock
+(use-package discover
   :ensure t
-  :bind (("M-o h" . highlight-regexp)
-         ("M-o u" . unhighlight-regexp))
   :config
-  (setq hi-lock-auto-select-face t)
-;; Use instead bold Pink (standard error face)
-  (setq hi-lock-face-defaults '("hi-black-b" "hi-pink")))
+  (global-discover-mode 1)
+  :pin melpa-stable)
+
+(use-package avy
+  :disabled t
+  :ensure t
+  :bind (("C-'" . avy-goto-char-2)
+         ("M-'" . avy-goto-word-1))
+  :pin gnu)
+
+;; Jump through Emacs buffers easily
+(use-package ace-jump-mode
+  :ensure t
+  :bind ("C-c SPC" . ace-jump-mode)
+  :config
+  (setq ace-jump-mode-submode-list
+        '(ace-jump-char-mode
+          ace-jump-word-mode
+          ace-jump-line-mode))
+  :pin melpa-stable)
 
 ;; Placeholder for what looks like a great HTML, CSS, JavaScript dev package
 ;; See also https://truongtx.me/2014/02/23/set-up-javascript-development-environment-in-emacs/
@@ -99,12 +109,6 @@
 (use-package functions
   :config
   (setq ring-bell-function 'echo-area-bell))
-
-(use-package graphene
-  :disabled t
-  :init
-  (setq graphene-default-font "Consolas-11")
-  :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages required for graphene
@@ -146,11 +150,11 @@
   :ensure t
   :pin melpa-stable)
 
-;; Temporary setup for development of my own graphene version
-(add-to-list
- 'load-path
- (expand-file-name "pkgs/graphene-0.9.2" user-emacs-directory))
-;;(require 'graphene)
+(use-package graphene
+  :load-path "pkgs/graphene-0.9.2/"
+  :init
+  (setq graphene-completion-auto nil)
+  (setq graphene-default-font "Consolas-11"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
