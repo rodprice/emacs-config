@@ -18,7 +18,7 @@
 (unless (eq (server-running-p) t)
   (server-start))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up use-package for use with MELPA Stable and local archives
 
 ;; MELPA Stable archive
@@ -32,7 +32,7 @@
 ;; MELPA.  Simply adding MELPA to package-archives results in all
 ;; packages being downloaded from these archives. I prefer versioned
 ;; packages, so I set up this local archive to store local versions of
-;; packages not available on GNU of MELPA Stable. It also gives me the
+;; packages not available on GNU or MELPA Stable. It also gives me the
 ;; opportunity to clean up the mess all too often found in these
 ;; unversioned packages.
 (require 'package-x)

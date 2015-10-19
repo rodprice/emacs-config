@@ -5,7 +5,10 @@
 (defun remove-all-matches-from-alist (name alist)
   "Remove any entries matching NAME from ALIST.
 
-This function assumes that ALIST has the same form as `auto-mode-alist' and friends.  This function recurses until all entries matching NAME are removed.  The return value is the alist with matching entries removed."
+This function assumes that ALIST has the same form as
+`auto-mode-alist' and friends.  This function recurses until all
+entries matching NAME are removed.  The return value is the alist
+with matching entries removed."
   (let ((mode (assoc-default name alist 'string-match)))
     (if mode
         (remove-all-matches-from-alist
@@ -100,6 +103,48 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (message echo-area-bell-propertized-string)
   (sit-for echo-area-bell-delay)
   (message ""))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Use the MSYS bash shell on Windows
+
+;; Adapted from
+;; http://stackoverflow.com/questions/235254/how-can-i-run-cygwin-bash-shell-from-within-emacs
+(defun windows-to-unixy-path (path)
+  "Convert a Windows-formatted PATH to one compatible with bash."
+  (let* ((path1 (replace-regexp-in-string "\\([A-Za-z]\\):" "/\\1" path))
+         (path2 (replace-regexp-in-string "\\\\" "/" path1))
+         (path3 (replace-regexp-in-string " " "\\\\ " path2))
+         (path4 (replace-regexp-in-string ";" ":" path3)))
+    path4))
+
+;; Start up a Git for Windows bash shell external to Emacs. I don't
+;; know how to make this run inside Emacs like the msys bash shell
+;; below. See
+;; https://www.masteringemacs.org/article/comint-writing-command-interpreter
+;; for possible approaches.
+(defun git-bash ()
+  "Run the Git for Windows bash shell."
+  (interactive)
+  ;;(windows-to-unixy-path)
+  (setenv "PS1" "\\W$ ")
+  (make-comint-in-buffer
+   "git-bash" nil (concat git-for-windows-dir "git-bash.exe") nil))
+
+;; Start up an MSYS bash shell within Emacs
+(defun bash ()
+  "Run the MSYS bash shell."
+  (interactive)
+  (let ((explicit-shell-file-name (concat msys-binaries-dir "bash")))
+    ;;(windows-to-unixy-path)
+    (setenv "PS1" "\\W$ ")
+    (call-interactively 'shell)))
+
+;; Shell scripts to call Windows batch files (or executables?) look like this:
+;; #!/bin/sh
+;; #
+;; # Call lein.bat from an MSYS bash shell.
+;;
+;; "$SHELL" //c "lein.bat $1 $2 $3 $4 $5"
 
 
 (provide 'functions)
