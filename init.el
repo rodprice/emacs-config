@@ -105,11 +105,6 @@
   :bind ("C-w" . whole-line-or-region-kill-region)
   :pin melpa-stable)
 
-;; Load my own initialization functions
-(use-package functions
-  :config
-  (setq ring-bell-function 'echo-area-bell))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages required for graphene
 
@@ -157,15 +152,28 @@
   (setq graphene-default-font "Consolas-11"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Load Python-related packages
+;; My initialization elisp code
 
-;; See https://github.com/gregsexton/ob-ipython/tree/ipython3
-(use-package ob-ipython
+;; Declare a few paths. These paths are specific to the user's site,
+;; and so should be set in user's site/*-postload.el file.
+(defvar my-apps-dir nil
+  "The path to the apps directory, where the user's applications are kept.")
+(defvar my-git-for-windows-dir nil
+  "The path to the top directory of the user's git installation.")
+(defvar my-msys-binaries-dir nil
+  "The path to the user's MSYS installation.")
+(defvar my-anaconda-dir nil
+  "The path to the top directory of the user's Python Anaconda distribution.")
+(defvar my-anaconda-scripts-dir nil
+  "The path to the scripts directory of the user's Python Anaconda distribution.")
+
+;; Load my own initialization functions
+(use-package my-functions
   :config
-  (setq org-confirm-babel-evaluate nil)
-  (add-hook 'org-babel-after-execute-hook
-            'org-display-inline-images 'append)
-  :pin local)
+  (setq ring-bell-function 'echo-area-bell))
+
+;; Python programming mode and tools
+(require 'my-python)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration

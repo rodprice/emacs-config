@@ -1,4 +1,4 @@
-;;; functions --- Functions for use in emacs customization
+;;; my-functions.el --- Functions for use in emacs initialization and customization.
 ;;; Commentary:
 ;;; Code:
 
@@ -147,5 +147,5 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 ;; "$SHELL" //c "lein.bat $1 $2 $3 $4 $5"
 
 
-(provide 'functions)
-;;; functions.el ends here
+(provide 'my-functions)
+;;; my-functions.el ends here

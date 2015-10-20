@@ -1,3 +1,6 @@
+;;; my-completion.el --- Set up code completion utilities.
+;;; Commentary:
+;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auto-complete configuration
@@ -34,3 +37,5 @@
 (add-hook 'auto-complete-mode-hook 'ac-common-setup)
 (global-auto-complete-mode t)
 
+(provide 'my-completion)
+;;; my-completion.el ends here

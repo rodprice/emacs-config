@@ -1,6 +1,5 @@
-;;; Wolfram --- Customizations for Mathematica code
+;;; my-wolfram.el --- Customizations for Mathematica code
 ;;; Commentary:
-;; Customization and setup for wolfram-mode
 ;;; Code:
 
 ;; Auto-pair comment brackets
@@ -8,5 +7,5 @@
                :unless '(sp-in-string-p)
                :actions '(insert wrap))
 
-(provide 'wolfram)
-;;; wolfram.el ends here
+(provide 'my-wolfram)
+;;; my-wolfram.el ends here
