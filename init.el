@@ -157,6 +157,17 @@
   (setq graphene-default-font "Consolas-11"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load Python-related packages
+
+;; See https://github.com/gregsexton/ob-ipython/tree/ipython3
+(use-package ob-ipython
+  :config
+  (setq org-confirm-babel-evaluate nil)
+  (add-hook 'org-babel-after-execute-hook
+            'org-display-inline-images 'append)
+  :pin local)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
 
 ;; See README in ~/.emacs.d/site/
