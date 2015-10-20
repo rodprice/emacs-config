@@ -131,31 +131,31 @@
 
 ;;; completion
 
-(defcustom graphene-completion-auto 'global
-  "Whether graphene should enable autocomplete with prog-modes."
-  :type 'sexp
-  :group 'graphene)
+;; (defcustom graphene-completion-auto 'global
+;;   "Whether graphene should enable autocomplete with prog-modes."
+;;   :type 'sexp
+;;   :group 'graphene)
 
-(defun graphene-completion ()
-  (require 'company)
-  (company-mode t))
+;; (defun graphene-completion ()
+;;   (require 'company)
+;;   (company-mode t))
 
-(when (eq graphene-completion-auto 'global)
-  (require 'company)
-  (global-company-mode t))
+;; (when (eq graphene-completion-auto 'global)
+;;   (require 'company)
+;;   (global-company-mode t))
 
-(eval-after-load 'company
-  '(progn
-     (define-key company-active-map (kbd "RET") nil)
-     (setq company-idle-delay 0.125
-           company-minimum-prefix-length 1
-           company-require-match nil
-           company-transformers '(company-sort-by-occurrence)
-           company-dabbrev-ignore-case nil
-           company-dabbrev-downcase nil
-           company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                               company-preview-frontend
-                               company-echo-metadata-frontend))))
+;; (eval-after-load 'company
+;;   '(progn
+;;      (define-key company-active-map (kbd "RET") nil)
+;;      (setq company-idle-delay 0.125
+;;            company-minimum-prefix-length 1
+;;            company-require-match nil
+;;            company-transformers '(company-sort-by-occurrence)
+;;            company-dabbrev-ignore-case nil
+;;            company-dabbrev-downcase nil
+;;            company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+;;                                company-preview-frontend
+;;                                company-echo-metadata-frontend))))
 
 
 ;;; error checking

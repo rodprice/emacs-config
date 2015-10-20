@@ -140,11 +140,6 @@
   :ensure t
   :pin melpa-stable)
 
-;; Ick
-(use-package company
-  :ensure t
-  :pin melpa-stable)
-
 (use-package graphene
   :load-path "pkgs/graphene-0.9.2/"
   :init
