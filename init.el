@@ -1,3 +1,6 @@
+;;; init.el --- Emacs initialization file
+;;; Commentary:
+;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load some site-specific configuration before anything else
@@ -169,6 +172,9 @@
 
 ;; Python programming mode and tools
 (require 'my-python)
+
+;; Belongs in *-look.el file
+(global-visual-line-mode 0)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration

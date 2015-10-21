@@ -54,9 +54,6 @@
       ido-create-new-buffer 'always
       ido-use-filename-at-point 'guess)
 
-
-(setq-default truncate-lines t)
-
 ;; Make buffer names unique
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)

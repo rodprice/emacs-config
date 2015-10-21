@@ -128,13 +128,13 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   ;;(windows-to-unixy-path)
   (setenv "PS1" "\\W$ ")
   (make-comint-in-buffer
-   "git-bash" nil (concat git-for-windows-dir "git-bash.exe") nil))
+   "git-bash" nil (concat my-git-for-windows-dir "git-bash.exe") nil))
 
 ;; Start up an MSYS bash shell within Emacs
 (defun bash ()
   "Run the MSYS bash shell."
   (interactive)
-  (let ((explicit-shell-file-name (concat msys-binaries-dir "bash")))
+  (let ((explicit-shell-file-name (concat my-msys-binaries-dir "bash")))
     ;;(windows-to-unixy-path)
     (setenv "PS1" "\\W$ ")
     (call-interactively 'shell)))
