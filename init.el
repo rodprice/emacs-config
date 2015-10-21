@@ -175,6 +175,7 @@
 
 ;; Belongs in *-look.el file
 (global-visual-line-mode 0)
+(setq-default truncate-lines t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
