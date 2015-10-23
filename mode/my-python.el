@@ -16,7 +16,12 @@
 (require 'flycheck)
 
 (flycheck-define-checker python-pyflakes
-  "A Python syntax and style checker using the pyflakes utility."
+  "A Python syntax checker using the pyflakes utility.
+
+Pyflakes analyzes Python programs and detects various errors. It
+works by parsing the source file, not importing it, so it is safe
+to use on modules with side effects. Unlike Pylint, it does not
+check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
   :command ("pyflakes" source-inplace)
   :error-patterns
   ((error line-start (file-name) ":" line ":" (message) line-end))

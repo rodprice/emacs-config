@@ -2,6 +2,10 @@
 ;;; Commentary:
 ;;; Code:
 
+;;  (autoload 'wolfram-mode "wolfram-mode" nil t)
+;;  (autoload 'run-wolfram "wolfram-mode" nil t)
+(setq wolfram-program my-mathematica-kernel-dir)
+
 (defun remove-all-matches-from-alist (name alist)
   "Remove any entries matching NAME from ALIST.
 
