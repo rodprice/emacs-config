@@ -3,7 +3,7 @@
 ;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Load some site-specific configuration before anything else
+;; Set a few paths first
 
 ;; Set up load paths within .emacs.d
 (add-to-list 'load-path (expand-file-name "init/" user-emacs-directory))
@@ -11,7 +11,20 @@
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
 
-;; See README in ~/.emacs.d/site/
+;; Declare a few paths to external applications used by Emacs. These
+;; paths are specific to each site (meaning machine and operating
+;; system), and so should be set in the site/*-preload.el file. See
+;; the site/README.md file for details.
+(defvar my-git-for-windows-dir nil
+  "The path to the top directory of my git installation.")
+(defvar my-msys-binaries-dir nil
+  "The path to the bin directory of my MSYS installation.")
+(defvar my-anaconda-dir nil
+  "The path to the top directory of my Python Anaconda distribution.")
+(defvar my-anaconda-scripts-dir nil
+  "The path to the scripts directory of my Python Anaconda distribution.")
+
+;; Load the site-specific preload file
 (load (concat system-name "-preload") 'noerror)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -88,21 +101,6 @@
           ace-jump-line-mode))
   :pin melpa-stable)
 
-;; Placeholder for what looks like a great HTML, CSS, JavaScript dev package
-;; See also https://truongtx.me/2014/02/23/set-up-javascript-development-environment-in-emacs/
-(use-package skewer-mode
-  :disabled t)
-
-;; Disable this if you want to use skewer-mode
-(use-package js-mode
-  :disabled nil
-  :mode "\\.json\\'")
-
-(use-package markdown-mode
-  :ensure t
-  :mode "\\.md\\'"
-  :pin melpa-stable)
-
 (use-package whole-line-or-region
   :ensure t
   :bind ("C-w" . whole-line-or-region-kill-region)
@@ -139,6 +137,9 @@
   :ensure t
   :pin melpa-stable)
 
+;; Flycheck uses standard error navigation commands of Emacs, `M-g n'
+;; for `next-error' and 'M-g p' for `previous-error'. See section 4.4
+;; of the Flycheck manual.
 (use-package flycheck
   :ensure t
   :pin melpa-stable)
@@ -149,32 +150,46 @@
   (setq graphene-completion-auto nil)
   (setq graphene-default-font "Consolas-11"))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; My initialization elisp code
-
-;; Declare a few paths. These paths are specific to the user's site,
-;; and so should be set in user's site/*-postload.el file.
-(defvar my-apps-dir nil
-  "The path to the apps directory, where the user's applications are kept.")
-(defvar my-git-for-windows-dir nil
-  "The path to the top directory of the user's git installation.")
-(defvar my-msys-binaries-dir nil
-  "The path to the user's MSYS installation.")
-(defvar my-anaconda-dir nil
-  "The path to the top directory of the user's Python Anaconda distribution.")
-(defvar my-anaconda-scripts-dir nil
-  "The path to the scripts directory of the user's Python Anaconda distribution.")
-
 ;; Load my own initialization functions
 (use-package my-functions
   :config
   (setq ring-bell-function 'echo-area-bell))
 
-;; Python programming mode and tools
-(require 'my-python)
-
 ;; Belongs in *-look.el file
 (global-visual-line-mode 0)
+(setq-default truncate-lines t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Major modes
+
+;; Python programming mode and tools
+(use-package my-python
+  :pin manual)
+
+;; Placeholder for what looks like a great HTML, CSS, JavaScript dev
+;; package.  See also URL
+;; `https://truongtx.me/2014/02/23/set-up-javascript-development-environment-in-emacs/'.
+(use-package skewer-mode
+  :disabled t)
+
+;; Disable this if you want to use skewer-mode
+(use-package js-mode
+  :disabled nil
+  :mode "\\.json\\'")
+
+(use-package markdown-mode
+  :ensure t
+  :mode "\\.md\\'"
+  :pin melpa-stable)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Global key bindings
+
+(require 'org)
+(global-set-key (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c c") 'org-capture)
+(global-set-key (kbd "C-c a") 'org-agenda)
+(global-set-key (kbd "C-c b") 'org-iswitchb)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
