@@ -2,10 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-;;  (autoload 'wolfram-mode "wolfram-mode" nil t)
-;;  (autoload 'run-wolfram "wolfram-mode" nil t)
-(setq wolfram-program my-mathematica-kernel-dir)
-
 (defun remove-all-matches-from-alist (name alist)
   "Remove any entries matching NAME from ALIST.
 
@@ -20,15 +16,29 @@ with matching entries removed."
          (remove (rassoc mode alist) alist))
       alist)))
 
-;; Remove binding for .m files to objc-mode; bind to wolfram-mode
-(setq auto-mode-alist
- (cons '("\\.m\\'" . wolfram-mode)
-       (remove-all-matches-from-alist ".m" auto-mode-alist)))
+(require 'use-package)
+(use-package wolfram-mode
+  :config
+  (setq wolfram-program my-mathematica-kernel-dir)
+  ;; Remove binding for .m files to objc-mode; bind to wolfram-mode
+  (setq auto-mode-alist
+        (cons '("\\.m\\'" . wolfram-mode)
+              (remove-all-matches-from-alist ".m" auto-mode-alist)))
+  :pin local)
 
-;; Auto-pair comment brackets
-(sp-local-pair '(wolfram-mode) "(*" "*)"
-               :unless '(sp-in-string-p)
-               :actions '(insert wrap))
+;; To set up flycheck mode I need a syntax checker. Perhaps
+;; `http://mathematica.stackexchange.com/questions/24176/mathematica-command-for-type-checking'
+;; is a start?
+
+;; Auto-pair comment brackets --- solution doesn't work
+;; (sp-local-pair '(wolfram-mode) "(*" "*)"
+;;                :unless '(sp-in-string-p)
+;;                :actions '(insert wrap))
+
+(add-hook 'wolfram-mode-hook
+          (lambda ()
+            (turn-off-smartparens-mode)
+            (turn-off-show-smartparens-mode)))
 
 (provide 'my-wolfram)
 ;;; my-wolfram.el ends here
