@@ -185,7 +185,14 @@
 
 (use-package markdown-mode
   :ensure t
+  :defer t
   :mode "\\.md\\'"
+  :pin melpa-stable)
+
+(use-package yaml-mode
+  :ensure t
+  :mode "\\.\\(condarc\\|ya?ml\\)\\''"
+  :bind ("C-m" . newline-and-indent)
   :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

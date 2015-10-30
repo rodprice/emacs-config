@@ -11,8 +11,7 @@ entries matching NAME are removed.  The return value is the alist
 with matching entries removed."
   (let ((mode (assoc-default name alist 'string-match)))
     (if mode
-        (remove-all-matches-from-alist
-         name
+        (remove-all-matches-from-alist name
          (remove (rassoc mode alist) alist))
       alist)))
 
