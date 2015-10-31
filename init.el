@@ -15,19 +15,32 @@
 ;; paths are specific to each site (meaning machine and operating
 ;; system), and so should be set in the site/*-preload.el file. See
 ;; the site/README.md file for details.
+(defvar my-path-variables nil
+  "A list of path variables to be used to set $PATH and `exec-path'.")
 (defvar my-git-for-windows-dir nil
   "The path to the top directory of my git installation.")
+(add-to-list 'my-path-variables 'my-git-for-windows-dir)
 (defvar my-msys-binaries-dir nil
   "The path to the bin directory of my MSYS installation.")
+(add-to-list 'my-path-variables 'my-msys-binaries-dir)
 (defvar my-anaconda-dir nil
   "The path to the top directory of my Python Anaconda distribution.")
+(add-to-list 'my-path-variables 'my-anaconda-dir)
 (defvar my-anaconda-scripts-dir nil
   "The path to the scripts directory of my Python Anaconda distribution.")
+(add-to-list 'my-path-variables 'my-anaconda-scripts-dir)
 (defvar my-mathematica-kernel-dir nil
   "The path to the Kernel/Binaries directory of my Mathematica installation.")
+(add-to-list 'my-path-variables 'my-mathematica-kernel-dir)
 
 ;; Load the site-specific preload file
 (load (concat system-name "-preload") 'noerror)
+
+;; Add the paths to `exec-path', Emacs' list of paths to external programs,
+;; and set the `PATH' environment variable equal to `exec-path'.
+(let ((paths (mapcar 'symbol-value my-path-variables)))
+  (mapc (lambda (dir) (if dir (add-to-list 'exec-path dir))) paths)
+  (setenv "PATH" (mapconcat 'identity exec-path ";")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -178,14 +191,16 @@
 (use-package skewer-mode
   :disabled t)
 
-;; Disable this if you want to use skewer-mode
-(use-package js-mode
-  :disabled nil
-  :mode "\\.json\\'")
-
 (use-package markdown-mode
   :ensure t
+  :defer t
   :mode "\\.md\\'"
+  :pin melpa-stable)
+
+(use-package yaml-mode
+  :ensure t
+  :mode "\\.\\(condarc\\|ya?ml\\)\\''"
+  :bind ("C-m" . newline-and-indent)
   :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
