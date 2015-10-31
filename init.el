@@ -11,6 +11,9 @@
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
 
+;; Get some utilities for manipulating Windows paths
+(require 'my-application-paths)
+
 ;; Declare a few paths to external applications used by Emacs. These
 ;; paths are specific to each site (meaning machine and operating
 ;; system), and so should be set in the site/*-preload.el file. See
@@ -36,11 +39,12 @@
 ;; Load the site-specific preload file
 (load (concat system-name "-preload") 'noerror)
 
-;; Add the paths to `exec-path', Emacs' list of paths to external programs,
-;; and set the `PATH' environment variable equal to `exec-path'.
-(let ((paths (mapcar 'symbol-value my-path-variables)))
-  (mapc (lambda (dir) (if dir (add-to-list 'exec-path dir))) paths)
-  (setenv "PATH" (mapconcat 'identity exec-path ";")))
+;; Prepend the contents of `my-path-variables' to `exec-path'.
+(setq exec-path
+      (let ((my-paths (mapcar 'symbol-value my-path-variables)))
+        (my-concat-paths my-paths exec-path)))
+;; Make the environment variable $PATH match `exec-path'
+(setenv "PATH" (mapconcat 'identity exec-path ";"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
