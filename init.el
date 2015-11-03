@@ -19,7 +19,7 @@
 ;; system), and so should be set in the site/*-preload.el file. See
 ;; the site/README.md file for details.
 (defvar my-path-variables nil
-  "A list of path variables to be used to set $PATH and `exec-path'.")
+  "A list of path variables to be prepended to $PATH and `exec-path'.")
 (defvar my-git-for-windows-dir nil
   "The path to the top directory of my git installation.")
 (add-to-list 'my-path-variables 'my-git-for-windows-dir)
@@ -180,6 +180,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
+
+(use-package json-mode
+  :disabled t
+  :pin local)
 
 ;; Python programming mode and tools
 (use-package my-python
