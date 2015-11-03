@@ -16,8 +16,10 @@
 
 ;; Declare a few paths to external applications used by Emacs. These
 ;; paths are specific to each site (meaning machine and operating
-;; system), and so should be set in the site/*-preload.el file. See
-;; the site/README.md file for details.
+;; system), and so should be set in the site/*-preload.el file. The
+;; paths stored in the path variables will be prepended to `exec-path'
+;; in the order that they are defined below. See the site/README.md
+;; file for details.
 (defvar my-path-variables nil
   "A list of path variables to be prepended to $PATH and `exec-path'.")
 (defvar my-git-for-windows-dir nil
