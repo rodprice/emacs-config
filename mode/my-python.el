@@ -36,6 +36,7 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 (use-package ob-ipython
   :config
   (setq org-confirm-babel-evaluate nil)
+  (setq org-src-preserve-indentation t)
   (add-hook 'org-babel-after-execute-hook
             'org-display-inline-images 'append)
   :pin local)

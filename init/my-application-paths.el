@@ -10,8 +10,7 @@ case-insensitive."
 
 (defun my-remove-and-prepend-paths (ps1 ps2)
   "Prepend list of paths PS1 in reverse order to list of paths PS2.
-Any elements of PS1 initially present in PS2 are removed from the
-original list PS2."
+Any elements of PS1 initially present in PS2 are removed."
   (if ps1
       (my-remove-and-prepend-paths
        (cdr ps1)
