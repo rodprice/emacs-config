@@ -185,7 +185,15 @@
 
 (use-package json-mode
   :disabled t
+  :config
+  (defun pretty-print-json(&optional b e)
+    "Shells out to Python to pretty print JSON."
+    (interactive "r")
+    (shell-command-on-region b e "python -m json.tool" (current-buffer) t))
   :pin local)
+
+(use-package my-emacs-lisp
+  :pin manual)
 
 ;; Python programming mode and tools
 (use-package my-python
@@ -221,6 +229,18 @@
 (global-set-key (kbd "C-c c") 'org-capture)
 (global-set-key (kbd "C-c a") 'org-agenda)
 (global-set-key (kbd "C-c b") 'org-iswitchb)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Experimental stuff
+
+(use-package dedicated
+  :ensure t
+  :pin melpa-stable)
+
+;; Not displaying rule as I expected
+(use-package fill-column-indicator
+  :disabled t
+  :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
