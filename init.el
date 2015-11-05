@@ -174,11 +174,19 @@
 ;; Load my own initialization functions
 (use-package my-functions
   :config
-  (setq ring-bell-function 'echo-area-bell))
+  (setq ring-bell-function 'echo-area-bell)
+  :pin manual)
 
 ;; Belongs in *-look.el file
 (global-visual-line-mode 0)
 (setq-default truncate-lines t)
+
+;; Backup file configuration
+;; http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files?rq=1
+(setq delete-old-versions t
+      kept-new-versions 2
+      kept-old-versions 2
+      version-control t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
