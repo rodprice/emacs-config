@@ -201,6 +201,8 @@
   :pin local)
 
 (use-package my-emacs-lisp
+  :config
+  (setq eldoc-argument-case 'fontify-eldoc-argument-list)
   :pin manual)
 
 ;; Python programming mode and tools

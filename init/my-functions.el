@@ -132,6 +132,12 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 ;;
 ;; "$SHELL" //c "lein.bat $1 $2 $3 $4 $5"
 
+;; Fontify eldoc messages. See http://www.emacswiki.org/emacs/ElDoc
+(require 'eldoc)
+(defun fontify-eldoc-argument-list (string)
+  "Upcase and fontify STRING for use with `eldoc-mode'."
+  (propertize (upcase string)
+              'face 'font-lock-variable-name-face))
 
 (provide 'my-functions)
 ;;; my-functions.el ends here
