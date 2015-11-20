@@ -30,10 +30,17 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 (add-to-list 'flycheck-checkers 'python-pyflakes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set up auto-completion using the Jedi python package
+
+(require 'jedi)
+(add-hook 'python-mode-hook 'jedi:setup)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use org-babel mode with ipython notebooks
 
 ;; See https://github.com/gregsexton/ob-ipython/tree/ipython3
 (use-package ob-ipython
+  :disabled t
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-preserve-indentation t)
