@@ -30,10 +30,18 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 (add-to-list 'flycheck-checkers 'python-pyflakes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Set up auto-completion using the Jedi python package
-
-(require 'jedi)
-(add-hook 'python-mode-hook 'jedi:setup)
+;; Setup autocomplete using the jedi python library
+;; Manual setup:
+;;   cd ~/.emacs.d/elpa/jedi-core-0.2.6
+;;   python setup.py install
+;; Then check to see if jediepcserver.py shows up in the directory below.
+(use-package jedi
+  :ensure t
+  :config
+  (setq jedi:server-command
+        (list (expand-file-name "lib/site-packages/jediepcserver.py" my-anaconda-dir)))
+  (add-hook 'python-mode-hook 'jedi:setup)
+  :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use org-babel mode with ipython notebooks
