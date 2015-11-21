@@ -12,5 +12,12 @@
 (require 'flycheck)
 (setq flycheck-emacs-lisp-load-path 'inherit)
 
+;; Set up auto-completion
+(setq tab-always-indent 'complete)
+(add-to-list 'completion-styles 'initials t)
+;(add-hook 'emacs-lisp-mode-hook
+;          (lambda ()
+;            (set (make-local-variable 'tab-always-indent) 'complete)))
+
 (provide 'my-emacs-lisp)
 ;;; my-emacs-lisp.el ends here
