@@ -10,6 +10,8 @@
 
 ;; Tell flycheck to use load-path from the current session
 (require 'flycheck)
+(with-eval-after-load 'flycheck
+  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 (setq flycheck-emacs-lisp-load-path 'inherit)
 
 ;; Set up auto-completion
