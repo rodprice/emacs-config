@@ -120,9 +120,13 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (defun bash ()
   "Run the MSYS bash shell."
   (interactive)
-  (let ((explicit-shell-file-name (expand-file-name "bash" my-msys-binaries-dir)))
-    ;;(windows-to-unixy-path)
-    (setenv "PS1" "\\W$ ")
+  (let ((explicit-shell-file-name (expand-file-name "bash" my-msys-binaries-dir))
+        (shell-file-name "bash")
+        (explicit-bash.exe-args '("--noediting" "--login" "-i"))
+        (shell-env (getenv "SHELL")))
+    (setenv "SHELL" shell-file-name)
+;    (setenv "PS1" "\\W$ ")
+    (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)
     (call-interactively 'shell)))
 
 ;; Shell scripts to call Windows batch files (or executables?) look like this:
