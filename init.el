@@ -177,6 +177,11 @@
   (setq ring-bell-function 'echo-area-bell)
   :pin manual)
 
+(use-package smartscan
+  :ensure t
+  :config
+  (global-smartscan-mode 1))
+
 ;; Belongs in *-look.el file
 (global-visual-line-mode 0)
 (setq-default truncate-lines t)
@@ -240,8 +245,32 @@
 (global-set-key (kbd "C-c a") 'org-agenda)
 (global-set-key (kbd "C-c b") 'org-iswitchb)
 
+(require 'smartparens)
+(global-set-key (kbd "C-<right>") 'my-end-of-sexp)
+(global-set-key (kbd "C-<left>") 'my-beginning-of-sexp)
+(global-set-key (kbd "M-<right>") 'sp-forward-slurp-sexp)
+(global-set-key (kbd "M-<left>") 'sp-forward-barf-sexp)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
+
+(defun my-beginning-of-sexp ()
+  "Move to beginning of sexp, unless previous invocation did not result
+in movement of point.  In that case, move one character to the left."
+  (interactive)
+  (let ((posn (point)))
+    (sp-beginning-of-sexp)
+    (if (eq posn (point))
+        (backward-char))))
+
+(defun my-end-of-sexp ()
+  "Move to end of sexp, unless previous invocation did not result
+in movement of point.  In that case, move one character to the right."
+  (interactive)
+  (let ((posn (point)))
+    (sp-end-of-sexp)
+    (if (eq posn (point))
+        (forward-char))))
 
 (use-package dedicated
   :ensure t
