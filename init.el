@@ -105,7 +105,6 @@
   :pin melpa-stable)
 
 (use-package avy
-  :disabled t
   :ensure t
   :bind (("C-'" . avy-goto-char-2)
          ("M-'" . avy-goto-word-1))
@@ -271,15 +270,6 @@ in movement of point.  In that case, move one character to the right."
     (sp-end-of-sexp)
     (if (eq posn (point))
         (forward-char))))
-
-(use-package dedicated
-  :ensure t
-  :pin melpa-stable)
-
-;; Not displaying rule as I expected
-(use-package fill-column-indicator
-  :disabled t
-  :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the rest of the site-specific configuration
