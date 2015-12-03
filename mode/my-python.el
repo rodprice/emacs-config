@@ -38,9 +38,8 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 (use-package jedi
   :ensure t
   :config
-  (setq jedi:server-command
-        (list (expand-file-name "lib/site-packages/jediepcserver.py" my-anaconda-dir)))
   (add-hook 'python-mode-hook 'jedi:setup)
+  (setq jedi:complete-on-dot)
   :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
