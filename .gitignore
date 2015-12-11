@@ -39,3 +39,4 @@ smex-items
 TAGS
 *.elc
 /flycheck-*
+eshell

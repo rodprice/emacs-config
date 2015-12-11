@@ -36,6 +36,7 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 ;;   python setup.py install
 ;; Then check to see if jediepcserver.py shows up in the directory below.
 (use-package jedi
+  :disabled t
   :ensure t
   :config
 ;  (setq python-environment-directory
@@ -48,6 +49,24 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
   (add-hook 'python-mode-hook 'jedi:setup)
   (setq jedi:complete-on-dot)
   :pin melpa-stable)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Simple ipython setup
+;; http://stackoverflow.com/questions/25669809/how-do-you-run-python-code-using-emacs
+
+(require 'python)
+(setq python-shell-interpreter
+      (expand-file-name "python.exe" my-anaconda-dir))
+(setq python-shell-interpreter-args
+      (concat "-i " (expand-file-name "ipython-script.py" my-anaconda-scripts-dir)))
+(setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
+(setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
+;; TODO set `python-shell-virtualenv-path' correctly
+
+; python-shell-completion-setup-code
+; "from IPython.core.completerlib import module_completion"
+; python-shell-completion-string-code
+; "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use org-babel mode with ipython notebooks
