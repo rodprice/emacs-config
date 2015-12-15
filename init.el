@@ -137,9 +137,9 @@
   :ensure t
   :pin melpa-stable)
 
-(use-package ppd-sr-speedbar
-  :ensure t
-  :pin local)
+;; (use-package ppd-sr-speedbar
+;;   :ensure t
+;;   :pin local)
 
 (use-package ido-ubiquitous
   :ensure t
@@ -252,6 +252,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
+
+;; In some buffers, you can hit `q' to restore the previous window.
+;; Normally, this just buries the buffer, leaving a bunch of clutter
+;; around.  If you want to kill the buffer, you have to hit `C-u q'.
+;; This function reverses the key sequence: hitting `q' kills the
+;; buffer, and `C-u q' buries it.
+(defun my-quit-window (&optional bury window)
+  (interactive "P")
+  (quit-restore-window window (if bury 'bury 'kill)))
+(fset 'quit-window 'my-quit-window)
 
 (defun my-beginning-of-sexp ()
   "Move to beginning of sexp, unless previous invocation did not result

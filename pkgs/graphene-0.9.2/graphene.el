@@ -206,7 +206,7 @@
 (require 'graphene-helper-functions)
 (require 'graphene-editing)
 (require 'graphene-env)
-(require 'graphene-projects)
+;(require 'graphene-projects)
 (require 'graphene-look)
 
 (provide 'graphene)
