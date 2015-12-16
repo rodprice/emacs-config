@@ -17,12 +17,15 @@ with matching entries removed."
 
 (require 'use-package)
 (use-package wolfram-mode
+  :ensure t
   :config
   (setq wolfram-program my-mathematica-kernel-dir)
   ;; Remove binding for .m files to objc-mode; bind to wolfram-mode
   (setq auto-mode-alist
         (cons '("\\.m\\'" . wolfram-mode)
               (remove-all-matches-from-alist ".m" auto-mode-alist)))
+  (setq wolfram-indent 4)
+  ;; TODO fix wolfram-mode-map
   :pin local)
 
 ;; To set up flycheck mode I need a syntax checker. Perhaps
@@ -33,6 +36,10 @@ with matching entries removed."
 ;; (sp-local-pair '(wolfram-mode) "(*" "*)"
 ;;                :unless '(sp-in-string-p)
 ;;                :actions '(insert wrap))
+
+;; A configuration for using git version control with Mathematica
+;; development is given here:
+;; http://mathematica.stackexchange.com/questions/5789/how-to-setup-team-development-for-a-mathematica-project/39691#39691
 
 (add-hook 'wolfram-mode-hook
           (lambda ()
