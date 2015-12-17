@@ -37,6 +37,8 @@
 (defvar my-mathematica-kernel-dir nil
   "The path to the Kernel/Binaries directory of my Mathematica installation.")
 (add-to-list 'my-path-variables 'my-mathematica-kernel-dir)
+(defvar my-mathematica-license-dir nil
+  "The path to the $BaseDirectory/Licensing directory of my Mathematica installation")
 
 ;; Load the site-specific preload file
 (load (concat system-name "-preload") 'noerror)

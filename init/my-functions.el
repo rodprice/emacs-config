@@ -95,6 +95,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 ;; Adapted from
 ;; http://stackoverflow.com/questions/235254/how-can-i-run-cygwin-bash-shell-from-within-emacs
+;; Perhaps use shell-quote-arguments rather than this?
 (defun windows-to-unixy-path (path)
   "Convert a Windows-formatted PATH to one compatible with bash."
   (let* ((path1 (replace-regexp-in-string "\\([A-Za-z]\\):" "/\\1" path))

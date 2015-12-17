@@ -19,7 +19,14 @@ with matching entries removed."
 (use-package wolfram-mode
   :ensure t
   :config
-  (setq wolfram-program my-mathematica-kernel-dir)
+  (setq wolfram-program
+        (shell-quote-argument  ; make path OS-independent 
+         (expand-file-name "math.exe" my-mathematica-kernel-dir)))
+  (setq wolfram-program-arguments
+        (list
+         "-pwfile "
+         (shell-quote-argument  ; make path OS-independent 
+          (expand-file-name "mathpass" my-mathematica-license-dir))))
   ;; Remove binding for .m files to objc-mode; bind to wolfram-mode
   (setq auto-mode-alist
         (cons '("\\.m\\'" . wolfram-mode)
