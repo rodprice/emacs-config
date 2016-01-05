@@ -137,6 +137,98 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 ;;
 ;; "$SHELL" //c "lein.bat $1 $2 $3 $4 $5"
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window creation and movement
+
+(defun my-split-window-below ()
+  "Split the current window horizontally and move point to the
+  new window."
+  (interactive)
+  (progn
+    (split-window-below)
+    (other-window 1)))
+
+(defun my-split-window-right ()
+  "Split the current window into two side-by-side windows and
+  move point to the new window."
+  (interactive)
+  (progn
+    (split-window-right)
+    (other-window 1)))
+
+;; Adapted from http://whattheemacsd.com
+(defun my-join-lines ()
+  "Join the following line onto the current line."  
+  (interactive)
+  (join-line -1))
+
+(defun my-rearrange-windows (&optional toggle)
+  "Swap two buffers between two windows in the same frame.  When
+  optional argument TOGGLE is non-nil, rotate between over-and-
+  under and side-by-side orientation of windows instead."
+  (interactive "P")
+  (if (not toggle)
+      (my-rotate-windows)
+    (my-toggle-window-split)))
+
+;; From http://whattheemacsd.com/
+(defun my-toggle-window-split ()
+  "Toggle between horizontal and vertical layout of two windows."
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd
+              (not (and (<= (car this-win-edges)
+                            (car next-win-edges))
+                        (<= (cadr this-win-edges)
+                            (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+
+;; Adapted from http://whattheemacsd.com
+(defun my-rotate-windows ()
+  "Swap buffers between two adjacent windows."
+  (interactive)
+  (if (not (> (count-windows) 1))
+       (message "You can't rotate a single window!"))
+      (let ((i 1)
+            (numWindows (count-windows)))
+        (while (< i numWindows)
+          (let* ((w1 (elt (window-list) i))
+                 (w2 (elt (window-list) (+ (% i numWindows) 1)))
+                 (b1 (window-buffer w1))
+                 (b2 (window-buffer w2))
+                 (s1 (window-start w1))
+                 (s2 (window-start w2)))
+            (set-window-buffer w1 b2)
+            (set-window-buffer w2 b1)
+            (set-window-start w1 s2)
+            (set-window-start w2 s1)
+            (setq i (1+ i))))))
+
+;; From http://whattheemacsd.com
+(defun my-comint-delchar-or-eof-or-kill-buffer (arg)
+  "Terminate the process in a shell buffer, or if the process in
+the buffer is already dead, kill the buffer."
+  (interactive "p")
+  (if (null (get-buffer-process (current-buffer)))
+      (kill-buffer)
+    (comint-delchar-or-maybe-eof arg)))
+
 ;; Fontify eldoc messages. See http://www.emacswiki.org/emacs/ElDoc
 (require 'eldoc)
 (defun fontify-eldoc-argument-list (string)

@@ -213,6 +213,8 @@
 
 ;; Python programming mode and tools
 (use-package my-python
+  :bind
+  (("C-c C-c" . my-python-shell-send))
   :pin manual)
 
 ;; Mathematica programming mode
@@ -240,6 +242,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global key bindings
 
+(global-set-key (kbd "M-j") 'my-join-lines)
+
+;; Window creation and manipulation
+(global-set-key (kbd "C-o") 'other-window)
+(global-set-key (kbd "M-o") 'my-rearrange-windows)
+(global-set-key (kbd "C-x 2") 'my-split-window-below)
+(global-set-key (kbd "C-x 3") 'my-split-window-right)
+
 (require 'org)
 (global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c c") 'org-capture)
@@ -253,6 +263,14 @@
 (global-set-key (kbd "M-<left>") 'sp-forward-barf-sexp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key bindings for prog-mode, shell-mode, etc.
+
+(add-hook 'shell-mode-hook
+          (lambda ()
+            (define-key shell-mode-map
+              (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
 
 ;; In some buffers, you can hit `q' to restore the previous window.
@@ -261,6 +279,7 @@
 ;; This function reverses the key sequence: hitting `q' kills the
 ;; buffer, and `C-u q' buries it.
 (defun my-quit-window (&optional bury window)
+  "This function kills the window rather than burying it by default."
   (interactive "P")
   (quit-restore-window window (if bury 'bury 'kill)))
 (fset 'quit-window 'my-quit-window)
