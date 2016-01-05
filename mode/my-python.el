@@ -10,6 +10,17 @@
 (require 'use-package)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Simple utility defuns
+
+;; http://stackoverflow.com/questions/20274336/how-to-automatically-align-comments-in-different-pieces-of-code
+(defun my-align-comments (beginning end)
+  "Align comments within marked region."
+  (interactive "*r")
+  (let (indent-tabs-mode align-to-tab-stop)
+    (align-regexp beginning end (concat "\\(\\s-*\\)"
+                                        (regexp-quote comment-start)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up pyflakes for use with flycheck
 ;; See https://github.com/Wilfred/flycheck-pyflakes
 
@@ -49,6 +60,19 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
   (add-hook 'python-mode-hook 'jedi:setup)
   (setq jedi:complete-on-dot)
   :pin melpa-stable)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Inferior Python shell stuff
+
+(defun my-python-shell-send (start end &optional send-main)
+  "If a region is marked, send the region to the inferior Python
+  process; otherwise, send the entire buffer.  Finally, switch to
+  the buffer containing the inferior Python process."
+  (interactive "r\nP")
+  (if (use-region-p)
+      (python-shell-send-region start end send-main)
+    (python-shell-send-buffer send-main))
+  (other-window 1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simple ipython setup
