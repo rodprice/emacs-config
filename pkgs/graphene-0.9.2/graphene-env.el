@@ -73,8 +73,10 @@
 
 
 ;; Automatically update buffers when files change
+(require 'autorevert)
 (global-auto-revert-mode t)
-
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)
 
 ;; Enable 'power user' features
 (put 'dired-find-alternate-file 'disabled nil)
