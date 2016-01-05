@@ -21,5 +21,13 @@
 ;          (lambda ()
 ;            (set (make-local-variable 'tab-always-indent) 'complete)))
 
+;; Set up jump to definition M-. and jump back M-,
+(require 'use-package)
+(use-package elisp-slime-nav
+  :ensure t
+  :config
+  (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
+    (add-hook hook 'turn-on-elisp-slime-nav-mode)))
+
 (provide 'my-emacs-lisp)
 ;;; my-emacs-lisp.el ends here
