@@ -100,6 +100,23 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 ; "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Debugging
+
+;; This definition is necessary because the old M-x pdb expected to
+;; find an executable, rather than the python command below.  The
+;; Anaconda Python distribution, bless their hearts, does not provide
+;; an executable.  Instead, you have to invoke the Python debugger by
+;; calling python on the pdb module.  Using the python command below
+;; with M-x pdb results in a complaint about not being able to find
+;; the file in the current buffer.  This happens because M-x pdb
+;; thinks that the first argument "-u" is the file name.
+(defun my-pdb ()
+  "Run Python debugger on current buffer."
+  (interactive)
+  (pdb (format "python -u -m pdb %s"
+               (file-name-nondirectory buffer-file-name))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Toggle between a Python buffer and its inferior Python process
 ;; See https://www.masteringemacs.org/article/toggling-python-buffers
 ;; TODO find out why python-shell-internal-buffer is not defined
