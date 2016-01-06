@@ -89,7 +89,10 @@
   (package-install 'use-package))
 (eval-when-compile
   (require 'use-package))
+(require 'bind-key)
+(require 'diminish)
 (setq use-package-verbose t)
+;;(setq use-package-debug t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
@@ -212,10 +215,11 @@
   :pin manual)
 
 ;; Python programming mode and tools
-(use-package my-python
-  :bind
-  (("C-c C-c" . my-python-shell-send))
-  :pin manual)
+;; (use-package my-python
+;;   :demand
+;;   :bind (("C-c C-c" . my-python-shell-send))
+;;   :pin manual)
+(require 'my-python)
 
 ;; Mathematica programming mode
 (use-package my-wolfram

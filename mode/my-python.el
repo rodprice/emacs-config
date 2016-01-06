@@ -2,7 +2,7 @@
 
 ;; Created: 20 Oct 2015
 ;; Version: 0.1
-;; Package-Requires: ((ob-ipython "0.1") (flycheck "0.24"))
+;; Package-Requires: ((flycheck "0.25"))
 
 ;;; Commentary:
 ;;; Code:
@@ -38,7 +38,10 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
   ((error line-start (file-name) ":" line ":" (message) line-end))
   :modes python-mode)
 
+;; Use pyflakes and nothing else
 (add-to-list 'flycheck-checkers 'python-pyflakes)
+(add-to-list 'flycheck-disabled-checkers 'python-flake8)
+(add-to-list 'flycheck-disabled-checkers 'python-pylint)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Setup autocomplete using the jedi python library
