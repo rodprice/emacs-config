@@ -20,6 +20,10 @@
     (align-regexp beginning end (concat "\\(\\s-*\\)"
                                         (regexp-quote comment-start)))))
 
+;; Switch to the Python inferior process buffer after sending the
+;; contents of the current Python buffer to it.
+(advice-add 'python-shell-send-buffer :after #'my-other-window)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up pyflakes for use with flycheck
 ;; See https://github.com/Wilfred/flycheck-pyflakes
@@ -102,6 +106,9 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Debugging
 
+;; includes answer for spaces-in-path problem of pdb
+;; http://pswinkels.blogspot.com/2010/04/debugging-python-code-from-within-emacs.html
+
 ;; This definition is necessary because the old M-x pdb expected to
 ;; find an executable, rather than the python command below.  The
 ;; Anaconda Python distribution, bless their hearts, does not provide
@@ -116,10 +123,21 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
   (pdb (format "python -u -m pdb %s"
                (file-name-nondirectory buffer-file-name))))
 
+(defun test-pdb (pdb-function &rest args)
+  "Run Python debugger on the current buffer.  This function is
+  to be used as advice to the standard pdb command."
+  (interactive)
+  (let* ((name (file-name-nondirectory buffer-file-name))
+         (cmd (format "python -u -m pdb %s" name)))
+    (funcall pdb-function cmd)))
+
+;; (advice-add 'pdb :around #'test-pdb)
+;; (advice-remove 'pdb #'test-pdb)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Toggle between a Python buffer and its inferior Python process
-;; See https://www.masteringemacs.org/article/toggling-python-buffers
-;; TODO find out why python-shell-internal-buffer is not defined
+    ;; Toggle between a Python buffer and its inferior Python process
+    ;; See https://www.masteringemacs.org/article/toggling-python-buffers
+    ;; TODO find out why python-shell-internal-buffer is not defined
 
 (defvar python-last-buffer nil
   "Name of the Python buffer that last invoked `toggle-between-python-buffers'")
