@@ -251,8 +251,6 @@
 ;; Window creation and manipulation
 (global-set-key (kbd "C-o") 'other-window)
 (global-set-key (kbd "M-o") 'my-rearrange-windows)
-(global-set-key (kbd "C-x 2") 'my-split-window-below)
-(global-set-key (kbd "C-x 3") 'my-split-window-right)
 
 (require 'org)
 (global-set-key (kbd "C-c l") 'org-store-link)

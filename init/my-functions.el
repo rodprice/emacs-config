@@ -140,21 +140,15 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window creation and movement
 
-(defun my-split-window-below ()
-  "Split the current window horizontally and move point to the
-  new window."
-  (interactive)
-  (progn
-    (split-window-below)
-    (other-window 1)))
+(defun my-other-window ()
+    "Switch to the next window in the frame.  Used as advice to
+    other functions."
+    (interactive)
+    (other-window 1)
+    (pop-to-buffer-same-window (other-buffer)))
 
-(defun my-split-window-right ()
-  "Split the current window into two side-by-side windows and
-  move point to the new window."
-  (interactive)
-  (progn
-    (split-window-right)
-    (other-window 1)))
+(advice-add 'split-window-below :after 'my-other-window)
+(advice-add 'split-window-right :after 'my-other-window)
 
 ;; Adapted from http://whattheemacsd.com
 (defun my-join-lines ()
@@ -204,21 +198,21 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "Swap buffers between two adjacent windows."
   (interactive)
   (if (not (> (count-windows) 1))
-       (message "You can't rotate a single window!"))
-      (let ((i 1)
-            (numWindows (count-windows)))
-        (while (< i numWindows)
-          (let* ((w1 (elt (window-list) i))
-                 (w2 (elt (window-list) (+ (% i numWindows) 1)))
-                 (b1 (window-buffer w1))
-                 (b2 (window-buffer w2))
-                 (s1 (window-start w1))
-                 (s2 (window-start w2)))
-            (set-window-buffer w1 b2)
-            (set-window-buffer w2 b1)
-            (set-window-start w1 s2)
-            (set-window-start w2 s1)
-            (setq i (1+ i))))))
+       (error "You can't rotate a single window!"))
+  (let ((i 1)
+        (numWindows (count-windows)))
+    (while (< i numWindows)
+      (let* ((w1 (elt (window-list) i))
+             (w2 (elt (window-list) (+ (% i numWindows) 1)))
+             (b1 (window-buffer w1))
+             (b2 (window-buffer w2))
+             (s1 (window-start w1))
+             (s2 (window-start w2)))
+        (set-window-buffer w1 b2)
+        (set-window-buffer w2 b1)
+        (set-window-start w1 s2)
+        (set-window-start w2 s1)
+        (setq i (1+ i))))))
 
 ;; From http://whattheemacsd.com
 (defun my-comint-delchar-or-eof-or-kill-buffer (arg)
