@@ -197,6 +197,9 @@
       kept-old-versions 2
       version-control t)
 
+;; Control the window in which Emacs visits a new file
+(setq ido-default-file-method 'raise-frame)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
 
