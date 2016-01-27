@@ -246,6 +246,13 @@
   :mode "\\.md\\'"
   :pin melpa-stable)
 
+;; Preview Markdown content in a browser at every save
+;; https://github.com/ancane/markdown-preview-mode
+(use-package markdown-preview-mode
+  :ensure t
+  :defer t
+  :pin melpa-stable)
+
 (use-package yaml-mode
   :ensure t
   :mode "\\.\\(condarc\\|ya?ml\\)\\''"
