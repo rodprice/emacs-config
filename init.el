@@ -131,6 +131,12 @@
   :bind ("C-w" . whole-line-or-region-kill-region)
   :pin melpa-stable)
 
+;; Configure M-; to align comments etc the way I want
+;; (use-package newcomment
+;;   :disabled t
+;;   :config
+;;   (setq comment-styles "read the documentation for this variable"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages required for graphene
 
