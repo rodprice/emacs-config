@@ -166,8 +166,8 @@
   :group 'graphene)
 
 (defun graphene-errors ()
-  (require 'flycheck))
-;  (flycheck-mode))
+  (require 'flycheck)
+  (flycheck-mode))
 
 (eval-after-load 'flycheck
   '(progn

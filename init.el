@@ -2,6 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
+;;(setq inhibit-modification-hooks t)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set a few paths first
 
