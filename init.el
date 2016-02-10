@@ -173,7 +173,7 @@
   :load-path "pkgs/graphene-0.9.2/"
   :init
   (setq graphene-completion-auto nil)
-  (setq graphene-default-font "Consolas-11"))
+  (setq graphene-default-font "Consolas-12"))
 
 ;; Load my own initialization functions
 (use-package my-functions
@@ -196,6 +196,10 @@
       kept-new-versions 2
       kept-old-versions 2
       version-control t)
+
+;; File locations for custom settings
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
@@ -253,6 +257,7 @@
 (global-set-key (kbd "M-o") 'my-rearrange-windows)
 
 (require 'org)
+(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 (global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c c") 'org-capture)
 (global-set-key (kbd "C-c a") 'org-agenda)
