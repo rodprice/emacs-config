@@ -131,6 +131,12 @@
   :bind ("C-w" . whole-line-or-region-kill-region)
   :pin melpa-stable)
 
+;; Configure M-; to align comments etc the way I want
+;; (use-package newcomment
+;;   :disabled t
+;;   :config
+;;   (setq comment-styles "read the documentation for this variable"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages required for graphene
 
@@ -201,6 +207,9 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file)
 
+;; Control the window in which Emacs visits a new file
+(setq ido-default-file-method 'raise-frame)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
 
@@ -239,6 +248,13 @@
   :ensure t
   :defer t
   :mode "\\.md\\'"
+  :pin melpa-stable)
+
+;; Preview Markdown content in a browser at every save
+;; https://github.com/ancane/markdown-preview-mode
+(use-package markdown-preview-mode
+  :ensure t
+  :defer t
   :pin melpa-stable)
 
 (use-package yaml-mode
