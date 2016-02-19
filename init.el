@@ -298,6 +298,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
 
+;; Display the column number in the mode line
+(setq column-number-mode t)
+
 ;; In some buffers, you can hit `q' to restore the previous window.
 ;; Normally, this just buries the buffer, leaving a bunch of clutter
 ;; around.  If you want to kill the buffer, you have to hit `C-u q'.
