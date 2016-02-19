@@ -173,6 +173,23 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 (define-key python-mode-map (kbd "<f12>") 'toggle-between-python-buffers)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Testing
+
+(require 'pytest)
+;; TODO Figure out what a pytest test runner is
+(add-to-list 'pytest-project-names "my-test-runner")
+(setq pytest-use-verbose nil
+      pytest-loop-on-failing nil
+      pytest-assert-plain t)
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c a") 'pytest-all)
+            (local-set-key (kbd "C-c m") 'pytest-module)
+            (local-set-key (kbd "C-c o") 'pytest-one)
+            (local-set-key (kbd "C-c d") 'pytest-directory)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use org-babel mode with ipython notebooks
 
 ;; See https://github.com/gregsexton/ob-ipython/tree/ipython3
@@ -190,27 +207,10 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 
 (require 'pydoc)
 
-;; From http://ubuntuforums.org/showthread.php?t=1363999
-;; (defun pydoc (w)
-;;   "Launch PyDOC on the Word at Point"
-;;   (interactive
-;;    (list
-;;     (let* ((word (thing-at-point 'word))
-;;            (input (read-string
-;;                    (format "pydoc entry%s: " 
-;;                            (if (not word) "" (format " (default %s)" word))))))
-;;       (if (string= input "")
-;;           (if (not word) (error "No pydoc args given") word)
-;;         input))))
-;;   (save-window-excursion
-;;     (shell-command (concat "pydoc " w) "*PYDOCS*"))
-;;   ;;(view-buffer-other-window "*PYDOCS*" nil 'bury-buffer))
-;;   (view-buffer "*PYDOCS*" 'kill-buffer-if-not-modified))
-
-;; ;; From https://github.com/wilfred/python-info
-;; ;; See also https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html
-;; (add-to-list 'Info-additional-directory-list
-;;              (expand-file-name "info/python" user-emacs-directory))
+;; From https://github.com/wilfred/python-info
+;; See also https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html
+(add-to-list 'Info-additional-directory-list
+             (expand-file-name "info/python" user-emacs-directory))
 
 
 (provide 'my-python)
