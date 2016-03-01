@@ -175,6 +175,10 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing
 
+(use-package s
+  :ensure t
+  :pin melpa-stable)
+
 (require 'pytest)
 ;; TODO Figure out what a pytest test runner is
 (add-to-list 'pytest-project-names "my-test-runner")
