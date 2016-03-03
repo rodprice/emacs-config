@@ -112,11 +112,11 @@ Optional argument FLAGS py.test command line flags."
   (interactive "fTest directory or file: \nspy.test flags: ")
   (let* ((pytest (pytest-find-test-runner))
          (where (if tests
-		    (pytest-find-project-root (file-name-directory tests))
-		  (pytest-find-project-root)))
+                    (pytest-find-project-root (file-name-directory tests))
+                  (pytest-find-project-root)))
          (tnames (if tests
-		     (mapconcat (lambda (test) (substring test (string-width where)))
-				(split-string tests) " ") ""))
+                     (mapconcat (lambda (test) (substring test (string-width where)))
+                                (split-string tests) " ") ""))
          (cmd-flags (if flags flags pytest-cmd-flags))
          (use-comint (s-contains? "pdb" cmd-flags)))
     (funcall #'(lambda (command)
@@ -124,8 +124,8 @@ Optional argument FLAGS py.test command line flags."
                                     (lambda (mode) (concat "*pytest*"))))
              (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames))
     (if use-comint
-	(with-current-buffer (get-buffer "*pytest*")
-	  (inferior-python-mode)))))
+        (with-current-buffer (get-buffer "*pytest*")
+          (inferior-python-mode)))))
 
 ;;; Run entire test suite
 ;;;###autoload
@@ -192,12 +192,19 @@ Optional argument FLAGS py.test command line flags."
 
 
 ;;; Utility functions
+(defun pytest-at-root-directory-p (dirname)
+  "Determine whether DIRNAME is the top-level or root directory
+  of the filesystem in an os-independent way."
+  (let ((dn-here (convert-standard-filename (expand-file-name dirname)))
+        (dn-up   (convert-standard-filename (expand-file-name ".." dirname))))
+    (string-equal dn-here dn-up)))
+
 (defun pytest-find-test-runner ()
   (let ((result
-     (reduce '(lambda (x y) (or x y))
-         (mapcar 'pytest-find-test-runner-names pytest-project-names))))
+         (reduce '(lambda (x y) (or x y))
+                 (mapcar 'pytest-find-test-runner-names pytest-project-names))))
     (if result
-    result
+        result
       pytest-global-name)))
 
 (defun pytest-find-test-runner-names (runner)
@@ -208,10 +215,10 @@ Optional argument FLAGS py.test command line flags."
 (defun pytest-find-test-runner-in-dir-named (dn runner)
   (let ((fn (expand-file-name runner dn)))
     (cond ((file-regular-p fn) fn)
-      ((equal dn "/") nil)
-      (t (pytest-find-test-runner-in-dir-named
-          (file-name-directory (directory-file-name dn))
-          runner)))))
+          ((pytest-at-root-directory-p dn) nil)
+          (t (pytest-find-test-runner-in-dir-named
+              (file-name-directory (directory-file-name dn))
+              runner)))))
 
 (defun pytest-py-testable ()
   "Create a path to a test.
@@ -226,8 +233,8 @@ case.  This requires pytest >= 1.2."
     (concat
      (buffer-file-name)
      (cond ((equal outer-def "def") (format "::%s" outer-obj))
-       ((equal inner-obj outer-obj) (format "::%s" outer-obj))
-       (t (format "::%s::%s" outer-obj inner-obj))))))
+           ((equal inner-obj outer-obj) (format "::%s" outer-obj))
+           (t (format "::%s::%s" outer-obj inner-obj))))))
 
 (defun pytest-inner-testable ()
   "Find the function name for `pytest-one'."
@@ -242,7 +249,7 @@ case.  This requires pytest >= 1.2."
     (re-search-backward
      "^\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
     (let ((result
-            (buffer-substring-no-properties (match-beginning 2) (match-end 2))))
+           (buffer-substring-no-properties (match-beginning 2) (match-end 2))))
       (cons
        (buffer-substring-no-properties (match-beginning 1) (match-end 1))
        result))))
@@ -253,9 +260,9 @@ case.  This requires pytest >= 1.2."
              dirname
            (file-name-directory buffer-file-name))))
     (cond ((funcall pytest-project-root-test dn) (expand-file-name dn))
-          ((equal (expand-file-name dn) "/") nil)
-        (t (pytest-find-project-root
-             (file-name-directory (directory-file-name dn)))))))
+          ((pytest-at-root-directory-p dn) nil)
+          (t (pytest-find-project-root
+              (file-name-directory (directory-file-name dn)))))))
 
 (defun pytest-project-root (dirname)
   (reduce '(lambda (x y) (or x y))
