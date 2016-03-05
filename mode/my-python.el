@@ -180,10 +180,8 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
   :pin melpa-stable)
 
 (require 'pytest)
-;; TODO Figure out what a pytest test runner is
-;(add-to-list 'pytest-project-names "my-test-runner")
-(setq pytest-global-name "python -m pytest")
-(setq pytest-use-verbose nil
+(setq pytest-global-name "python -m pytest"
+      pytest-use-verbose nil
       pytest-loop-on-failing nil
       pytest-assert-plain t)
 

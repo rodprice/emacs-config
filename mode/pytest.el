@@ -193,11 +193,13 @@ Optional argument FLAGS py.test command line flags."
 
 ;;; Utility functions
 (defun pytest-at-root-directory-p (dirname)
-  "Determine whether DIRNAME is the top-level or root directory
-  of the filesystem in an os-independent way."
-  (let ((dn-here (convert-standard-filename (expand-file-name dirname)))
-        (dn-up   (convert-standard-filename (expand-file-name ".." dirname))))
-    (string-equal dn-here dn-up)))
+  "Determine, in an os-independent way, whether DIRNAME is the
+  top-level or root directory of the filesystem."
+  (let ((dn-here (convert-standard-filename (expand-file-name "."  dirname)))
+        (dn-next (convert-standard-filename (expand-file-name ".." dirname))))
+    (if (equal window-system 'w32)
+        (string-equal (downcase dn-here) (downcase dn-next))
+      (string-equal dn-here dn-next))))
 
 (defun pytest-find-test-runner ()
   (let ((result

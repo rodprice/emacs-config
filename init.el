@@ -212,6 +212,9 @@
 ;; Control the window in which Emacs visits a new file
 (setq ido-default-file-method 'raise-frame)
 
+;; When opening a help window, always select the new help window
+(setq help-window-select t)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
 
