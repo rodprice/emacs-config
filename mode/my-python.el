@@ -22,7 +22,7 @@
 
 ;; Switch to the Python inferior process buffer after sending the
 ;; contents of the current Python buffer to it.
-(advice-add 'python-shell-send-buffer :after #'my-other-window)
+;; (advice-add 'python-shell-send-buffer :after #'my-other-window)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up pyflakes for use with flycheck
@@ -138,6 +138,20 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
     ;; Toggle between a Python buffer and its inferior Python process
     ;; See https://www.masteringemacs.org/article/toggling-python-buffers
     ;; TODO find out why python-shell-internal-buffer is not defined
+
+;; http://stackoverflow.com/questions/10698933/emacs-switch-to-buffer-in-different-frame
+(defun execute-script ()
+  "Switch to shell buffer and re-execute the last command."
+  (interactive)
+  (save-some-buffers)
+  (switch-to-buffer "*shell*")    ; (switch-to-buffer-other-frame "*shell*")
+  (end-of-buffer)
+  (comint-previous-input 0)
+  (comint-send-input))
+;; You can also use pop-to-buffer which will later let
+;; you customize exactly how that behaves, e.g. via
+;; display-buffer-reuse-frame, or display-buffer-alist, or
+;; special-display-regexp
 
 (defvar python-last-buffer nil
   "Name of the Python buffer that last invoked `toggle-between-python-buffers'")

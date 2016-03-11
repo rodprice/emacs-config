@@ -126,6 +126,15 @@
           ace-jump-line-mode))
   :pin melpa-stable)
 
+;; Flip between buffers
+;; TODO: Figure out how to flip windows this way
+;; TODO: Configure to include *Python* etc buffers optionally
+(use-package iflipb
+  :ensure t
+  :bind (("M-<up>" .   iflipb-next-buffer)
+         ("M-<down>" . iflipb-previous-buffer))
+  :pin melpa-stable)
+
 (use-package whole-line-or-region
   :ensure t
   :bind ("C-w" . whole-line-or-region-kill-region)
