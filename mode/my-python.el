@@ -22,7 +22,7 @@
 
 ;; Switch to the Python inferior process buffer after sending the
 ;; contents of the current Python buffer to it.
-(advice-add 'python-shell-send-buffer :after #'my-other-window)
+;; (advice-add 'python-shell-send-buffer :after #'my-other-window)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up pyflakes for use with flycheck
