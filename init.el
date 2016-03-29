@@ -126,6 +126,15 @@
           ace-jump-line-mode))
   :pin melpa-stable)
 
+;; Flip between buffers
+;; TODO: Figure out how to flip windows this way
+;; TODO: Configure to include *Python* etc buffers optionally
+(use-package iflipb
+  :ensure t
+  :bind (("M-<up>" .   iflipb-next-buffer)
+         ("M-<down>" . iflipb-previous-buffer))
+  :pin melpa-stable)
+
 (use-package whole-line-or-region
   :ensure t
   :bind ("C-w" . whole-line-or-region-kill-region)
@@ -211,6 +220,9 @@
 
 ;; Control the window in which Emacs visits a new file
 (setq ido-default-file-method 'raise-frame)
+
+;; When opening a help window, always select the new help window
+(setq help-window-select t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes

@@ -139,6 +139,20 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
     ;; See https://www.masteringemacs.org/article/toggling-python-buffers
     ;; TODO find out why python-shell-internal-buffer is not defined
 
+;; http://stackoverflow.com/questions/10698933/emacs-switch-to-buffer-in-different-frame
+(defun execute-script ()
+  "Switch to shell buffer and re-execute the last command."
+  (interactive)
+  (save-some-buffers)
+  (switch-to-buffer "*shell*")    ; (switch-to-buffer-other-frame "*shell*")
+  (end-of-buffer)
+  (comint-previous-input 0)
+  (comint-send-input))
+;; You can also use pop-to-buffer which will later let
+;; you customize exactly how that behaves, e.g. via
+;; display-buffer-reuse-frame, or display-buffer-alist, or
+;; special-display-regexp
+
 (defvar python-last-buffer nil
   "Name of the Python buffer that last invoked `toggle-between-python-buffers'")
 (make-variable-buffer-local 'python-last-buffer)
@@ -175,10 +189,13 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing
 
+(use-package s
+  :ensure t
+  :pin melpa-stable)
+
 (require 'pytest)
-;; TODO Figure out what a pytest test runner is
-(add-to-list 'pytest-project-names "my-test-runner")
-(setq pytest-use-verbose nil
+(setq pytest-global-name "python -m pytest"
+      pytest-use-verbose nil
       pytest-loop-on-failing nil
       pytest-assert-plain t)
 
