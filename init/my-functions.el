@@ -2,6 +2,24 @@
 ;;; Commentary:
 ;;; Code:
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Movement of cursor
+
+(defun scroll-viewport (n)
+  (let ((top (line-number-at-pos (window-start)))
+        (cur (line-number-at-pos (point))))
+    (recenter (+ (- cur top) n))))
+
+(defun scroll-row-down (arg)
+  (interactive "p")
+  (or arg (setq arg 1))
+  (scroll-viewport (- arg)))
+
+(defun scroll-row-up (arg)
+  (interactive "p")
+  (or arg (setq arg 1))
+  (scroll-viewport arg))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use git grep for the grep command. This code is adapted from `vc-git-grep'.
 

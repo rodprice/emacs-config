@@ -281,17 +281,19 @@
 ;; Global key bindings
 
 (global-set-key (kbd "M-j") 'my-join-lines)
+(global-set-key (kbd "C-o") 'open-next-line)
+(global-set-key (kbd "M-o") 'open-prev-line)
+(global-set-key (kbd "M-<up>") 'scroll-row-up)
+(global-set-key (kbd "M-<down>") 'scroll-row-down)
 
 ;; Window creation and manipulation
-(global-set-key (kbd "C-o") 'other-window)
-(global-set-key (kbd "M-o") 'my-rearrange-windows)
+(global-set-key (kbd "C-x C-o") 'other-frame)
+(global-set-key (kbd "M-p") 'my-rearrange-windows)
 
 (require 'org)
 (setq org-default-notes-file (expand-file-name "notes.org" org-directory))
-(global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c c") 'org-capture)
 (global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c b") 'org-iswitchb)
 
 (require 'smartparens)
 (global-set-key (kbd "C-<right>") 'my-end-of-sexp)
@@ -306,6 +308,14 @@
           (lambda ()
             (define-key shell-mode-map
               (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)))
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
+            (local-set-key (kbd "C-x C-e") 'python-shell-send-defun)
+            (local-set-key (kbd "C-c m") 'pytest-module)
+            (local-set-key (kbd "C-c o") 'pytest-one)
+            (local-set-key (kbd "C-c d") 'pytest-directory)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
