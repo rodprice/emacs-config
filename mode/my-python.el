@@ -195,18 +195,32 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 
 (require 'pytest)
 (setq pytest-global-name "python -m pytest"
+      pytest-cmd-flags "-x -s -r a"
       pytest-use-verbose nil
       pytest-loop-on-failing nil
       pytest-assert-plain t)
 
-(add-hook 'python-mode-hook
-          (lambda ()
-            (local-set-key (kbd "C-c a") 'pytest-all)
-            (local-set-key (kbd "C-c m") 'pytest-module)
-            (local-set-key (kbd "C-c o") 'pytest-one)
-            (local-set-key (kbd "C-c d") 'pytest-directory)))
+(defun my-pytest-all (&optional flags)
+  (interactive)
+  (pytest-run nil flags)
+  (other-window 1))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun my-pytest-module (&optional flags)
+  (interactive)
+  (pytest-run buffer-file-name flags)
+  (other-window 1))
+
+(defun my-pytest-one (&optional flags)
+  (interactive)
+  (pytest-run (format "%s" (pytest-py-testable)) flags)
+  (other-window 1))
+
+(defun my-pytest-directory (&optional flags)
+  (interactive)
+  (pytest-run (file-name-directory buffer-file-name) flags)
+  (other-window 1))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use org-babel mode with ipython notebooks
 
 ;; See https://github.com/gregsexton/ob-ipython/tree/ipython3
