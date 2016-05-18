@@ -53,9 +53,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
 
-(require 'server)
-(unless (eq (server-running-p) t)
-  (server-start))
+;; From https://ipython.org/ipython-doc/1/config/editors.html
+(defvar server-buffer-clients)
+(when (and (fboundp 'server-start)
+           (string-equal (getenv "TERM") 'xterm))
+  (server-start)
+  (defun fp-kill-server-with-buffer-routine ()
+    (and server-buffer-clients (server-done)))
+  (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up use-package for use with MELPA Stable and local archives
@@ -304,10 +309,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key bindings for prog-mode, shell-mode, etc.
 
-(add-hook 'shell-mode-hook
+(add-hook 'comint-mode-hook
           (lambda ()
-            (define-key shell-mode-map
-              (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)))
+            (define-key comint-mode-map
+              (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)
+            (define-key comint-mode-map
+              (kbd "C-<up>") 'comint-previous-matching-input-from-input)
+            (define-key comint-mode-map
+              (kbd "C-<down>") 'comint-next-matching-input-from-input)))
 
 (add-hook 'python-mode-hook
           (lambda ()

@@ -88,20 +88,30 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 (require 'python)
 (setq python-shell-interpreter
       (expand-file-name "python.exe" my-anaconda-dir))
+;; Arguments to the Python interpreter are as follows
+;;   -u (unbuffered; interpreter running under comint can hang otherwise)
+;;   -i (interactive)
+;; Arguments to the ipython-script are
+;;   console (This appears to be the magic incantation to get plotting functionality.
+;;            Once the shell starts up, invoke %pylab and you're in business.)
 (setq python-shell-interpreter-args
-      (concat "-i " (expand-file-name "ipython-script.py" my-anaconda-scripts-dir)))
+      (concat "-u -i "
+              (expand-file-name "ipython-script.py" my-anaconda-scripts-dir)
+              " console"))
 (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
 (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
 
 ;; Stop python-mode from complaining about matching prompts
 (setq python-shell-prompt-detect-failure-warning nil)
+;; Completion stuff that I don't understand
+(setq python-shell-completion-setup-code
+      "from IPython.core.completerlib import module_completion"
+      python-shell-completion-module-string-code
+      "';'.join(module_completion('''%s'''))\n"
+      python-shell-completion-string-code
+      "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
 ;; TODO set `python-shell-virtualenv-path' correctly
-
-; python-shell-completion-setup-code
-; "from IPython.core.completerlib import module_completion"
-; python-shell-completion-string-code
-; "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Debugging
