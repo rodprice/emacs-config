@@ -41,3 +41,4 @@ TAGS
 *.elc
 /flycheck-*
 eshell
+*.pyc

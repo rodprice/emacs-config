@@ -309,13 +309,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key bindings for prog-mode, shell-mode, etc.
 
-(add-hook 'shell-mode-hook
-          (lambda ()
-            (define-key shell-mode-map
-              (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)))
-
 (add-hook 'comint-mode-hook
           (lambda ()
+            (define-key comint-mode-map
+              (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)
             (define-key comint-mode-map
               (kbd "C-<up>") 'comint-previous-matching-input-from-input)
             (define-key comint-mode-map
