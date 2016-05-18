@@ -194,7 +194,7 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
   :pin melpa-stable)
 
 (require 'pytest)
-(setq pytest-global-name "python -m pytest"
+(setq pytest-global-name "python -B -m pytest"
       pytest-cmd-flags "-x -s -r a"
       pytest-use-verbose nil
       pytest-loop-on-failing nil
