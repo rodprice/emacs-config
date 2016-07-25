@@ -43,12 +43,13 @@
 ;; Load the site-specific preload file
 (load (concat system-name "-preload") 'noerror)
 
-;; Prepend the contents of `my-path-variables' to `exec-path'.
-(setq exec-path
-      (let ((my-paths (mapcar 'symbol-value my-path-variables)))
-        (my-concat-paths my-paths exec-path)))
-;; Make the environment variable $PATH match `exec-path'
-(setenv "PATH" (mapconcat 'identity exec-path ";"))
+(when (eq (window-system) 'w32)
+  ;; Prepend the contents of `my-path-variables' to `exec-path'.
+  (setq exec-path
+        (let ((my-paths (mapcar 'symbol-value my-path-variables)))
+          (my-concat-paths my-paths exec-path)))
+  ;; Make the environment variable $PATH match `exec-path'
+  (setenv "PATH" (mapconcat 'identity exec-path ";")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
@@ -193,7 +194,7 @@
   :load-path "pkgs/graphene-0.9.2/"
   :init
   (setq graphene-completion-auto nil)
-  (setq graphene-default-font "Consolas-12"))
+  (setq graphene-default-font "Inconsolata-14"))
 
 ;; Load my own initialization functions
 (use-package my-functions

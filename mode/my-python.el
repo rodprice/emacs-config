@@ -250,7 +250,7 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 
 ;; From https://github.com/wilfred/python-info
 ;; See also https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html
-(add-to-list 'Info-additional-directory-list
+(add-to-list 'Info-default-directory-list
              (expand-file-name "info/python" user-emacs-directory))
 
 
