@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: SRC block
+# key: src
+# --
+#+BEGIN_SRC ${1:python}
+$0
+#+END_SRC

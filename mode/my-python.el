@@ -7,6 +7,13 @@
 ;;; Commentary:
 ;;; Code:
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Paths
+
+(defvar my-anaconda-envs-dir (expand-file-name "envs" my-anaconda-dir)
+  "Directory where my conda environments are stored.")
+(defvar my-pelican-env-dir (expand-file-name "pelican" my-anaconda-envs-dir)
+  "Directory where my Pelican static blogging environment is found.")
 (require 'use-package)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -248,11 +255,7 @@ invoked from a Python process, it will switch back to the `python-mode' buffer."
 
 (require 'pydoc)
 
-;; From https://github.com/wilfred/python-info
-;; See also https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html
-(add-to-list 'Info-additional-directory-list
-             (expand-file-name "info/python" user-emacs-directory))
-
+;; To build Python docs from source, see  https://github.com/wilfred/python-info
 
 (provide 'my-python)
 ;;; my-python.el ends here

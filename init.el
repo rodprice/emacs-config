@@ -232,6 +232,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Major modes
 
+;; See https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html
+(require 'info)
+(info-initialize)                       ; populate Info-directory-list
+
 (use-package json-mode
   :disabled t
   :config
@@ -267,6 +271,13 @@
   :ensure t
   :defer t
   :mode "\\.md\\'"
+  :commands (markdown-mode gfm-mode)
+  :init
+  (setq
+   markdown-command "pelican content"
+   markdown-command-needs-filename nil
+   markdown-enable-math t
+   markdown-open-command nil)
   :pin melpa-stable)
 
 ;; Preview Markdown content in a browser at every save
@@ -280,6 +291,25 @@
   :ensure t
   :mode "\\.\\(condarc\\|ya?ml\\)\\''"
   :bind ("C-m" . newline-and-indent)
+  :pin melpa-stable)
+
+(use-package yasnippet
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (yas-global-mode 1)
+    (define-key yas-minor-mode-map (kbd "<C-tab>") 'yas-ido-expand))
+  :pin melpa-stable)
+
+(use-package yatemplate
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (add-hook 'find-file-hook 'auto-insert)
+    (setq yatemplate-dir (expand-file-name "templates/" user-emacs-directory))
+    (yatemplate-fill-alist))
   :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -296,8 +326,34 @@
 (global-set-key (kbd "M-p") 'my-rearrange-windows)
 
 (require 'org)
-(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
+(setq org-directory (expand-file-name "working/org" (getenv "USERPROFILE")))
+(setq html-directory (expand-file-name "working/html" (getenv "USERPROFILE")))
+;; (setq org-default-notes-file (expand-file-name "notes.org" org-directory))
+;; (setq org-log-done t)
+;; (setq org-agenda-files (list
+;;                         (expand-file-name "work.org" org-directory)
+;;                         (expand-file-name "home.org" org-directory)))
+
+(require 'ox-publish)
+(setq org-publish-project-alist
+      `(("org-notes"
+         :base-directory ,org-directory
+         :base-extension "org"
+         :publishing-directory ,html-directory
+         :recursive t
+         :publishing-function org-html-publish-to-html
+         :headline-levels 4)
+        ("org-static"
+         :base-directory ,org-directory
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+         :publishing-directory ,html-directory
+         :recursive t
+         :publishing-function org-publish-attachment)
+        ("org"
+         :components ("org-notes" "org-static"))))
+
 (global-set-key (kbd "C-c c") 'org-capture)
+(global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c a") 'org-agenda)
 
 (require 'smartparens)

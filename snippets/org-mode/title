@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: title
+# key: title
+# --
+#+TITLE: ${1:`(file-name-nondirectory (file-name-sans-extension (buffer-file-name)))`}
+#+DATE: `(org-time-stamp '(16))`
+#+AUTHOR: Rodney Price
+#+EMAIL: rodprice@raytheon.com
+#+DESCRIPTION: $2
+#+KEYWORDS: $3
+$0
