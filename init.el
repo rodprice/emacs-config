@@ -295,16 +295,14 @@
 
 (use-package yasnippet
   :ensure t
-  :defer t
   :config
   (progn
     (yas-global-mode 1)
     (define-key yas-minor-mode-map (kbd "<C-tab>") 'yas-ido-expand))
-  :pin melpa-stable)
+  :pin gnu)
 
 (use-package yatemplate
   :ensure t
-  :defer t
   :config
   (progn
     (add-hook 'find-file-hook 'auto-insert)
@@ -333,6 +331,43 @@
 ;; (setq org-agenda-files (list
 ;;                         (expand-file-name "work.org" org-directory)
 ;;                         (expand-file-name "home.org" org-directory)))
+(setq org-hide-emphasis-markers t)
+
+;; See https://tincman.wordpress.com/2011/01/04/research-paper-management-with-emacs-org-mode-and-reftex/
+(defun org-mode-reftex-search ()
+  "Jump to notes for paper pointed to by reftex search."
+  (interactive)
+  (org-open-link-from-string (format "[[notes:%s]]" (first (reftex-citation t)))))
+(defun org-mode-reftex-setup ()
+  "Hook up org-mode and reftex."
+  (load-library "reftex")
+  (and (buffer-file-name)
+       (file-exists-p (buffer-file-name))
+       (progn
+         (global-auto-revert-mode t) ; update reftex when bibtex file changes
+         (reftex-parse-all)          ; custom cite format to insert links
+         ;; (reftex-set-cite-format "** [[papers:%1][%1]]: %t \n"))))
+         (reftex-set-cite-format
+          '((?b . "[[bib:%1][%1-bib]]")
+            (?n . "[[note:%1][%1-notes]]")
+            (?p . "[[papers:%1][%1-paper]]")
+            (?t . "%t")
+            (?h . "** %t\n:PROPERTIES:\n:Custom_ID: %1\n:END:\n[[papers:%1][%1-paper]]"))))))
+
+(setq org-link-abbrev-alist
+      ''(("bib" . (expand-file-name "refs.bib::%s" org-directory))
+         ("notes" . (expand-file-name "notes.org::#%s" org-directory))
+         ("notes" . (expand-file-name "papers/%s.pdf" org-directory))))
+
+(add-hook 'org-mode-hook 'org-mode-reftex-setup)
+(add-hook 'org-mode-hook 'auto-fill-mode)
+(add-hook 'org-mode-hook
+          (lambda ()
+            (set-fill-column 80)
+            (define-key org-mode-map (kbd "C-<left>") 'backward-word)
+            (define-key org-mode-map (kbd "C-<right>") 'forward-word)
+            (define-key org-mode-map (kbd "C-c (") 'org-mode-reftex-search)
+            (define-key org-mode-map (kbd "C-c )") 'reftex-citation)))
 
 (require 'ox-publish)
 (setq org-publish-project-alist
