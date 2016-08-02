@@ -295,7 +295,6 @@
 
 (use-package yasnippet
   :ensure t
-  :defer t
   :config
   (progn
     (yas-global-mode 1)
@@ -359,8 +358,14 @@
 (setq org-link-abbrev-alist
       ''(("bib" . (expand-file-name "refs.bib::%s" org-directory))
          ("notes" . (expand-file-name "notes.org::#%s" org-directory))
-         ("notes" . (expand-file-name "papers/%s.pdf" org-directory)))
+         ("notes" . (expand-file-name "papers/%s.pdf" org-directory))))
 
+;; Load up DITAA, which seems to be missing it's jar file currently
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((ditaa . t)))
+
+(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 (add-hook 'org-mode-hook 'org-mode-reftex-setup)
 (add-hook 'org-mode-hook 'auto-fill-mode)
 (add-hook 'org-mode-hook
