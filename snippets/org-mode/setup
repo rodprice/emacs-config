@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: setup file
+# key: setup
+# --
+#+SETUPFILE: ${1:$(expand-file-name "templates/level-0.org" user-emacs-directory)}
+$0

@@ -20,6 +20,61 @@
   (or arg (setq arg 1))
   (scroll-viewport arg))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Open next(prev) line
+
+(defvar newline-and-indent t
+  "Modify the behavior of the open-*-line functions to cause them to autoindent.")
+
+(defun open-next-line (arg)
+  "Move to the next line and then opens a line.
+    See also `newline-and-indent'."
+  (interactive "p")
+  (end-of-line)
+  (open-line arg)
+  (next-line 1)
+  (when newline-and-indent
+    (indent-according-to-mode)))
+
+(defun open-previous-line (arg)
+  "Open a new line before the current one. 
+     See also `newline-and-indent'."
+  (interactive "p")
+  (beginning-of-line)
+  (open-line arg)
+  (when newline-and-indent
+    (indent-according-to-mode)))
+
+;; It would be nice to make the behavior of open-*-line functions
+;; iterative; that is, make it open the next line, then hit it again
+;; to open the next line down, etc.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Yasnippet stuff (see https://www.emacswiki.org/emacs/Yasnippet)
+
+;; Completing point by some yasnippet key
+(defun yas-ido-expand ()
+  "Lets you select (and expand) a yasnippet key"
+  (interactive)
+    (let ((original-point (point)))
+      (while (and
+              (not (= (point) (point-min) ))
+              (not
+               (string-match "[[:space:]\n]" (char-to-string (char-before)))))
+        (backward-word 1))
+    (let* ((init-word (point))
+           (word (buffer-substring init-word original-point))
+           (list (yas-active-keys)))
+      (goto-char original-point)
+      (let ((key (remove-if-not
+                  (lambda (s) (string-match (concat "^" word) s)) list)))
+        (if (= (length key) 1)
+            (setq key (pop key))
+          (setq key (ido-completing-read "key: " list nil nil word)))
+        (delete-char (- init-word original-point))
+        (insert key)
+        (yas-expand)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use git grep for the grep command. This code is adapted from `vc-git-grep'.
 
