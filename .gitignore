@@ -42,3 +42,5 @@ TAGS
 /flycheck-*
 eshell
 *.pyc
+request/
+org-gcal/
