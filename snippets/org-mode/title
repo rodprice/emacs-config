@@ -4,8 +4,8 @@
 # --
 #+TITLE: ${1:`(file-name-nondirectory (file-name-sans-extension (buffer-file-name)))`}
 #+DATE: `(org-time-stamp '(16))`
-#+AUTHOR: Rodney Price
-#+EMAIL: rodprice@raytheon.com
+#+AUTHOR: `user-full-name`
+#+EMAIL: `user-mail-address`
 #+DESCRIPTION: $2
 #+KEYWORDS: $3
 $0

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: image
+# key: image
+# --
+#+CAPTION: $1
+#+ATTR_HTML: alt="$1"
+`(org-insert-link '(4))`
+$0
