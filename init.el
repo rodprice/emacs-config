@@ -413,11 +413,15 @@
             (define-key comint-mode-map
               (kbd "C-<up>") 'comint-previous-matching-input-from-input)
             (define-key comint-mode-map
-              (kbd "C-<down>") 'comint-next-matching-input-from-input)))
+              (kbd "C-p") 'comint-previous-matching-input-from-input)
+            (define-key comint-mode-map
+              (kbd "C-<down>") 'comint-next-matching-input-from-input)
+            (define-key comint-mode-map
+              (kbd "C-n") 'comint-next-matching-input-from-input)))
 
 (add-hook 'python-mode-hook
           (lambda ()
-            (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
+            ;; (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
             (local-set-key (kbd "C-x C-e") 'python-shell-send-defun)
             (local-set-key (kbd "C-c m") 'pytest-module)
             (local-set-key (kbd "C-c o") 'pytest-one)
