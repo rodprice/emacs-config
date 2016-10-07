@@ -177,6 +177,10 @@
 
 (use-package web-mode
   :ensure t
+  :config
+  (setq
+   web-mode-engines-alist
+   '(("mako" . "\\.tmpl\\'")))
   :pin melpa-stable)
 
 (use-package smartparens
@@ -227,6 +231,9 @@
 ;; Control the window in which Emacs visits a new file
 (setq ido-default-file-method 'raise-frame)
 
+;; Disable automerge, see http://wikemacs.org/wiki/Ido
+(setq ido-auto-merge-work-directories-length -1)
+
 ;; When opening a help window, always select the new help window
 (setq help-window-select t)
 
@@ -275,7 +282,7 @@
   :commands (markdown-mode gfm-mode)
   :init
   (setq
-   markdown-command "pelican content"
+   markdown-command "markdown"
    markdown-command-needs-filename nil
    markdown-enable-math t
    markdown-open-command nil)
@@ -317,7 +324,7 @@
 
 (global-set-key (kbd "M-j") 'my-join-lines)
 (global-set-key (kbd "C-o") 'open-next-line)
-(global-set-key (kbd "M-o") 'open-prev-line)
+(global-set-key (kbd "M-o") 'open-previous-line)
 (global-set-key (kbd "M-<up>") 'scroll-row-up)
 (global-set-key (kbd "M-<down>") 'scroll-row-down)
 
@@ -326,6 +333,7 @@
 (global-set-key (kbd "M-p") 'my-rearrange-windows)
 
 (require 'org)
+(require 'org-beautify-theme)
 (setq org-directory (expand-file-name "working/org" (getenv "USERPROFILE")))
 (setq html-directory (expand-file-name "working/html" (getenv "USERPROFILE")))
 ;; (setq org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -356,6 +364,22 @@
             (?t . "%t")
             (?h . "** %t\n:PROPERTIES:\n:Custom_ID: %1\n:END:\n[[papers:%1][%1-paper]]"))))))
 
+;; http://stackoverflow.com/questions/25161792/emacs-org-mode-how-can-i-fold-everything-but-the-current-headline 
+(defun org-show-current-heading-tidily ()
+  (interactive)  ;Inteactive
+  "Show next entry, keeping other entries closed."
+  (if (save-excursion (end-of-line) (outline-invisible-p))
+      (progn (org-show-entry) (show-children))
+    (outline-back-to-heading)
+    (unless (and (bolp) (org-on-heading-p))
+      (org-up-heading-safe)
+      (hide-subtree)
+      (error "Boundary reached"))
+    (org-overview)
+    (org-reveal t)
+    (org-show-entry)
+    (show-children)))
+
 (setq org-link-abbrev-alist
       ''(("bib" . (expand-file-name "refs.bib::%s" org-directory))
          ("notes" . (expand-file-name "notes.org::#%s" org-directory))
@@ -372,12 +396,14 @@
 (add-hook 'org-mode-hook
           (lambda ()
             (set-fill-column 80)
+            (define-key org-mode-map (kbd "M-=") 'org-show-current-heading-tidily)
             (define-key org-mode-map (kbd "C-<left>") 'backward-word)
             (define-key org-mode-map (kbd "C-<right>") 'forward-word)
             (define-key org-mode-map (kbd "C-c (") 'org-mode-reftex-search)
             (define-key org-mode-map (kbd "C-c )") 'reftex-citation)))
 
 (require 'ox-publish)
+(require 'htmlize)
 (setq org-publish-project-alist
       `(("org-notes"
          :base-directory ,org-directory
@@ -427,6 +453,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
+
+(use-package expand-region
+  :ensure t
+  :commands er/expand-region
+  :bind ("C-=" . er/expand-region)
+  :pin melpa-stable)
 
 ;; Display the column number in the mode line
 (setq column-number-mode t)

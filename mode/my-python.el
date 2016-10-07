@@ -93,18 +93,18 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 ;; http://stackoverflow.com/questions/25669809/how-do-you-run-python-code-using-emacs
 
 (require 'python)
-(setq python-shell-interpreter
-      (expand-file-name "python.exe" my-anaconda-dir))
+(setq python-shell-interpreter "ipython")
+      ;; (expand-file-name "python.exe" my-anaconda-dir))
 ;; Arguments to the Python interpreter are as follows
 ;;   -u (unbuffered; interpreter running under comint can hang otherwise)
 ;;   -i (interactive)
 ;; Arguments to the ipython-script are
 ;;   console (This appears to be the magic incantation to get plotting functionality.
 ;;            Once the shell starts up, invoke %pylab and you're in business.)
-(setq python-shell-interpreter-args
-      (concat "-u -i "
-              (expand-file-name "ipython-script.py" my-anaconda-scripts-dir)
-              " console"))
+(setq python-shell-interpreter-args "--simple-prompt --colors=Linux --profile=default")
+      ;; (concat "-u -i "
+      ;;         (expand-file-name "ipython-script.py" my-anaconda-scripts-dir)
+      ;;         " console"))
 (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
 (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
 
