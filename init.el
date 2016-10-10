@@ -257,9 +257,31 @@
 ;;   :pin manual)
 (require 'my-python)
 
+(use-package my-org-mode
+  :bind (("C-c c" . org-capture)
+         ("C-c l" . org-store-link)
+         ("C-c a" . org-agenda)
+         :map org-mode-map
+              ("C-<left>" . backward-word)
+              ("C-<right>" . forward-word))
+  :config
+  :pin manual)
+
+(use-package org-pomodoro
+  :ensure t
+  :config
+  (setq org-pomodoro-format "pom~%s")
+  :pin melpa-stable)
+
 ;; Mathematica programming mode
 (use-package my-wolfram
   :pin manual)
+
+(require 'smartparens)
+(global-set-key (kbd "C-<right>") 'my-end-of-sexp)
+(global-set-key (kbd "C-<left>") 'my-beginning-of-sexp)
+(global-set-key (kbd "M-<right>") 'sp-forward-slurp-sexp)
+(global-set-key (kbd "M-<left>") 'sp-forward-barf-sexp)
 
 ;; Placeholder for what looks like a great HTML, CSS, JavaScript dev
 ;; package.  See also URL
@@ -322,86 +344,6 @@
 ;; Window creation and manipulation
 (global-set-key (kbd "C-x C-o") 'other-frame)
 (global-set-key (kbd "M-p") 'my-rearrange-windows)
-
-(require 'org)
-(setq org-directory (expand-file-name "working/org" (getenv "USERPROFILE")))
-(setq html-directory (expand-file-name "working/html" (getenv "USERPROFILE")))
-;; (setq org-default-notes-file (expand-file-name "notes.org" org-directory))
-;; (setq org-log-done t)
-;; (setq org-agenda-files (list
-;;                         (expand-file-name "work.org" org-directory)
-;;                         (expand-file-name "home.org" org-directory)))
-(setq org-hide-emphasis-markers t)
-
-;; See https://tincman.wordpress.com/2011/01/04/research-paper-management-with-emacs-org-mode-and-reftex/
-(defun org-mode-reftex-search ()
-  "Jump to notes for paper pointed to by reftex search."
-  (interactive)
-  (org-open-link-from-string (format "[[notes:%s]]" (first (reftex-citation t)))))
-(defun org-mode-reftex-setup ()
-  "Hook up org-mode and reftex."
-  (load-library "reftex")
-  (and (buffer-file-name)
-       (file-exists-p (buffer-file-name))
-       (progn
-         (global-auto-revert-mode t) ; update reftex when bibtex file changes
-         (reftex-parse-all)          ; custom cite format to insert links
-         ;; (reftex-set-cite-format "** [[papers:%1][%1]]: %t \n"))))
-         (reftex-set-cite-format
-          '((?b . "[[bib:%1][%1-bib]]")
-            (?n . "[[note:%1][%1-notes]]")
-            (?p . "[[papers:%1][%1-paper]]")
-            (?t . "%t")
-            (?h . "** %t\n:PROPERTIES:\n:Custom_ID: %1\n:END:\n[[papers:%1][%1-paper]]"))))))
-
-(setq org-link-abbrev-alist
-      ''(("bib" . (expand-file-name "refs.bib::%s" org-directory))
-         ("notes" . (expand-file-name "notes.org::#%s" org-directory))
-         ("notes" . (expand-file-name "papers/%s.pdf" org-directory))))
-
-;; Load up DITAA, which seems to be missing it's jar file currently
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((ditaa . t)))
-
-(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-(add-hook 'org-mode-hook 'org-mode-reftex-setup)
-(add-hook 'org-mode-hook 'auto-fill-mode)
-(add-hook 'org-mode-hook
-          (lambda ()
-            (set-fill-column 80)
-            (define-key org-mode-map (kbd "C-<left>") 'backward-word)
-            (define-key org-mode-map (kbd "C-<right>") 'forward-word)
-            (define-key org-mode-map (kbd "C-c (") 'org-mode-reftex-search)
-            (define-key org-mode-map (kbd "C-c )") 'reftex-citation)))
-
-(require 'ox-publish)
-(setq org-publish-project-alist
-      `(("org-notes"
-         :base-directory ,org-directory
-         :base-extension "org"
-         :publishing-directory ,html-directory
-         :recursive t
-         :publishing-function org-html-publish-to-html
-         :headline-levels 4)
-        ("org-static"
-         :base-directory ,org-directory
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-         :publishing-directory ,html-directory
-         :recursive t
-         :publishing-function org-publish-attachment)
-        ("org"
-         :components ("org-notes" "org-static"))))
-
-(global-set-key (kbd "C-c c") 'org-capture)
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda)
-
-(require 'smartparens)
-(global-set-key (kbd "C-<right>") 'my-end-of-sexp)
-(global-set-key (kbd "C-<left>") 'my-beginning-of-sexp)
-(global-set-key (kbd "M-<right>") 'sp-forward-slurp-sexp)
-(global-set-key (kbd "M-<left>") 'sp-forward-barf-sexp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key bindings for prog-mode, shell-mode, etc.
