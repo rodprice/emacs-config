@@ -2,6 +2,7 @@
 # name: SRC block
 # key: src
 # --
-#+BEGIN_SRC ${1:python}
+#+name: code:$1
+#+begin_src  ${2:python}
 $0
-#+END_SRC
+#+end_src

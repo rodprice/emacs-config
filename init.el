@@ -265,6 +265,10 @@
               ("C-<left>" . backward-word)
               ("C-<right>" . forward-word))
   :config
+  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  (setq org-highlight-latex-and-related
+        '(latex script)
+        org-src-fontify-natively t)
   :pin manual)
 
 (use-package org-pomodoro
