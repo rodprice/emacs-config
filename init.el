@@ -102,10 +102,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
-(use-package hc-zenburn-theme
+(use-package color-theme-sanityinc-tomorrow
   :ensure t
   :config
-  (load-theme 'hc-zenburn t)
+  (load-theme 'sanityinc-tomorrow-night t)
   :pin local)
 
 (use-package discover
@@ -236,6 +236,15 @@
 (require 'info)
 (info-initialize)                       ; populate Info-directory-list
 
+(use-package matlab-mode
+  :ensure t
+  :init
+  ;; Remove binding for .m files to objc-mode; bind to wolfram-mode
+  (setq auto-mode-alist
+        (cons '("\\.m\\'" . matlab-mode)
+              (remove-all-matches-from-alist ".m" auto-mode-alist)))
+  :pin melpa-stable)
+
 (use-package json-mode
   :disabled t
   :config
@@ -258,6 +267,7 @@
 (require 'my-python)
 
 (use-package my-org-mode
+  :ensure t
   :bind (("C-c c" . org-capture)
          ("C-c l" . org-store-link)
          ("C-c a" . org-agenda)
@@ -265,11 +275,7 @@
               ("C-<left>" . backward-word)
               ("C-<right>" . forward-word))
   :config
-  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-  (setq org-highlight-latex-and-related
-        '(latex script)
-        org-src-fontify-natively t)
-  :pin manual)
+  :pin local)
 
 (use-package org-pomodoro
   :ensure t
@@ -375,6 +381,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental stuff
+
+;; Use Firefox rather than Internet Explorer
+(setq browse-url-browser-function 'browse-url-firefox
+      browse-url-firefox-program
+      "C:\\Users\\rodprice\\AppData\\Local\\Mozilla Firefox\\firefox.exe")
+(setq org-file-apps
+      `((auto-mode . emacs)
+        ("\\.mm\\'" . default)
+        ("\\.x?html\\'" . ,browse-url-firefox-program)
+        ("\\.pdf\\'" . default)))
 
 ;; Display the column number in the mode line
 (setq column-number-mode t)

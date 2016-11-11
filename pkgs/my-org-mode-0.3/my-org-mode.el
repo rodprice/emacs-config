@@ -1,9 +1,15 @@
-;;; my-org-mode.el --- My Org mode configuration     -*- lexical-binding: t; -*-
+;;; my-org-mode.el --- My Org mode configuration.  -*- lexical-binding: t -*-
 
+;; Filename: my-org-mode.el
+;; Description: My org mode configuration
 ;; Author: Rodney Price <rodprice@raytheon.com>
+;; Version: 0.3
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: tools, outlines, wp
 
 ;;; Commentary:
+;; My configuration for org mode.
+
 ;;; Code:
 
 (require 'org)
@@ -61,6 +67,8 @@
 ;; LaTeX setup
 
 (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+(setq org-highlight-latex-and-related '(latex script)
+      org-src-fontify-natively t)
 
 ;; ________________________________________________________________________
 ;; RefTeX setup
@@ -98,4 +106,5 @@
 
 
 (provide 'my-org-mode)
-;;; my-org-model.el ends here
+
+;;; my-org-mode.el ends here
