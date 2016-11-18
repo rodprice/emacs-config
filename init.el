@@ -56,8 +56,7 @@
 
 ;; From https://ipython.org/ipython-doc/1/config/editors.html
 (defvar server-buffer-clients)
-(when (and (fboundp 'server-start)
-           (string-equal (getenv "TERM") 'xterm))
+(when (fboundp 'server-start)
   (server-start)
   (defun fp-kill-server-with-buffer-routine ()
     (and server-buffer-clients (server-done)))
@@ -333,7 +332,7 @@
 (global-set-key (kbd "M-p") 'my-rearrange-windows)
 
 (require 'org)
-(require 'org-beautify-theme)
+;; (require 'org-beautify-theme)
 (setq org-directory (expand-file-name "working/org" (getenv "USERPROFILE")))
 (setq html-directory (expand-file-name "working/html" (getenv "USERPROFILE")))
 ;; (setq org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -426,10 +425,17 @@
 (global-set-key (kbd "C-c a") 'org-agenda)
 
 (require 'smartparens)
-(global-set-key (kbd "C-<right>") 'my-end-of-sexp)
-(global-set-key (kbd "C-<left>") 'my-beginning-of-sexp)
+;; (global-set-key (kbd "C-<right>") 'my-end-of-sexp)
+;; (global-set-key (kbd "C-<left>") 'my-beginning-of-sexp)
 (global-set-key (kbd "M-<right>") 'sp-forward-slurp-sexp)
 (global-set-key (kbd "M-<left>") 'sp-forward-barf-sexp)
+
+;; Doesn't work as advertised
+(global-set-key [remap fill-paragraph] #'endless/fill-or-unfill)
+
+;; Swap transpose key bindings
+(global-set-key "\C-t" #'transpose-lines)
+(define-key ctl-x-map "\C-t" #'transpose-chars)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key bindings for prog-mode, shell-mode, etc.

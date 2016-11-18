@@ -175,7 +175,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
          (path2 (replace-regexp-in-string "\\\\" "/" path1))
          (path3 (replace-regexp-in-string " " "\\\\ " path2))
          (path4 (replace-regexp-in-string ";" ":" path3)))
-    path4))
+        path4))
 
 ;; Start up a Git for Windows bash shell external to Emacs. I don't
 ;; know how to make this run inside Emacs like the msys bash shell
@@ -302,6 +302,17 @@ the buffer is already dead, kill the buffer."
   "Upcase and fontify STRING for use with `eldoc-mode'."
   (propertize (upcase string)
               'face 'font-lock-variable-name-face))
+
+;; From http://endlessparentheses.com/fill-and-unfill-paragraphs-with-a-single-key.html
+(defun endless/fill-or-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command 'endless/fill-or-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
 
 (provide 'my-functions)
 ;;; my-functions.el ends here

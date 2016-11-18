@@ -55,7 +55,8 @@
                :unless '(sp-in-string-p)
                :actions '(insert wrap))
 
-(dolist (mode '(coffee-mode shell-mode))
-  (add-to-list 'sp-autoescape-string-quote-if-empty mode))
+;; no longer available in smartparens 1.8
+;; (dolist (mode '(coffee-mode shell-mode))
+;;   (add-to-list 'sp-autoescape-string-quote-if-empty mode))
 
 (provide 'graphene-smartparens-config)

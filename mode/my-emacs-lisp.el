@@ -29,5 +29,15 @@
   (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
     (add-hook hook 'turn-on-elisp-slime-nav-mode)))
 
+;; Show page break ^L characters as a nice horizontal line
+(use-package page-break-lines
+  :ensure t
+  :config
+  (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
+    (add-hook hook
+              (lambda ()
+                (turn-on-page-break-lines-mode))))
+  :pin melpa-stable)
+
 (provide 'my-emacs-lisp)
 ;;; my-emacs-lisp.el ends here
