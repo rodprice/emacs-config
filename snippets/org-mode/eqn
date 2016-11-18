@@ -3,6 +3,6 @@
 # key: eqn
 # --
 #+name: eqn:$1
-\[
+\begin{equation}
 $0
-\]
+\end{equation}

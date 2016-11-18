@@ -106,7 +106,7 @@
   :ensure t
   :config
   (load-theme 'sanityinc-tomorrow-night t)
-  :pin local)
+  :pin melpa-stable)
 
 (use-package discover
   :ensure t
@@ -180,6 +180,10 @@
 
 (use-package smartparens
   :ensure t
+  :bind (("C-<right>" . 'my-end-of-sexp)
+         ("C-<left>"  . 'my-beginning-of-sexp)
+         ("M-<right>" . 'sp-forward-slurp-sexp)
+         ("M-<left>"  . 'sp-forward-barf-sexp))
   :pin melpa-stable)
 
 ;; Flycheck uses standard error navigation commands of Emacs, `M-g n'
@@ -286,12 +290,6 @@
 ;; Mathematica programming mode
 (use-package my-wolfram
   :pin manual)
-
-(require 'smartparens)
-(global-set-key (kbd "C-<right>") 'my-end-of-sexp)
-(global-set-key (kbd "C-<left>") 'my-beginning-of-sexp)
-(global-set-key (kbd "M-<right>") 'sp-forward-slurp-sexp)
-(global-set-key (kbd "M-<left>") 'sp-forward-barf-sexp)
 
 ;; Placeholder for what looks like a great HTML, CSS, JavaScript dev
 ;; package.  See also URL
