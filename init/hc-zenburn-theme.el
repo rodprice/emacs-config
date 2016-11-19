@@ -37,6 +37,66 @@
 
 ;;; Color Palette
 
+;; (defvar hc-zenburn-colors-alist
+;;   '(("hc-zenburn-fg+1"     . "#FFFFEF")
+;;     ("hc-zenburn-fg"       . "#DCDCCC")
+;;     ("hc-zenburn-fg-1"     . "#70705E")
+;;     ("hc-zenburn-bg-2"     . "#000000")
+;;     ("hc-zenburn-bg-1"     . "#202020")
+;;     ("hc-zenburn-bg-05"    . "#2D2D2D")
+;;     ("hc-zenburn-bg"       . "#313131")
+;;     ("hc-zenburn-bg+05"    . "#383838")
+;;     ("hc-zenburn-bg+1"     . "#3E3E3E")
+;;     ("hc-zenburn-bg+2"     . "#4E4E4E")
+;;     ("hc-zenburn-bg+3"     . "#5E5E5E")
+;;     ("hc-zenburn-red+1"    . "#E9B0B0")
+;;     ("hc-zenburn-red"      . "#D9A0A0")
+;;     ("hc-zenburn-red-1"    . "#C99090")
+;;     ("hc-zenburn-red-2"    . "#B98080")
+;;     ("hc-zenburn-red-3"    . "#A97070")
+;;     ("hc-zenburn-red-4"    . "#996060")
+;;     ("hc-zenburn-orange"   . "#ECBC9C")
+;;     ("hc-zenburn-yellow"   . "#FDECBC")
+;;     ("hc-zenburn-yellow-1" . "#EDDCAC")
+;;     ("hc-zenburn-yellow-2" . "#DDCC9C")
+;;     ("hc-zenburn-green-1"  . "#6C8C6C")
+;;     ("hc-zenburn-green"    . "#8CAC8C")
+;;     ("hc-zenburn-green+1"  . "#9CBF9C")
+;;     ("hc-zenburn-green+2"  . "#ACD2AC")
+;;     ("hc-zenburn-green+3"  . "#BCE5BC")
+;;     ("hc-zenburn-green+4"  . "#CCF8CC")
+;;     ("hc-zenburn-cyan"     . "#A0EDF0")
+;;     ("hc-zenburn-blue+1"   . "#9CC7FB")
+;;     ("hc-zenburn-blue"     . "#99DDE0")
+;;     ("hc-zenburn-blue-1"   . "#89C5C8")
+;;     ("hc-zenburn-blue-2"   . "#79ADB0")
+;;     ("hc-zenburn-blue-3"   . "#699598")
+;;     ("hc-zenburn-blue-4"   . "#597D80")
+;;     ("hc-zenburn-blue-5"   . "#436D6D")
+;;     ("hc-zenburn-magenta"  . "#E090C7"))
+;;   "List of Hc-Zenburn colors.
+;; Each element has the form (NAME . HEX).
+
+;; `+N' suffixes indicate a color is lighter.
+;; `-N' suffixes indicate a color is darker.")
+
+;; Color picker that gives you the nearest named color to a hex code
+;; Color name and hue: http://www.color-blindness.com/color-name-hue/
+
+;; Get reasonable gradations in shade using hex codes
+;; The code side of color https://www.smashingmagazine.com/2012/10/the-code-side-of-color/
+
+;; Color picker that gives you a complementary pallette from a hex code
+;; http://www.colorpicker.com/de935f
+;; cc6666 -> 99cc66, 66cccc, 9966cc
+;; de935f -> 6bde5f, 5faade, d35fde 
+;; 5fa9de ->
+;; f0c674 -> (base 16 orange)
+
+;; The fundamentals of color: hue, saturation, and lightness
+;; http://vanseodesign.com/web-design/hue-saturation-and-lightness/
+;; pretty site, practices what he preaches, apparently
+
 (defvar hc-zenburn-colors-alist
   '(("hc-zenburn-fg+1"     . "#FFFFEF")
     ("hc-zenburn-fg"       . "#DCDCCC")
@@ -79,6 +139,7 @@ Each element has the form (NAME . HEX).
 
 `+N' suffixes indicate a color is lighter.
 `-N' suffixes indicate a color is darker.")
+
 
 (defmacro hc-zenburn-with-color-variables (&rest body)
   "`let' bind all colors defined in `hc-zenburn-colors-alist' around BODY.

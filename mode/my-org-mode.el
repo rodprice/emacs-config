@@ -14,6 +14,13 @@
 
 (require 'org)
 
+(add-hook 'org-mode-hook
+          (lambda ()
+            (set-fill-column 80)
+            (define-key org-mode-map (kbd "C-<left>") 'backward-word)
+            (define-key org-mode-map (kbd "C-<right>") 'forward-word)))
+
+
 (setq org-directory (expand-file-name "working/org" (getenv "USERPROFILE")))
 ;; (setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 ;; (setq org-log-done t)
@@ -73,14 +80,14 @@
 ;; ________________________________________________________________________
 ;; RefTeX setup
 
-(add-hook 'org-mode-hook 'org-mode-reftex-setup)
-(add-hook 'org-mode-hook
-          (lambda ()
-            (set-fill-column 80)
-            (define-key org-mode-map (kbd "C-<left>") 'backward-word)
-            (define-key org-mode-map (kbd "C-<right>") 'forward-word)
-            (define-key org-mode-map (kbd "C-c (") 'org-mode-reftex-search)
-            (define-key org-mode-map (kbd "C-c )") 'reftex-citation)))
+;; (add-hook 'org-mode-hook 'org-mode-reftex-setup)
+;; (add-hook 'org-mode-hook
+;;           (lambda ()
+;;             (set-fill-column 80)
+;;             (define-key org-mode-map (kbd "C-<left>") 'backward-word)
+;;             (define-key org-mode-map (kbd "C-<right>") 'forward-word)
+;;             (define-key org-mode-map (kbd "C-c (") 'org-mode-reftex-search)
+;;             (define-key org-mode-map (kbd "C-c )") 'reftex-citation)))
 
 ;; See https://tincman.wordpress.com/2011/01/04/research-paper-management-with-emacs-org-mode-and-reftex/
 (defun org-mode-reftex-search ()

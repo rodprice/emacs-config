@@ -83,8 +83,22 @@
 (defvar local-archive
   (expand-file-name "local/" user-emacs-directory)
   "Location of the package archive for packages stored locally.")
+(unless (file-exists-p local-archive)
+  (mkdir local-archive))
 (setq package-archive-upload-base local-archive)
 (add-to-list 'package-archives `("local" . ,local-archive) t)
+
+;; Upload packages from current contents of pkgs directory
+;; http://emacs.stackexchange.com/questions/19068/correct-usage-of-package-upload-file-for-multi-file-package
+;; copy of tar files is necessary due to bug in package-x.el lines 246-252,
+;; function package-upload-buffer-internal. It copies the directory
+;; listing rather than the tar file itself.  In fact, the author just
+;; ignored the tar file case altogether!
+;; (dolist (file (directory-files myelpa-msde 'fqn "\\.*[.]\\(el\\|tar\\)"))
+;;   (message "Preparing %s" file)
+;;   (package-upload-file file)
+;;   (when (string= (file-name-extension file) "tar")
+;;     (copy-file file myelpa 'force)))
 
 (package-initialize)
 
@@ -136,8 +150,9 @@
 ;; TODO: Configure to include *Python* etc buffers optionally
 (use-package iflipb
   :ensure t
-  :bind (("M-<up>" .   iflipb-next-buffer)
-         ("M-<down>" . iflipb-previous-buffer))
+;; TODO: change key binding to M-<pageup>, whatever the code for that is
+  :bind (("M-<prior>" .   iflipb-next-buffer)
+         ("M-<next>" . iflipb-previous-buffer))
   :pin melpa-stable)
 
 (use-package whole-line-or-region
@@ -162,10 +177,6 @@
   :ensure t
   :pin melpa-stable)
 
-;; (use-package ppd-sr-speedbar
-;;   :ensure t
-;;   :pin local)
-
 (use-package ido-ubiquitous
   :ensure t
   :pin melpa-stable)
@@ -180,10 +191,10 @@
 
 (use-package smartparens
   :ensure t
-  :bind (("C-<right>" . 'my-end-of-sexp)
-         ("C-<left>"  . 'my-beginning-of-sexp)
-         ("M-<right>" . 'sp-forward-slurp-sexp)
-         ("M-<left>"  . 'sp-forward-barf-sexp))
+  :bind (("C-<right>" . my-end-of-sexp)
+         ("C-<left>"  . my-beginning-of-sexp)
+         ("M-<right>" . sp-forward-slurp-sexp)
+         ("M-<left>"  . sp-forward-barf-sexp))
   :pin melpa-stable)
 
 ;; Flycheck uses standard error navigation commands of Emacs, `M-g n'
@@ -209,6 +220,10 @@
   :ensure t
   :config
   (global-smartscan-mode 1))
+
+(use-package rainbow-mode
+  :ensure t
+  :pin gnu)
 
 ;; Belongs in *-look.el file
 (global-visual-line-mode 0)
@@ -240,6 +255,7 @@
 (require 'info)
 (info-initialize)                       ; populate Info-directory-list
 
+;; setup article http://www.seaandsailor.com/emacs-config.html
 (use-package matlab-mode
   :ensure t
   :init
@@ -247,7 +263,7 @@
   (setq auto-mode-alist
         (cons '("\\.m\\'" . matlab-mode)
               (remove-all-matches-from-alist ".m" auto-mode-alist)))
-  :pin melpa-stable)
+  :pin local)
 
 (use-package json-mode
   :disabled t
@@ -270,17 +286,7 @@
 ;;   :pin manual)
 (require 'my-python)
 
-(use-package my-org-mode
-  :ensure t
-  :bind (("C-c c" . org-capture)
-         ("C-c l" . org-store-link)
-         ("C-c a" . org-agenda)
-         :map org-mode-map
-              ("C-<left>" . backward-word)
-              ("C-<right>" . forward-word))
-  :config
-  :pin local)
-
+(require 'my-org-mode)
 (use-package org-pomodoro
   :ensure t
   :config
@@ -289,7 +295,7 @@
 
 ;; Mathematica programming mode
 (use-package my-wolfram
-  :pin manual)
+  :pin local)
 
 ;; Placeholder for what looks like a great HTML, CSS, JavaScript dev
 ;; package.  See also URL
@@ -348,6 +354,13 @@
 (global-set-key (kbd "M-o") 'open-previous-line)
 (global-set-key (kbd "M-<up>") 'scroll-row-up)
 (global-set-key (kbd "M-<down>") 'scroll-row-down)
+
+(global-set-key (kbd "C-c c") 'org-capture)
+(global-set-key (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c a") 'org-agenda)
+
+(global-set-key (kbd "C-<up>") 'xah-backward-block)
+(global-set-key (kbd "C-<down>") 'xah-forward-block)
 
 ;; Window creation and manipulation
 (global-set-key (kbd "C-x C-o") 'other-frame)
