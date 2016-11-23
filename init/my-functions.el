@@ -6,12 +6,12 @@
 ;; Movement of cursor
 
 (defun scroll-row-down (arg)
-  (interactive)
-  (scroll-up-command 1))
+  (interactive "p")
+  (scroll-up-command arg))
 
 (defun scroll-row-up (arg)
-  (interactive)
-  (scroll-down-command 1))
+  (interactive "p")
+  (scroll-down-command arg))
 
 (defun xah-forward-block (&optional n)
   "Move cursor beginning of next text block.
@@ -103,71 +103,51 @@ Version 2016-06-15"
       (when newline-and-indent
         (indent-according-to-mode))))))
 
-;; prefix argument means always function as if last-command was not open-previous-line
+(defun open-next-line-fresh (arg)
+  "Open a new line `arg' lines after the current one.  If
+  `newline-and-indent' is true, indent the new line."
+  (forward-line (- arg 1))
+  (end-of-line)
+  (open-line 1)
+  (forward-line 1)
+  (setq last-inserted-line-number (line-number-at-pos))
+  (when newline-and-indent
+    (indent-according-to-mode)))
 
-;; at filled line
-;;; open previous line, move cursor to previous line
-
-;; at blank line, last-command was not open-previous-line
-;;; open previous line, move cursor to previous line
-
-;; at blank line, last-command was open-previous-line, previous line is filled
-;;; close current line, open previous line
-
-;; at blank line, last-command was open-previous-line, previous line is blank
-;;; move cursor to previous line
+(defun open-previous-line-fresh (arg)
+  "Open a new line `arg' lines before the current one.  If
+  `newline-and-indent' is true, indent the new line."
+  (forward-line (- 1 arg))
+  (beginning-of-line)
+  (open-line 1)
+  (when newline-and-indent
+    (indent-according-to-mode)))
 
 (defun open-previous-line (arg)
   "Move to the previous line and then open a new blank line.
-   Repeatedly calling this command opens the next previous line.
-  See also `newline-and-indent'."
-  (interactive "p")
-  ;; clean up after last invocation
-  ;; (if (not (or
-  ;;           (eq last-command 'open-next-line)
-  ;;           (eq last-command 'open-previous-line)))
-  ;;     (setq last-inserted-line-number nil))
+  This command behaves differently if it is called repeatedly.
+  On the first call, it opens the line above it, whether it is a
+  blank line or not.  On subsequent calls, it skips blank lines
+  above it to open the previous line ahead of it.  Pressing
+  \\[universal-argument] before calling this command causes it to
+  behave as if it was being called for the first time.  If
+  `newline-and-indent' is true, the new blank lines are
+  indented."
+  (interactive "P")
   (let ((beg (line-beginning-position))
         (end (line-end-position)))
-    (if (not (current-line-blank-p))
+    (if (or (not (current-line-blank-p))
+            (equal arg '(4)))
         ;; at filled line => open previous line, move to previous line
-        (progn
-          (beginning-of-line)
-          (open-line arg)
-          (setq last-inserted-line-number (line-number-at-pos))
-          (when newline-and-indent
-            (indent-according-to-mode)))
+        (open-previous-line-fresh 1)
       ;; at blank line
-      (if (not (eq last-command 'open-previous-line))
+      (if (not (or (eq last-command 'open-next-line)
+                   (eq last-command 'open-previous-line)))
           ;; fresh start => open previous line, move to previous line
-          (progn
-            (beginning-of-line)
-            (open-line arg)
-            (setq last-inserted-line-number (line-number-at-pos))
-            (when newline-and-indent
-              (indent-according-to-mode)))
+          (open-previous-line-fresh 1)
         ;; repeat
-        (if (previous-line-blank-p)
-            ;; repeat and previous line blank => move to previous line
-            (forward-line -1)
-          ;; repeat and previous line filled => close current line, open previous line
-            (delete-region beg (+ 1 end))
-            (beginning-of-line)
-            (open-line arg)
-            (forward-line -2)
-            (setq last-inserted-line-number (line-number-at-pos))
-            (when newline-and-indent
-              (indent-according-to-mode)))))))
-
-(defun open-previous-line-fresh (arg)
-  "open a new line before the current one. 
-     See also `newline-and-indent'."
-  (interactive "p")
-  
-  (beginning-of-line)
-  (open-line arg)
-  (when newline-and-indent
-    (indent-according-to-mode)))
+        (delete-region beg (+ 1 end))
+        (open-previous-line-fresh 2)))))
 
 ;; It would be nice to make the behavior of open-*-line functions
 ;; iterative; that is, make it open the next line, then hit it again
