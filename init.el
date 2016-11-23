@@ -116,10 +116,45 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
-(use-package color-theme-sanityinc-tomorrow
+(use-package base16-theme
   :ensure t
   :config
-  (load-theme 'sanityinc-tomorrow-night t)
+  (load-theme 'base16-tomorrow-night t)
+  (let ((base00 (plist-get base16-tomorrow-night-colors :base00))
+        (base01 (plist-get base16-tomorrow-night-colors :base01))
+        (base02 (plist-get base16-tomorrow-night-colors :base02))
+        (base03 (plist-get base16-tomorrow-night-colors :base03))
+        (base04 (plist-get base16-tomorrow-night-colors :base04))
+        (base05 (plist-get base16-tomorrow-night-colors :base05))
+        (base06 (plist-get base16-tomorrow-night-colors :base06))
+        (base07 (plist-get base16-tomorrow-night-colors :base07))
+        (base08 (plist-get base16-tomorrow-night-colors :base08))
+        (base09 (plist-get base16-tomorrow-night-colors :base09))
+        (base0A (plist-get base16-tomorrow-night-colors :base0A))
+        (base0B (plist-get base16-tomorrow-night-colors :base0B))
+        (base0C (plist-get base16-tomorrow-night-colors :base0C))
+        (base0D (plist-get base16-tomorrow-night-colors :base0D))
+        (base0E (plist-get base16-tomorrow-night-colors :base0E))
+        (base0F (plist-get base16-tomorrow-night-colors :base0F)))
+    (setq face-remapping-alist
+          `((show-paren-match
+             . (:foreground ,base0D
+                :background ,base02))
+            (show-paren-mismatch
+             . (:strike-through t
+                :foreground ,base09
+                :background ,base02))
+            (font-lock-keyword-face
+             . (:foreground ,base0E
+                :weight bold))
+            (font-lock-doc-face
+             . (:foreground ,base0C))
+            (font-lock-comment-face
+             . (:foreground ,base0C
+                :slant italic))
+            (font-lock-comment-delimiter-face
+             . (:foreground ,base0C
+                :slant italic)))))
   :pin melpa-stable)
 
 (use-package discover
@@ -150,14 +185,15 @@
 ;; TODO: Configure to include *Python* etc buffers optionally
 (use-package iflipb
   :ensure t
-;; TODO: change key binding to M-<pageup>, whatever the code for that is
   :bind (("M-<prior>" .   iflipb-next-buffer)
          ("M-<next>" . iflipb-previous-buffer))
   :pin melpa-stable)
 
 (use-package whole-line-or-region
   :ensure t
-  :bind ("C-w" . whole-line-or-region-kill-region)
+  :bind (("C-w" . whole-line-or-region-kill-region)
+         ("M-w" . whole-line-or-region-copy-region-as-kill)
+         ("C-y" . whole-line-or-region-yank))
   :pin melpa-stable)
 
 ;; Configure M-; to align comments etc the way I want
