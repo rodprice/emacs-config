@@ -8,4 +8,7 @@
 #+EMAIL: `user-mail-address`
 #+DESCRIPTION: $2
 #+KEYWORDS: $3
+#+SETUPFILE: c:/Users/rodprice/AppData/Roaming/.emacs.d/templates/level-0.org
+#+STARTUP: showall
+#+OPTIONS: LaTeX:t
 $0

@@ -2,7 +2,8 @@
 # name: image
 # key: image
 # --
-#+CAPTION: $1
-#+ATTR_HTML: alt="$1"
+#+name: fig:$1
+#+caption: $2
+#+attr_html: alt="$2"
 `(org-insert-link '(4))`
 $0

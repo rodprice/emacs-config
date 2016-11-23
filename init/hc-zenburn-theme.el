@@ -37,6 +37,114 @@
 
 ;;; Color Palette
 
+;; (defvar hc-zenburn-colors-alist
+;;   '(("hc-zenburn-fg+1"     . "#FFFFEF")
+;;     ("hc-zenburn-fg"       . "#DCDCCC")
+;;     ("hc-zenburn-fg-1"     . "#70705E")
+;;     ("hc-zenburn-bg-2"     . "#000000")
+;;     ("hc-zenburn-bg-1"     . "#202020")
+;;     ("hc-zenburn-bg-05"    . "#2D2D2D")
+;;     ("hc-zenburn-bg"       . "#313131")
+;;     ("hc-zenburn-bg+05"    . "#383838")
+;;     ("hc-zenburn-bg+1"     . "#3E3E3E")
+;;     ("hc-zenburn-bg+2"     . "#4E4E4E")
+;;     ("hc-zenburn-bg+3"     . "#5E5E5E")
+;;     ("hc-zenburn-red+1"    . "#E9B0B0")
+;;     ("hc-zenburn-red"      . "#D9A0A0")
+;;     ("hc-zenburn-red-1"    . "#C99090")
+;;     ("hc-zenburn-red-2"    . "#B98080")
+;;     ("hc-zenburn-red-3"    . "#A97070")
+;;     ("hc-zenburn-red-4"    . "#996060")
+;;     ("hc-zenburn-orange"   . "#ECBC9C")
+;;     ("hc-zenburn-yellow"   . "#FDECBC")
+;;     ("hc-zenburn-yellow-1" . "#EDDCAC")
+;;     ("hc-zenburn-yellow-2" . "#DDCC9C")
+;;     ("hc-zenburn-green-1"  . "#6C8C6C")
+;;     ("hc-zenburn-green"    . "#8CAC8C")
+;;     ("hc-zenburn-green+1"  . "#9CBF9C")
+;;     ("hc-zenburn-green+2"  . "#ACD2AC")
+;;     ("hc-zenburn-green+3"  . "#BCE5BC")
+;;     ("hc-zenburn-green+4"  . "#CCF8CC")
+;;     ("hc-zenburn-cyan"     . "#A0EDF0")
+;;     ("hc-zenburn-blue+1"   . "#9CC7FB")
+;;     ("hc-zenburn-blue"     . "#99DDE0")
+;;     ("hc-zenburn-blue-1"   . "#89C5C8")
+;;     ("hc-zenburn-blue-2"   . "#79ADB0")
+;;     ("hc-zenburn-blue-3"   . "#699598")
+;;     ("hc-zenburn-blue-4"   . "#597D80")
+;;     ("hc-zenburn-blue-5"   . "#436D6D")
+;;     ("hc-zenburn-magenta"  . "#E090C7"))
+;;   "List of Hc-Zenburn colors.
+;; Each element has the form (NAME . HEX).
+
+;; `+N' suffixes indicate a color is lighter.
+;; `-N' suffixes indicate a color is darker.")
+
+;; Color picker that gives you the nearest named color to a hex code
+;; Color name and hue: http://www.color-blindness.com/color-name-hue/
+
+;; Get reasonable gradations in shade using hex codes
+;; The code side of color https://www.smashingmagazine.com/2012/10/the-code-side-of-color/
+
+;; Color picker that gives you a complementary pallette from a hex code
+;; http://www.colorpicker.com/de935f
+;; #cc6666 -> #99cc66, #66cccc, #9966cc
+;; #de935f -> #6bde5f, #5faade, #d35fde 
+;; #5fa9de -> #d45fde, #de945f, #6ade5f
+;; #f0c674 -> #74f088, #749ef0, #f074dc, (base 16 orange)
+
+;; #cd5c5c
+;; #cc6666 = Indian Red
+;; #99cc66 = Mantis
+;; #66cccc = Downy
+;; #9966cc = Amethyst
+
+;; #f08080
+;; #f2777a = Light Coral
+;; #b7f277 = Sulu
+;; #77f2ef = Turquoise Blue
+;; #b177f2 = Medium Slate Blue
+
+;; #de935f = Porsche
+;; #6bde5f = Pastel Green
+;; #5faade = Malibu
+;; #d35fde = Medium Orchid
+
+;; #5fa9de = Malibu
+;; #d45fde = Medium Orchid
+;; #de945f = Porsche
+;; #6ade5f = Pastel Green
+
+;; #f0c674 = Cherokee
+;; #74f088 = Light Green
+;; #749ef0 = Cornflower Blue
+;; #f074dc = Violet
+
+;; scheme: "Tomorrow Night"
+;; author: "Chris Kempson (http://chriskempson.com)"
+;; base00: "#1d1f21"
+;; base01: "#282a2e"
+;; base02: "#373b41"
+;; base03: "#969896"
+;; base04: "#b4b7b4"
+;; base05: "#c5c8c6"
+;; base06: "#e0e0e0"
+;; base07: "#ffffff"
+;; base08: "#cc6666" "#fc8686" "#ac4646" 
+;; base09: "#de935f"
+;; base0A: "#f0c674"
+;; base0B: "#b5bd68"
+;; base0C: "#8abeb7"
+;; base0D: "#81a2be"
+;; base0E: "#b294bb"
+;; base0F: "#a3685a"
+
+;; Hues = Red, Orange, Yellow, Green, Blue, Violet, Brown, Black, Gray, White
+
+;; The fundamentals of color: hue, saturation, and lightness
+;; http://vanseodesign.com/web-design/hue-saturation-and-lightness/
+;; pretty site, practices what he preaches, apparently
+
 (defvar hc-zenburn-colors-alist
   '(("hc-zenburn-fg+1"     . "#FFFFEF")
     ("hc-zenburn-fg"       . "#DCDCCC")
@@ -49,10 +157,10 @@
     ("hc-zenburn-bg+1"     . "#3E3E3E")
     ("hc-zenburn-bg+2"     . "#4E4E4E")
     ("hc-zenburn-bg+3"     . "#5E5E5E")
-    ("hc-zenburn-red+1"    . "#E9B0B0")
-    ("hc-zenburn-red"      . "#D9A0A0")
-    ("hc-zenburn-red-1"    . "#C99090")
-    ("hc-zenburn-red-2"    . "#B98080")
+    ("hc-zenburn-red+1"    . "#CD5C5C")
+    ("hc-zenburn-red"      . "#F08080")
+    ("hc-zenburn-red-1"    . "#e9967a")
+    ("hc-zenburn-red-2"    . "#fa8072")
     ("hc-zenburn-red-3"    . "#A97070")
     ("hc-zenburn-red-4"    . "#996060")
     ("hc-zenburn-orange"   . "#ECBC9C")
@@ -79,6 +187,7 @@ Each element has the form (NAME . HEX).
 
 `+N' suffixes indicate a color is lighter.
 `-N' suffixes indicate a color is darker.")
+
 
 (defmacro hc-zenburn-with-color-variables (&rest body)
   "`let' bind all colors defined in `hc-zenburn-colors-alist' around BODY.
