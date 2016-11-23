@@ -5,25 +5,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement of cursor
 
-(defun scroll-viewport (n)
-  (let ((top (line-number-at-pos (window-start)))
-        (cur (line-number-at-pos (point))))
-    (recenter (+ (- cur top) n))))
-
 (defun scroll-row-down (arg)
-  (interactive "p")
-  (or arg (setq arg 1))
-  (scroll-viewport (- arg)))
+  (interactive)
+  (scroll-up-command 1))
 
 (defun scroll-row-up (arg)
-  (interactive "p")
-  (or arg (setq arg 1))
-  (scroll-viewport arg))
+  (interactive)
+  (scroll-down-command 1))
 
 (defun xah-forward-block (&optional n)
   "Move cursor beginning of next text block.
-A text block is separated by blank lines.
-This command similar to `forward-paragraph', but this command's behavior is the same regardless of syntax table.
+A text block is separated by blank lines.  This command similar
+to `forward-paragraph', but this command's behavior is the same
+regardless of syntax table.
 URL `http://ergoemacs.org/emacs/emacs_move_by_paragraph.html'
 Version 2016-06-15"
   (interactive "p")
@@ -51,20 +45,125 @@ Version 2016-06-15"
 (defvar newline-and-indent t
   "Modify the behavior of the open-*-line functions to cause them to autoindent.")
 
+(defun current-line-blank-p ()
+  (let ((beg (line-beginning-position))
+        (end (line-end-position)))
+    (= (current-indentation) (- end beg))))
+
+(defun next-line-blank-p ()
+  (save-excursion
+    (let ((current-line-number (line-number-at-pos)))
+      (forward-line 1)
+      (if (= current-line-number (line-number-at-pos))
+          t ;; at end of buffer
+        (current-line-blank-p)))))
+
+(defun previous-line-blank-p ()
+  (save-excursion
+    (let ((current-line-number (line-number-at-pos)))
+      (forward-line -1)
+      (if (= current-line-number (line-number-at-pos))
+          t ;; at beginning of buffer
+        (current-line-blank-p)))))
+
+(defvar last-inserted-line-number nil
+  "Set when `open-next-line' inserts a line; reset when it doesn't.")
+
 (defun open-next-line (arg)
-  "Move to the next line and then opens a line.
-    See also `newline-and-indent'."
+  "Move to the next line and then open a new blank line.
+   Repeatedly calling this command opens the following line.  See
+  also `newline-and-indent'."
   (interactive "p")
-  (end-of-line)
-  (open-line arg)
-  (next-line 1)
-  (when newline-and-indent
-    (indent-according-to-mode)))
+  ;; clean up after last invocation
+  (if (not (or
+            (eq last-command 'open-next-line)
+            (eq last-command 'open-previous-line)))
+      (setq last-inserted-line-number nil))
+  (let ((beg (line-beginning-position))
+        (end (line-end-position)))
+    (cond
+     ;; if next line was blank to begin with, skip past it
+     ((next-line-blank-p)
+      (forward-line 1)
+      (setq last-inserted-line-number nil))
+     ;; if current line is blank, move down one line and open
+     ;; following line
+     ((current-line-blank-p)
+      (if last-inserted-line-number
+          (progn
+            (delete-region beg (+ 1 end))
+            (open-next-line 1))
+        (forward-line 1)))
+     ;; otherwise open next line
+     (t
+      (end-of-line)
+      (open-line arg)
+      (forward-line 1)
+      (setq last-inserted-line-number (line-number-at-pos))
+      (when newline-and-indent
+        (indent-according-to-mode))))))
+
+;; prefix argument means always function as if last-command was not open-previous-line
+
+;; at filled line
+;;; open previous line, move cursor to previous line
+
+;; at blank line, last-command was not open-previous-line
+;;; open previous line, move cursor to previous line
+
+;; at blank line, last-command was open-previous-line, previous line is filled
+;;; close current line, open previous line
+
+;; at blank line, last-command was open-previous-line, previous line is blank
+;;; move cursor to previous line
 
 (defun open-previous-line (arg)
-  "Open a new line before the current one. 
+  "Move to the previous line and then open a new blank line.
+   Repeatedly calling this command opens the next previous line.
+  See also `newline-and-indent'."
+  (interactive "p")
+  ;; clean up after last invocation
+  ;; (if (not (or
+  ;;           (eq last-command 'open-next-line)
+  ;;           (eq last-command 'open-previous-line)))
+  ;;     (setq last-inserted-line-number nil))
+  (let ((beg (line-beginning-position))
+        (end (line-end-position)))
+    (if (not (current-line-blank-p))
+        ;; at filled line => open previous line, move to previous line
+        (progn
+          (beginning-of-line)
+          (open-line arg)
+          (setq last-inserted-line-number (line-number-at-pos))
+          (when newline-and-indent
+            (indent-according-to-mode)))
+      ;; at blank line
+      (if (not (eq last-command 'open-previous-line))
+          ;; fresh start => open previous line, move to previous line
+          (progn
+            (beginning-of-line)
+            (open-line arg)
+            (setq last-inserted-line-number (line-number-at-pos))
+            (when newline-and-indent
+              (indent-according-to-mode)))
+        ;; repeat
+        (if (previous-line-blank-p)
+            ;; repeat and previous line blank => move to previous line
+            (forward-line -1)
+          ;; repeat and previous line filled => close current line, open previous line
+            (delete-region beg (+ 1 end))
+            (beginning-of-line)
+            (open-line arg)
+            (forward-line -2)
+            (setq last-inserted-line-number (line-number-at-pos))
+            (when newline-and-indent
+              (indent-according-to-mode)))))))
+
+(defun open-previous-line-fresh (arg)
+  "open a new line before the current one. 
      See also `newline-and-indent'."
   (interactive "p")
+  
   (beginning-of-line)
   (open-line arg)
   (when newline-and-indent
