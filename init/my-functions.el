@@ -43,20 +43,13 @@ Version 2016-06-15"
 ;; Open next(prev) line
 
 (defvar newline-and-indent t
-  "Modify the behavior of the open-*-line functions to cause them to autoindent.")
+  "Modify the behavior of the open-*-line functions to cause them
+  to autoindent.")
 
 (defun current-line-blank-p ()
   (let ((beg (line-beginning-position))
         (end (line-end-position)))
     (= (current-indentation) (- end beg))))
-
-(defun next-line-blank-p ()
-  (save-excursion
-    (let ((current-line-number (line-number-at-pos)))
-      (forward-line 1)
-      (if (= current-line-number (line-number-at-pos))
-          t ;; at end of buffer
-        (current-line-blank-p)))))
 
 (defun previous-line-blank-p ()
   (save-excursion
@@ -66,55 +59,15 @@ Version 2016-06-15"
           t ;; at beginning of buffer
         (current-line-blank-p)))))
 
-(defvar last-inserted-line-number nil
-  "Set when `open-next-line' inserts a line; reset when it doesn't.")
-
-(defun open-next-line (arg)
-  "Move to the next line and then open a new blank line.
-   Repeatedly calling this command opens the following line.  See
-  also `newline-and-indent'."
-  (interactive "p")
-  ;; clean up after last invocation
-  (if (not (or
-            (eq last-command 'open-next-line)
-            (eq last-command 'open-previous-line)))
-      (setq last-inserted-line-number nil))
-  (let ((beg (line-beginning-position))
-        (end (line-end-position)))
-    (cond
-     ;; if next line was blank to begin with, skip past it
-     ((next-line-blank-p)
+(defun next-line-blank-p ()
+  (save-excursion
+    (let ((current-line-number (line-number-at-pos)))
       (forward-line 1)
-      (setq last-inserted-line-number nil))
-     ;; if current line is blank, move down one line and open
-     ;; following line
-     ((current-line-blank-p)
-      (if last-inserted-line-number
-          (progn
-            (delete-region beg (+ 1 end))
-            (open-next-line 1))
-        (forward-line 1)))
-     ;; otherwise open next line
-     (t
-      (end-of-line)
-      (open-line arg)
-      (forward-line 1)
-      (setq last-inserted-line-number (line-number-at-pos))
-      (when newline-and-indent
-        (indent-according-to-mode))))))
+      (if (= current-line-number (line-number-at-pos))
+          t ;; at end of buffer
+        (current-line-blank-p)))))
 
-(defun open-next-line-fresh (arg)
-  "Open a new line `arg' lines after the current one.  If
-  `newline-and-indent' is true, indent the new line."
-  (forward-line (- arg 1))
-  (end-of-line)
-  (open-line 1)
-  (forward-line 1)
-  (setq last-inserted-line-number (line-number-at-pos))
-  (when newline-and-indent
-    (indent-according-to-mode)))
-
-(defun open-previous-line-fresh (arg)
+(defun open-previous-line-new (arg)
   "Open a new line `arg' lines before the current one.  If
   `newline-and-indent' is true, indent the new line."
   (forward-line (- 1 arg))
@@ -131,32 +84,65 @@ Version 2016-06-15"
   above it to open the previous line ahead of it.  Pressing
   \\[universal-argument] before calling this command causes it to
   behave as if it was being called for the first time.  If
-  `newline-and-indent' is true, the new blank lines are
-  indented."
+  `newline-and-indent' is true, the new blank lines are indented.
+  See `open-next-line'."
   (interactive "P")
   (let ((beg (line-beginning-position))
         (end (line-end-position)))
     (if (or (not (current-line-blank-p))
             (equal arg '(4)))
         ;; at filled line => open previous line, move to previous line
-        (open-previous-line-fresh 1)
+        (open-previous-line-new 1)
       ;; at blank line
       (if (not (or (eq last-command 'open-next-line)
                    (eq last-command 'open-previous-line)))
-          ;; fresh start => open previous line, move to previous line
-          (open-previous-line-fresh 1)
+          ;; new start => open previous line, move to previous line
+          (open-previous-line-new 1)
         ;; repeat
         (delete-region beg (+ 1 end))
-        (open-previous-line-fresh 2)))))
+        (open-previous-line-new 2)))))
 
-;; It would be nice to make the behavior of open-*-line functions
-;; iterative; that is, make it open the next line, then hit it again
-;; to open the next line down, etc.
+(defun open-next-line-new (arg)
+  "Open a new line `arg' lines after the current one.  If
+  `newline-and-indent' is true, indent the new line."
+  (forward-line (- arg 1))
+  (end-of-line)
+  (open-line 1)
+  (forward-line 1)
+  (when newline-and-indent
+    (indent-according-to-mode)))
+
+(defun open-next-line (arg)
+  "Move to the next line and then open a new blank line.
+  This command behaves differently if it is called repeatedly.
+  On the first call, it opens the line below it, whether it is a
+  blank line or not.  On subsequent calls, it skips blank lines
+  above it to open the next line below it.  Pressing \\[universal-argument]
+  before calling this command causes it to behave as if it was
+  being called for the first time.  If `newline-and-indent' is
+  true, the new blank lines are indented.  See
+  `open-previous-line'."
+  (interactive "P")
+  (let ((beg (line-beginning-position))
+        (end (line-end-position)))
+    (if (or (not (current-line-blank-p))
+            (equal arg '(4)))
+        ;; at filled line => open next line, move to next line
+        (open-next-line-new 1)
+      ;; at blank line
+      (if (not (or (eq last-command 'open-next-line)
+                   (eq last-command 'open-previous-line)))
+          ;; new start => open next line, move to next line
+          (open-next-line-new 1)
+        ;; repeat
+        (delete-region beg (+ 1 end))
+        (open-next-line-new 1)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Yasnippet stuff (see https://www.emacswiki.org/emacs/Yasnippet)
-
 ;; Completing point by some yasnippet key
+
 (defun yas-ido-expand ()
   "Lets you select (and expand) a yasnippet key"
   (interactive)
