@@ -227,9 +227,7 @@
 
 (use-package smartparens
   :ensure t
-  :bind (("C-<right>" . my-end-of-sexp)
-         ("C-<left>"  . my-beginning-of-sexp)
-         ("M-<right>" . sp-forward-slurp-sexp)
+  :bind (("M-<right>" . sp-forward-slurp-sexp)
          ("M-<left>"  . sp-forward-barf-sexp))
   :pin melpa-stable)
 
@@ -280,6 +278,8 @@
 
 ;; Control the window in which Emacs visits a new file
 (setq ido-default-file-method 'raise-frame)
+;; Don't pop up window of completions
+(setq ido-cannot-complete-command 'ido-next-match)
 
 ;; When opening a help window, always select the new help window
 (setq help-window-select t)
@@ -293,9 +293,9 @@
 
 ;; setup article http://www.seaandsailor.com/emacs-config.html
 (use-package matlab-mode
-  :ensure t
+  ;; :ensure t
   :init
-  ;; Remove binding for .m files to objc-mode; bind to wolfram-mode
+  ;; Remove binding for .m files to objc-mode; bind to matlab-mode
   (setq auto-mode-alist
         (cons '("\\.m\\'" . matlab-mode)
               (remove-all-matches-from-alist ".m" auto-mode-alist)))
