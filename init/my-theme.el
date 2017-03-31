@@ -3,8 +3,11 @@
 ;;; Code:
 
 
-(defvar my-default-font "RobotoMono-11"
+(defvar my-default-font "Consolas-12"
   "The font family used by default throughout Emacs.")
+
+(if (eq system-type "windows-nt")
+    (setq my-default-font "Consolas-12"))
 
 (add-to-list 'default-frame-alist `(font . ,my-default-font))
 (set-face-font 'default my-default-font)
