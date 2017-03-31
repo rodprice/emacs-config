@@ -10,7 +10,7 @@
 
 
 (defvar my-geometry-file
-  (expand-file-name ".my-geometry" user-emacs-directory)
+  (expand-file-name ".geometry" user-emacs-directory)
   "The file where frame geometry settings are saved.")
 
 

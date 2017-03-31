@@ -35,7 +35,7 @@ org-clock-save.el
 ido.last
 ac-comphist.dat
 bookmarks
-.graphene-geometry
+.geometry
 smex-items
 TAGS
 *.elc
