@@ -42,3 +42,4 @@ TAGS
 /flycheck-*
 eshell
 *.pyc
+.python-environments

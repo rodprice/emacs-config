@@ -3,15 +3,13 @@
 ;;; Code:
 
 
-(defvar my-default-font "Consolas-12"
-  "The font family used by default throughout Emacs.")
+;; The default font is set in the site-specific preload file
+(unless (boundp 'my-default-font)
+  (defvar my-default-font "Courier-10"))
 
-(if (eq system-type "windows-nt")
-    (setq my-default-font "Consolas-12"))
-
+;; Specify the default font
 (add-to-list 'default-frame-alist `(font . ,my-default-font))
 (set-face-font 'default my-default-font)
-
 
 ;; Display the column number in the mode line
 (setq column-number-mode t)
