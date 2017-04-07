@@ -59,6 +59,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
+(use-package direx
+  :ensure t
+  :bind (("C-x C-j" . direx:jump-to-directory))
+  :pin melpa-stable)
 
 ;; Flip between buffers
 (use-package iflipb

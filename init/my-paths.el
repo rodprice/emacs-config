@@ -11,6 +11,13 @@
 ;;; Code:
 
 
+(require 'cl)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setup paths for executables emacs will use
+;; These paths should be set in site/<system-name>-preload.el, not here.
+
 (defvar my-path-variables nil
   "A list of path variables to be prepended to $PATH and `exec-path'.")
 
@@ -30,7 +37,7 @@
   "The path to the $BaseDirectory/Licensing directory of my Mathematica installation.")
 
 ;; Windows-only
-(if (eq system-type "windows-nt")
+(if (eq (intern "windows-nt") system-type)
     (progn
       (defvar my-git-for-windows-dir nil
         "The path to the top directory of my git installation.")
@@ -40,13 +47,16 @@
       (add-to-list 'my-path-variables 'my-msys-binaries-dir)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Function definitions, mostly to handle Windows quirks
+
 (defun my-normalize-path (path)
   "Return a string representing a normalized version of PATH.
 This function is intended for use with Windows paths, which are
 case-insensitive.  As such, it will downcase all names if emacs
 is running on Windows; otherwise it will leave the case as is."
   (let ((normed (expand-file-name "" path)))
-    (if (eq system-type "windows-nt")
+    (if (eq (intern "windows-nt") system-type)
         (downcase normed)
       normed)))
 
@@ -64,11 +74,31 @@ Any elements of PS1 initially present in PS2 are removed."
 (defun my-concat-paths (ps1 ps2)
   "Prepend list of paths PS1 to list of paths PS2.
 Each path in the resulting list will be normalized and duplicates
-removed from the final list."
+removed from the final list.  If running on Windows, all system
+directories will be pushed to the end of the list."
   (let ((ps1_ (mapcar 'my-normalize-path ps1))
         (ps2_ (mapcar 'my-normalize-path ps2)))
-    (my-remove-and-prepend-paths ps1_ ps2_)))
+    (delete-dups (sort
+     (my-remove-and-prepend-paths ps1_ ps2_)
+     (lambda (path1 path2) (not (my-windows-system-path-p path1)))))))
 
+
+(defun my-windows-system-path-p (path)
+  "Determine whether a string matches a Windows system path.
+Returns false unless running on MS Windows.  When on Windows, it
+compares the top-level directory name to each element of a list
+containing a few common Windows directories that contain system
+files, program files, or global data."
+  (if (eq (intern "windows-nt") system-type)
+      (let* ((elems (split-string (my-normalize-path path) "/"))
+             (topdir (if (eq (length elems) 1) "" (cadr elems))))
+        (some (lambda (arg) (string-equal topdir arg))
+                    '("windows" "programdata" "program files")))
+    nil))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setup PATH and exec-path
 
 ;; Prepend the contents of `my-path-variables' to `exec-path'.
 (setq exec-path
@@ -76,11 +106,8 @@ removed from the final list."
         (my-concat-paths my-paths exec-path)))
 
 ;; Make the environment variable $PATH match `exec-path'
-(let ((sep (if (eq system-type "windows-nt") ";" ":")))
+(let ((sep (if (eq system-type (intern "windows-nt")) ";" ":")))
   (setenv "PATH" (mapconcat 'identity exec-path sep)))
-
-
-(message "%s" exec-path)
 
 
 (require 'exec-path-from-shell)
