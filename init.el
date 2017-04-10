@@ -161,13 +161,74 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Programming modes
 
-(use-package jedi
-  :ensure t
-  :config
-  (add-hook 'python-mode-hook 'jedi:setup)
-  (setq jedi:setup-keys t)
-  (setq jedi:complete-on-dot t)
-  :pin melpa-stable)
+;; (use-package jedi
+;;   :ensure t
+;;   :config
+;;   (add-hook 'python-mode-hook 'jedi:setup)
+;;   (setq jedi:setup-keys t)
+;;   (setq jedi:complete-on-dot t)
+;;   :pin melpa-stable)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Simple ipython setup
+;; http://stackoverflow.com/questions/25669809/how-do-you-run-python-code-using-emacs
+
+;; (require 'python)
+;; Arguments to the Python interpreter are as follows
+;;   -u (unbuffered; interpreter running under comint can hang otherwise)
+;;   -i (interactive)
+;; Arguments to the ipython-script are
+;;   console (This appears to be the magic incantation to get plotting functionality.
+;;            Once the shell starts up, invoke %pylab and you're in business.)
+
+;; -i
+;;     If running code from the command line, become interactive afterwards.
+;;     It is often useful to follow this with `--` to treat remaining flags as
+;;     script arguments.
+;; --no-confirm-exit
+;;     Don't prompt the user when exiting.
+;; --pylab=<CaselessStrEnum> (InteractiveShellApp.pylab)
+;;     Default: None
+;;     Choices: [u'auto', u'gtk', u'gtk3', u'inline', u'nbagg', u'notebook', u'osx', u'qt', u'qt4', u'qt5', u'tk', u'wx']
+;;     Pre-load matplotlib and numpy for interactive use, selecting a particular
+;;     matplotlib backend and loop integration.
+;; --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
+;;     Default: None
+;;     Choices: [u'auto', u'gtk', u'gtk3', u'inline', u'nbagg', u'notebook', u'osx', u'qt', u'qt4', u'qt5', u'tk', u'wx']
+;;     Configure matplotlib for interactive use with the default matplotlib
+;;     backend.
+;; --colors=<CaselessStrEnum> (InteractiveShell.colors)
+;;     Default: 'Linux'
+;;     Choices: [u'NoColor', u'LightBG', u'Linux']
+;;     Set the color scheme (NoColor, Linux, or LightBG).
+;; --color-info
+;;     IPython can display information about objects via a set of functions,
+;;     and optionally can use colors for this, syntax highlighting
+;;     source code and various other elements. This is on by default, but can cause
+;;     problems with some pagers. If you see such problems, you can disable the
+;;     colours.
+;; --nosep
+;;     Eliminate all spacing between prompts.
+;; --pprint
+;;     Enable auto pretty printing of results.
+
+;; (setq python-shell-interpreter "ipython")
+;; (setq python-shell-interpreter-args "--pylab --pprint")
+;; (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
+;; (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
+
+;; ;; Stop python-mode from complaining about matching prompts
+;; (setq python-shell-prompt-detect-failure-warning nil)
+;; ;; Completion stuff that I don't understand
+;; (setq python-shell-completion-setup-code
+;;       "from IPython.core.completerlib import module_completion"
+;;       python-shell-completion-module-string-code
+;;       "';'.join(module_completion('''%s'''))\n"
+;;       python-shell-completion-string-code
+;;       "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+
+;; TODO set `python-shell-virtualenv-path' correctly
+
 
 ;; (defvar myPackages
 ;;   '(ein
@@ -186,8 +247,71 @@
 ;; ;; PYTHON CONFIGURATION
 ;; ;; --------------------------------------
 
-;; (elpy-enable)
-;; (elpy-use-ipython)
+(use-package flycheck
+  :ensure t
+  :config
+  ;; Use pyflakes and nothing else
+  (flycheck-define-checker python-pyflakes
+    "A Python syntax checker using the pyflakes utility."
+    :command ("pyflakes" source-inplace)
+    :error-patterns
+    ((error line-start (file-name) ":" line ":" (message) line-end))
+    :modes python-mode)
+  (add-to-list 'flycheck-checkers 'python-pyflakes)
+  (add-to-list 'flycheck-disabled-checkers 'python-flake8)
+  (add-to-list 'flycheck-disabled-checkers 'python-pylint)
+  (with-eval-after-load 'flycheck
+    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+  (setq flycheck-emacs-lisp-load-path 'inherit)
+  (global-flycheck-mode)
+  :pin melpa)
+
+(use-package elpy
+  :ensure t
+  :config
+  (elpy-enable)
+  (elpy-use-ipython)
+  ;; (when (require 'flycheck nil t)
+  ;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  ;;   (add-hook elpy-mode-hook 'flycheck-mode))
+  :pin melpa)
+
+(defun my-pytest-all (&optional flags)
+  (interactive)
+  (pytest-run nil flags)
+  (other-window 1))
+
+(defun my-pytest-module (&optional flags)
+  (interactive)
+  (pytest-run buffer-file-name flags)
+  (other-window 1))
+
+(defun my-pytest-one (&optional flags)
+  (interactive)
+  (pytest-run (format "%s" (pytest-py-testable)) flags)
+  (other-window 1))
+
+(defun my-pytest-directory (&optional flags)
+  (interactive)
+  (pytest-run (file-name-directory buffer-file-name) flags)
+  (other-window 1))
+
+(use-package pytest
+  :ensure t
+  :config
+  (setq pytest-cmd-flags "-x -s -r a"
+        pytest-use-verbose nil
+        pytest-loop-on-failing nil
+        pytest-assert-plain t)
+  :pin melpa)
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            ;; (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
+            (local-set-key (kbd "C-x C-e") 'python-shell-send-defun)
+            (local-set-key (kbd "C-c m") 'my-pytest-module)
+            (local-set-key (kbd "C-c f") 'my-pytest-one)
+            (local-set-key (kbd "C-c d") 'my-pytest-directory)))
 
 ;; (setq python-shell-interpreter-args "--simple-prompt -i")
 
