@@ -60,19 +60,27 @@ check for style. See URL `https://pypi.python.org/pypi/pyflakes'."
 ;;   cd ~/.emacs.d/elpa/jedi-core-0.2.6
 ;;   python setup.py install
 ;; Then check to see if jediepcserver.py shows up in the directory below.
+;; (use-package jedi
+;;   :disabled t
+;;   :ensure t
+;;   :config
+;; ;  (setq python-environment-directory
+;; ;        (expand-file-name "envs" my-anaconda-dir))
+;; ;  (setq python-environment-virtualenv
+;; ;        (list "conda" )) ; incomplete
+;; ;  (setq python-environment-default-root-name "emacs")
+;; ;  (setq jedi:server-command
+;; ;        (list (expand-file-name "lib/site-packages/jediepcserver.py" my-anaconda-dir)))
+;;   (add-hook 'python-mode-hook 'jedi:setup)
+;;   (setq jedi:complete-on-dot)
+;;   :pin melpa-stable)
+
 (use-package jedi
-  :disabled t
   :ensure t
   :config
-;  (setq python-environment-directory
-;        (expand-file-name "envs" my-anaconda-dir))
-;  (setq python-environment-virtualenv
-;        (list "conda" )) ; incomplete
-;  (setq python-environment-default-root-name "emacs")
-;  (setq jedi:server-command
-;        (list (expand-file-name "lib/site-packages/jediepcserver.py" my-anaconda-dir)))
   (add-hook 'python-mode-hook 'jedi:setup)
-  (setq jedi:complete-on-dot)
+  (setq jedi:setup-keys t)
+  (setq jedi:complete-on-dot t)
   :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
