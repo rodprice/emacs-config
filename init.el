@@ -63,9 +63,9 @@
   (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Set up use-package for use with MELPA Stable and local archives
+;; Set up use-package for use with MELPA and local archives
 
-;; MELPA Stable archive
+;; MELPA and MELPA Stable archives
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
@@ -152,12 +152,27 @@
             (font-lock-doc-face
              . (:foreground ,base0C))
             (font-lock-comment-face
-             . (:foreground ,base0C
-                :slant italic))
+             . (:foreground "light slate gray"))
             (font-lock-comment-delimiter-face
-             . (:foreground ,base0C
-                :slant italic)))))
+             . (:foreground "light slate gray")))))
   :pin melpa-stable)
+
+(use-package popwin
+  :ensure t
+  :config
+  (popwin-mode 1)
+  :pin melpa)
+
+(use-package direx
+  :ensure t
+  :config
+  (push '(direx:direx-mode
+          :position left
+          :width 25
+          :dedicated t)
+        popwin:special-display-config)
+  :bind (("C-x C-j" . direx:jump-to-directory-other-window))
+  :pin melpa)
 
 (use-package discover
   :ensure t
@@ -187,7 +202,7 @@
 ;; TODO: Configure to include *Python* etc buffers optionally
 (use-package iflipb
   :ensure t
-  :bind (("M-<prior>" .   iflipb-next-buffer)
+  :bind (("M-<prior>" . iflipb-next-buffer)
          ("M-<next>" . iflipb-previous-buffer))
   :pin melpa-stable)
 
@@ -317,6 +332,9 @@
   (setq eldoc-argument-case 'fontify-eldoc-argument-list)
   :pin manual)
 
+;; Emacs interface to git
+(require 'my-magit)
+
 ;; Python programming mode and tools
 ;; (use-package my-python
 ;;   :demand
@@ -392,6 +410,7 @@
 (global-set-key (kbd "M-o") 'open-previous-line)
 (global-set-key (kbd "M-<up>") 'scroll-row-up)
 (global-set-key (kbd "M-<down>") 'scroll-row-down)
+(global-set-key (kbd "C-x p") 'my-rotate-windows)
 
 (global-set-key (kbd "C-c c") 'org-capture)
 (global-set-key (kbd "C-c l") 'org-store-link)
