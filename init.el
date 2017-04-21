@@ -149,8 +149,12 @@
             (font-lock-keyword-face
              . (:foreground ,base0E
                 :weight bold))
+            (font-lock-function-name-face
+             . (:foreground "cornflower blue"))
             (font-lock-doc-face
              . (:foreground ,base0C))
+            (font-lock-string-face
+             . (:foreground "slate gray"))
             (font-lock-comment-face
              . (:foreground "light slate gray"))
             (font-lock-comment-delimiter-face
@@ -247,6 +251,29 @@
   :bind (("M-<right>" . sp-forward-slurp-sexp)
          ("M-<left>"  . sp-forward-barf-sexp))
   :pin melpa-stable)
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode))
+
+;; Highlight current line
+(global-hl-line-mode t)
+
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1))
+
+(use-package hungry-delete
+  :ensure t
+  :config
+  (global-hungry-delete-mode))
+
+(use-package expand-region
+  :ensure t
+  :config
+  :bind (("C-=" . er/expand-region)))
 
 ;; Flycheck uses standard error navigation commands of Emacs, `M-g n'
 ;; for `next-error' and 'M-g p' for `previous-error'. See section 4.4
