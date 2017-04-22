@@ -161,6 +161,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Programming modes
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; C/C++
+
+(require 'my-c)
+
+;; (use-package my-c
+;;   :commands (my-compile)
+;;   :bind (("C-c C-c" . my-compile)))
+
 ;; (use-package jedi
 ;;   :ensure t
 ;;   :config
