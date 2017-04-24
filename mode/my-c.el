@@ -34,9 +34,10 @@
       (cd (locate-dominating-file default-directory "Makefile"))
       (call-interactively 'compile))))
 
-(add-hook 'c-mode-hook
-          (lambda ()
-            (local-set-key (kbd "C-c C-c" 'my-compile))))
+(defun my-c-mode-key-bindings ()
+            (local-set-key (kbd "C-c C-c") 'my-compile))
+
+(add-hook 'c-mode-hook 'my-c-mode-key-bindings)
 
 
 (provide 'my-c)

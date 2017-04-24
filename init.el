@@ -12,7 +12,17 @@
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
 
-(require 'my-paths)
+;; Add site-specific paths to emacs' exec-path and $PATH
+(use-package my-paths
+  :config
+  ;; Prepend the contents of `my-path-variables' to `exec-path'.
+  (setq exec-path
+        (let ((my-paths (mapcar 'symbol-value my-path-variables)))
+          (my-concat-paths my-paths exec-path)))
+  ;; Make the environment variable $PATH match `exec-path'
+  (let ((sep (if (eq system-type (intern "windows-nt")) ";" ":")))
+    (setenv "PATH" (mapconcat 'identity exec-path sep)))
+  (require 'exec-path-from-shell))
 
 ;; Load the site-specific preload file.  See the path variables
 ;; defined in `my-paths' for information on required paths.
