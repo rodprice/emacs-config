@@ -50,14 +50,16 @@
             (font-lock-keyword-face
              . (:foreground ,base0E
                 :weight bold))
+            (font-lock-function-name-face
+             . (:foreground "cornflower blue"))
             (font-lock-doc-face
              . (:foreground ,base0C))
+            (font-lock-string-face
+             . (:foreground "slate gray"))
             (font-lock-comment-face
-             . (:foreground ,base0C
-                :slant italic))
+             . (:foreground "light slate gray"))
             (font-lock-comment-delimiter-face
-             . (:foreground ,base0C
-                :slant italic)))))
+             . (:foreground "light slate gray")))))
   :pin melpa-stable)
 
 

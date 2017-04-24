@@ -3,30 +3,11 @@
 ;;; Code:
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Set paths and load the site-specific file
-
 ;; Set up load paths within .emacs.d
 (add-to-list 'load-path (expand-file-name "init/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "mode/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
-
-;; Add site-specific paths to emacs' exec-path and $PATH
-(use-package my-paths
-  :config
-  ;; Prepend the contents of `my-path-variables' to `exec-path'.
-  (setq exec-path
-        (let ((my-paths (mapcar 'symbol-value my-path-variables)))
-          (my-concat-paths my-paths exec-path)))
-  ;; Make the environment variable $PATH match `exec-path'
-  (let ((sep (if (eq system-type (intern "windows-nt")) ";" ":")))
-    (setenv "PATH" (mapconcat 'identity exec-path sep)))
-  (require 'exec-path-from-shell))
-
-;; Load the site-specific preload file.  See the path variables
-;; defined in `my-paths' for information on required paths.
-(load (concat system-name "-preload") 'noerror)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,6 +23,26 @@
   (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
 
 (require 'my-packaging)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load the site-specific file and set paths
+
+;; Load the site-specific preload file.  See the path variables
+;; defined in `my-paths' for information on required paths.
+(load (concat system-name "-preload") 'noerror)
+
+;; Add site-specific paths to emacs' exec-path and $PATH
+(use-package my-paths
+  :config
+  ;; Prepend the contents of `my-path-variables' to `exec-path'.
+  (setq exec-path
+        (let ((my-paths (mapcar 'symbol-value my-path-variables)))
+          (my-concat-paths my-paths exec-path)))
+  ;; Make the environment variable $PATH match `exec-path'
+  (let ((sep (if (eq system-type (intern "windows-nt")) ";" ":")))
+    (setenv "PATH" (mapconcat 'identity exec-path sep)))
+  (require 'exec-path-from-shell))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -69,12 +70,38 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1))
+
 (use-package direx
   :ensure t
-  :bind (("C-x C-j" . direx:jump-to-directory))
-  :pin melpa-stable)
+  :init
+  (use-package popwin
+    :ensure t
+    :config
+    (popwin-mode 1)
+    :pin melpa)
+  :config
+  (push '(direx:direx-mode
+          :position left
+          :width 25
+          :dedicated t)
+        popwin:special-display-config)
+  :bind (("C-x C-j" . direx:jump-to-directory-other-window))
+  :pin melpa)
 
-;; Flip between buffers
+(use-package expand-region
+  :ensure t
+  :config
+  :bind (("C-=" . er/expand-region)))
+
+(use-package hungry-delete
+  :ensure t
+  :config
+  (global-hungry-delete-mode))
+
 (use-package iflipb
   :ensure t
   :bind (("M-<prior>" . iflipb-next-buffer)
@@ -135,6 +162,14 @@
    ("M-S" . sp-split-sexp)
    ("M-J" . sp-join-sexp)
    ("C-M-t" . sp-transpose-sexp)))
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode))
+
+;; Highlight current line
+(global-hl-line-mode t)
 
 ;; Kill and yank entire lines
 (use-package whole-line-or-region
