@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: teaser
+# key: teaser
+# --
+#+begin_html
+<!-- TEASER_END -->
+#+end_html
+$0

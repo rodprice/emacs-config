@@ -34,11 +34,22 @@
       (cd (locate-dominating-file default-directory "Makefile"))
       (call-interactively 'compile))))
 
+;; Automatically wrap lines for comments but not code
+;; https://www.emacswiki.org/emacs/AutoFillMode
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (auto-fill-mode 1)
+            (set (make-local-variable 'fill-nobreak-predicate)
+                 (lambda ()
+                   (not (eq (get-text-property (point) 'face)
+                            'font-lock-comment-face))))))
+
 (defun my-c-mode-key-bindings ()
             (local-set-key (kbd "C-c C-c") 'my-compile))
 
 (add-hook 'c-mode-hook 'my-c-mode-key-bindings)
 
+(add-to-list 'auto-mode-alist '("\\.ino\\'" . c-mode))
 
 (provide 'my-c)
 ;;; my-c.el ends here

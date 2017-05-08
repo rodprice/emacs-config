@@ -410,5 +410,99 @@ the buffer is already dead, kill the buffer."
   (propertize (upcase string)
               'face 'font-lock-variable-name-face))
 
+;; Toggle function for fill-paragraph
+;; http://endlessparentheses.com/fill-and-unfill-paragraphs-with-a-single-key.html
+(defun endless/fill-or-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command 'endless/fill-or-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
+
+;; When popping the mark, continue popping until the cursor actually moves
+;; http://endlessparentheses.com/faster-pop-to-mark-command.html
+(defadvice pop-to-mark-command
+    (around ensure-new-position activate)
+  (let ((p (point)))
+    (dotimes (i 10)
+      (when (= p (point))
+        ad-do-it))))
+
+;; http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning)
+                           (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if
+         ;; you don't want it.
+         (cond ((ignore-errors (org-edit-src-code) t)
+                (delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+        ((derived-mode-p 'latex-mode)
+         (LaTeX-narrow-to-environment))
+        (t (narrow-to-defun))))
+
+
+;; (define-key ctl-x-map "\C-i"
+;;   #'endless/ispell-word-then-abbrev)
+
+;; Seems like you have to have ispell set up for this to work
+;; http://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html
+;; (defun endless/simple-get-word ()
+;;   (car-safe (save-excursion (ispell-get-word nil))))
+
+;; (defun endless/ispell-word-then-abbrev (p)
+;;   "Call `ispell-word', then create an abbrev for it.
+;; With prefix P, create local abbrev. Otherwise it will
+;; be global.
+;; If there's nothing wrong with the word at point, keep
+;; looking for a typo until the beginning of buffer. You can
+;; skip typos you don't want to fix with `SPC', and you can
+;; abort completely with `C-g'."
+;;   (interactive "P")
+;;   (let (bef aft)
+;;     (save-excursion
+;;       (while (if (setq bef (endless/simple-get-word))
+;;                  ;; Word was corrected or used quit.
+;;                  (if (ispell-word nil 'quiet)
+;;                      nil ; End the loop.
+;;                    ;; Also end if we reach `bob'.
+;;                    (not (bobp)))
+;;                ;; If there's no word at point, keep looking
+;;                ;; until `bob'.
+;;                (not (bobp)))
+;;         (backward-word)
+;;         (backward-char))
+;;       (setq aft (endless/simple-get-word)))
+;;     (if (and aft bef (not (equal aft bef)))
+;;         (let ((aft (downcase aft))
+;;               (bef (downcase bef)))
+;;           (define-abbrev
+;;             (if p local-abbrev-table global-abbrev-table)
+;;             bef aft)
+;;           (message "\"%s\" now expands to \"%s\" %sally"
+;;                    bef aft (if p "loc" "glob")))
+;;       (user-error "No typo at or before point"))))
+
+;; (setq save-abbrevs 'silently)
+;; (setq-default abbrev-mode t)
+
+
 (provide 'my-functions)
 ;;; my-functions.el ends here

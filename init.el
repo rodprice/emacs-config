@@ -56,6 +56,7 @@
 (require 'my-functions)
 (setq ring-bell-function 'echo-area-bell)
 
+(global-set-key (kbd "C-c q") 'auto-fill-mode)
 (global-set-key (kbd "M-j") 'my-join-lines)
 (global-set-key (kbd "C-o") 'open-next-line)
 (global-set-key (kbd "M-o") 'open-previous-line)
@@ -65,6 +66,23 @@
 (global-set-key (kbd "C-<down>") 'xah-forward-block)
 (global-set-key (kbd "C-x C-o") 'other-frame)
 (global-set-key (kbd "M-p") 'my-rearrange-windows)
+(global-set-key [remap fill-paragraph]  ; M-q toggles fill-paragraph
+                #'endless/fill-or-unfill)
+(setq set-mark-command-repeat-pop t)    ; better C-u C-SPC C-SPC ...
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+
+(add-hook 'comint-mode-hook
+          (lambda ()
+            (define-key comint-mode-map
+              (kbd "C-d") 'my-comint-delchar-or-eof-or-kill-buffer)
+            (define-key comint-mode-map
+              (kbd "C-<up>") 'comint-previous-matching-input-from-input)
+            (define-key comint-mode-map
+              (kbd "C-p") 'comint-previous-matching-input-from-input)
+            (define-key comint-mode-map
+              (kbd "C-<down>") 'comint-next-matching-input-from-input)
+            (define-key comint-mode-map
+              (kbd "C-n") 'comint-next-matching-input-from-input)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,7 +91,8 @@
 (use-package beacon
   :ensure t
   :config
-  (beacon-mode 1))
+  (beacon-mode 1)
+  (setq beacon-blink-delay 0.3))
 
 (use-package direx
   :ensure t
@@ -92,15 +111,31 @@
   :bind (("C-x C-j" . direx:jump-to-directory-other-window))
   :pin melpa)
 
+(use-package dumb-jump
+  :ensure t
+  :bind (("M-g o" . dumb-jump-go-other-window)
+	 ("M-g j" . dumb-jump-go)
+	 ("M-g x" . dumb-jump-go-prefer-external)
+	 ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  :pin melpa-stable)
+
 (use-package expand-region
   :ensure t
   :config
   :bind (("C-=" . er/expand-region)))
 
-(use-package hungry-delete
-  :ensure t
-  :config
-  (global-hungry-delete-mode))
+(use-package ggtags
+:ensure t
+:config 
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+              (ggtags-mode 1))))
+)
+
+;; Mark and edit all copies of the marked region simultaneously. 
+(use-package iedit
+  :ensure t)
 
 (use-package iflipb
   :ensure t
@@ -138,6 +173,9 @@
   :init
   (progn
     (use-package smartparens-config)
+    (use-package smartparens-html)
+    (use-package smartparens-python)
+    (use-package smartparens-latex)
     (smartparens-global-mode 1)
     (show-smartparens-global-mode 1)
     (setq sp-show-pair-delay 0))
@@ -163,6 +201,54 @@
    ("M-J" . sp-join-sexp)
    ("C-M-t" . sp-transpose-sexp)))
 
+;; Mike Zamansky's key bindings
+;; (use-package smartparens
+;;   :ensure t
+;;   :config
+;;   (use-package smartparens-config)
+;;   (use-package smartparens-html)
+;;   (use-package smartparens-python)
+;;   (use-package smartparens-latex)
+;;   (smartparens-global-mode t)
+;;   (show-smartparens-global-mode t)
+;;   :bind
+;;   ( ("C-<down>" . sp-down-sexp)
+;;     ("C-<up>"   . sp-up-sexp)
+;;     ("M-<down>" . sp-backward-down-sexp)
+;;     ("M-<up>"   . sp-backward-up-sexp)
+;;     ("C-M-a" . sp-beginning-of-sexp)
+;;     ("C-M-e" . sp-end-of-sexp)
+;;     ("C-M-f" . sp-forward-sexp)
+;;     ("C-M-b" . sp-backward-sexp)
+;;     ("C-M-n" . sp-next-sexp)
+;;     ("C-M-p" . sp-previous-sexp)
+;;     ("C-S-f" . sp-forward-symbol)
+;;     ("C-S-b" . sp-backward-symbol)
+;;     ("C-<right>" . sp-forward-slurp-sexp)
+;;     ("M-<right>" . sp-forward-barf-sexp)
+;;     ("C-<left>"  . sp-backward-slurp-sexp)
+;;     ("M-<left>"  . sp-backward-barf-sexp)
+;;     ("C-M-t" . sp-transpose-sexp)
+;;     ("C-M-k" . sp-kill-sexp)
+;;     ("C-k"   . sp-kill-hybrid-sexp)
+;;     ("M-k"   . sp-backward-kill-sexp)
+;;     ("C-M-w" . sp-copy-sexp)
+;;     ("C-M-d" . delete-sexp)
+;;     ("M-<backspace>" . backward-kill-word)
+;;     ("C-<backspace>" . sp-backward-kill-word)
+;;     ([remap sp-backward-kill-word] . backward-kill-word)
+;;     ("M-[" . sp-backward-unwrap-sexp)
+;;     ("M-]" . sp-unwrap-sexp)
+;;     ("C-x C-t" . sp-transpose-hybrid-sexp)
+;;     ("C-c ("  . wrap-with-parens)
+;;     ("C-c ["  . wrap-with-brackets)
+;;     ("C-c {"  . wrap-with-braces)
+;;     ("C-c '"  . wrap-with-single-quotes)
+;;     ("C-c \"" . wrap-with-double-quotes)
+;;     ("C-c _"  . wrap-with-underscores)
+;;     ("C-c `"  . wrap-with-back-quotes)
+;;     ))
+
 (use-package undo-tree
   :ensure t
   :init
@@ -170,6 +256,30 @@
 
 ;; Highlight current line
 (global-hl-line-mode t)
+
+(use-package web-mode
+  :ensure t
+  :init
+  (setq web-mode-enable-current-element-highlight t
+        web-mode-enable-current-column-highlight t)
+  :config
+  (setq web-mode-engines-alist
+        '(("php"    . "\\.phtml\\'")))
+  (defun my-web-mode-hook ()
+    "Hooks for Web mode."
+    (setq web-mode-markup-indent-offset 2))
+  (add-hook 'web-mode-hook  'my-web-mode-hook)
+  :mode
+  (("\\.html?\\'"     . web-mode)
+   ("\\.tmpl\\'"      . web-mode)
+   ("\\.phtml\\'"     . web-mode)
+   ("\\.tpl\\.php\\'" . web-mode)
+   ("\\.[agj]sp\\'"   . web-mode)
+   ("\\.as[cp]x\\'"   . web-mode)
+   ("\\.erb\\'"       . web-mode)
+   ("\\.mustache\\'"  . web-mode)
+   ("\\.djhtml\\'"    . web-mode))
+  :pin melpa-stable)
 
 ;; Kill and yank entire lines
 (use-package whole-line-or-region
@@ -393,3 +503,20 @@
 ;;  ;; Your init file should contain only one such instance.
 ;;  ;; If there is more than one, they won't work right.
 ;;  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Experimental
+
+
+;; Fixing DOuble capitals as you type
+;; http://endlessparentheses.com/fixing-double-capitals-as-you-type.html
+(add-hook 'text-mode-hook #'dubcaps-mode)
+
+
+;; Edit gmail messages in emacs using Markdown syntax
+(use-package gmail-message-mode
+  :disabled
+  :pin melpa-stable)
+
+(provide 'init)
+;;; init.el ends here

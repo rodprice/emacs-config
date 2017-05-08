@@ -8,6 +8,8 @@
 	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives
 	     '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives
+	     '("org" . "http://org-mode.org/elpa/") t)
 
 ;; Local archive. This is for packages that are not available on the
 ;; MELPA Stable or GNU package archives, but may be available on

@@ -1,9 +1,20 @@
 # -*- mode: snippet -*-
 # name: image
 # key: image
+# expand-env: ((major-mode 'html-mode))
 # --
-#+name: fig:$1
-#+caption: $2
-#+attr_html: alt="$2"
-`(org-insert-link '(4))`
+#+name: fig:${2:$(file-name-base yas-text)}
+#+caption: $1
+#+begin_html
+<p>
+  <a href="${2:`(file-relative-name
+                  (org-iread-file-name "Image file: ")
+                  (file-name-directory buffer-file-name))`}">
+    <img alt="$1"
+         src="$2"
+         title="$1"
+         style="float:right;width:35%;margin:10px">
+  </a>
+</p>
+#+end_html
 $0

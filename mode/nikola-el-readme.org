@@ -1,0 +1,295 @@
+#+startup:indent
+* nikola.el
+** English
+*** About
+Nikola is a static site generator. If you don't know what it is, you should probable learn about it on [[https://getnikola.com][their site]] and then come back here. Nikola.el is a simple wrapper around nikola. Right now, it allows you to create a site, create posts and pages, build, deploy, start/stop the webserver and execute hooks.
+
+As said, it supports creating posts, but I recommend the awesome package [[https://github.com/redguardtoo/org2nikola][org2nikola]].
+*** Requirements
+The extras package is recommended but not necessary.
+#+BEGIN_SRC bash
+sudo pip3 install Nikola Nikola[extras]
+#+END_SRC
+Also, emacs-async is necessary. you can install it from elpa with =M-x package-install RET async RET=.
+*** Install
+You can installl from Melpa for a stable release or from the git repository, which may be experimental.
+
+#+BEGIN_SRC bash
+git clone https://git.daemons.cf/drymer/nikola.el ~/.emacs.d/lisp/nikola.el
+#+END_SRC
+
+[[http://melpa.org/#/nikola][file:http://melpa.org/packages/nikola-badge.svg]]
+
+*** Configuration
+A minimal configuration would be this.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/lisp/nikola.el/")
+(require 'nikola)
+(setq nikola-output-root-directory "~/Documents/blog/")
+#+END_SRC
+
+For a more advanced configuration check the next chapter.
+*** Advanced usage
+**** Main commands:
+- =nikola-init=: Creates a default site and opens the file *conf.py* to edit it.
+
+- =nikola-new-post=: Creates a new post on *nikola-output-root-directory/posts/* and opens it.
+
+- =nikola-new-page=: Creates a new page on *nikola-output-root-directory/stories/* and opens it.
+
+- =nikola-build=: Builds the site.
+
+- =nikola-start-webserver=: Starts webserver.
+
+- =nikola-stop-webserver=: Stops webserver.
+
+- =nikola-deploy=: Deploys the site.
+
+- =nikola-version=: Shows nikola and nikola.el version.
+
+**** Variables:
+- =nikola-command=: The nikola command (no shit, Sherlock). It shouldn't be necessary to change it if it's on the PATH.
+
+- =nikola-output-root-directory=: Nikola's default directory.
+
+- =nikola-verbose=: If set to *t*, it will create a buffer called *\ast{}Nikola\ast{}* with the output of all commands. Set to *nil* by default.
+
+- =nikola-webserver-auto=: If set to *t*, it will use =nikola auto= to launch the webserver. If set to *nil*, it will use =nikola serve=. Set to *nil* by default.
+
+- =nikola-webserver-host=: Set it to *0.0.0.0* if you want to make the webserver accesible from outside the machine. Set to *127.0.0.1* by default.
+
+- =nikola-webserver-port=: Nikola's webserver port. Set to *8000* by default.
+
+- =nikola-webserver-open-browser-p=: If set to *t*, opens xdg defined browser.
+
+- =nikola-deploy-input=: If *nil*, just execute plain deploy, if *t*, asks for user input, *any string* is passed to the deploy string automatically.
+
+  This variable is intended to use with a deploy script or command that uses git, thus needs a commit message. It could be used for whatever other reason, also. To use the message writed on emacs on the deploy order, you have to use the variable *$COMMIT*. For example, your deploy command could be:
+
+#+BEGIN_SRC python
+DEPLOY_COMMANDS = {
+     'default': [
+         "git add .", "git commit -m \"$COMMIT\"", "git push"
+     ]
+ }
+#+END_SRC
+
+  Set to *nil* by default.
+
+- =nikola-deploy-input-default=: If =nikola-deploy-input= is *t*, this variable changes the default value so you can just press RET. Set to *New post* by default.
+
+- =nikola-new-post-extension=: The extension of new posts. If it's a list, ido completion will be offered. Set to *html* by default.
+
+- =nikola-new-page-extension=: The extension of new pages. If it's a list, ido completion will be offered. Set to *html* by default.
+
+**** Hooks:
+Use them as you would usually do.
+
+- =nikola-build-before-hook=: Hook executed before nikola-build.
+
+- =nikola-build-after-hook=: Hook executed after nikola-build.
+
+- =nikola-deploy-before-hook=: Hook executed before nikola-deploy.
+
+- =nikola-deploy-after-hook=: Hook executed after nikola-deploy.
+
+If you only want to execute a simple script or command before or after building or deploying, you can set the next variables to that script's path or command:
+
+- =nikola-build-before-hook-script=: Path of a script to execute before building the site.
+
+- =nikola-build-after-hook-script=: Path of the script to execute after building the site.
+
+- =nikola-deploy-before-hook-script=: Path of the script to execute before deploying the site.
+
+- =nikola-deploy-after-hook-script=:Path of the script to execute after deploying the site.
+
+For example, to execute a script before deploying:
+
+#+BEGIN_SRC emacs-lisp
+(setq nikola-deploy-before-hook-script "~/scripts/pre-deploy.sh")
+#+END_SRC
+
+For more complicated things, you should use create a function and add id a hook.
+**** Complete example
+#+BEGIN_SRC emacs-lisp
+(use-package nikola
+  :load-path "~/.emacs.d/lisp/nikola.el/"
+  :config
+  (setq nikola-output-root-directory "~/Documents/blog/")
+  (setq nikola-verbose t)
+  (setq nikola-webserver-auto nil)
+  (setq nikola-webserver-host "0.0.0.0")
+  (setq nikola-webserver-port "8080")
+  (setq nikola-webserver-open-browser-p t)
+  (setq nikola-deploy-input t)
+  (setq nikola-deploy-input-default "New article")
+  (setq nikola-build-before-hook-script (concat nikola-output-root-directory "scripts/pre-build.sh"))
+  (setq nikola-build-after-hook-script (concat nikola-output-root-directory "scripts/post-build.sh"))
+  (setq nikola-deploy-after-hook-script "nikola iarchiver"))
+#+END_SRC
+
+*** License
+#+BEGIN_SRC text
+Author:: drymer <drymer [ AT ] autistici.org>
+Copyright:: Copyright (c) 2016, drymer
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#+END_SRC
+*** Bugs, patches and feature requests
+If you find a bug, have a patch or have a feature request, you may send an e-mail to the address in the previous section or go to [[https://git.daemons.cfr/drymer/nikola.el/][https://git.daemons.cfr/drymer/nikola.el/]]
+** Castellano
+*** Acerca de
+Nikola es un generador de páginas web estáticas. Si no sabes que es, probablemente deberías aprender sobre ello en [[https://getnikola.com][su página web]] y luego volver aquí. Este paquete es un frontend simple alrededor de nikola. En este momento, permite crear un sitio web, crear articulos y páginas, construirlo, desplegarlo, iniciar/detener el servidor web y ejecutar ganchos (hooks).
+
+Como se ha dicho, soporta la creación de articulos, pero recomiendo el fantástico paquete [[https://github.com/redguardtoo/org2nikola][org2nikola]].
+*** Requisitos
+Es recomendable instalar el paquete de extras, pero no es necesario.
+
+#+BEGIN_SRC bash
+sudo pip install Nikola Nikola[extras]
+#+END_SRC
+
+Además, =emacs-async= es necesario. Puede instalarse desde elpa con =M-x paquete-instalar RET async RET=.
+*** Instalar
+Se puede instalar desde Melpa para tener una versión estable o desde el repositorio git, que puede ser inestable.
+
+#+BEGIN_SRC bash
+git clone https://git.daemons.cf/drymer/nikola.el ~/.emacs.d/lisp/nikola.el/
+#+END_SRC
+
+[[http://melpa.org/#/nikola][file:http://melpa.org/packages/nikola-badge.svg]]
+
+*** Configuración
+Una configuración minimalista sería la siguiente.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/lisp/nikola.el/")
+(require 'nikola)
+(setq nikola-output-directory-root "~/Documents/blog/")
+#+END_SRC
+
+Para una configuración más avanzada hay que consultar la sección siguiente.
+*** Uso avanzado
+**** Comandos principales:
+- =nikola-init=: Crea un sitio predeterminado y abre el archivo *conf.py* para editarlo.
+
+- =nikola-new-post=: Crea una nueva entrada en nikola-output-root-directory/posts/ y la abre.
+
+- =nikola-new-page=: Crea una nueva página en nikola-output-root-directory/stories/ y la abre.
+
+- =nikola-build=: Crea el sitio.
+
+- =nikola-start-webserver=: Inicia el servidor web.
+
+- =nikola-stop-webserver=: Detiene el servidor web.
+
+- =nikola-deploy=: Despliega el sitio.
+
+- =nikola-version=: Muestra las versiones nikola y nikola.el.
+
+**** Variables:
+- =nikola-command=: La ruta de la orden *nikola*. No debería ser necesario cambiarlo si está en el PATH.
+
+- =nikola-output-root-directory=: Directorio predeterminado de Nikola.
+
+- =nikola-verbose=: Si se establece en *t*, creará un buffer llamado *\ast{}Nikola\ast{}* con la salida de todas las ordenes. Establecido en *nil* de forma predeterminada.
+
+- =nikola-webserver-auto=: Si se establece en *t*, utilizará =nikola auto= para iniciar el servidor web. Si se establece en *nil*, utilizará *nikola server*. Establecido en *nil* de forma predeterminada.
+
+- =nikola-deploy-input=: Si es *nil*, solo ejecuta la orden de despliegue, si es *t*, pide que se entre un mensaje, *cualquier mensaje* se pasa como variable *$COMMIT*.
+
+  Esta variable está pensada para ser usada con un script de despliegue o una orden que use git, por lo que necesita un mensaje de commit, aunque podria usarse para cualquier otra cosa. Para usar el mensaje escrito en el minibuffer de emacs en la orden de despliegue, tienes que usar la variable $COMMIT. Por ejemplo, su comando deploy podría ser:
+
+#+BEGIN_SRC python
+DEPLOY_COMMANDS = {
+    'default': [
+        "git add .", "git commit -m \"$COMMIT\"", "git push"
+    ]
+}
+#+END_SRC
+
+Establecido en *nil* de forma predeterminada.
+
+- =nikola-deploy-input-default=: Si =nikola-deploy-input= es *t*, esta variable cambia el valor por defecto de modo que sólo hay que pulsar RET. Establecido en *New post* por defecto.
+
+- =nikola-new-post-extension=: La extensión de los nuevos articulos. Si es una lista, se ofrecerá autocompletado con ido. Establecido en *html* de forma predeterminada.
+
+- =nikola-new-page-extension=: La extensión de las nuevas páginas. Si es una lista, se ofrecerá autocompletado con ido. Establecido en *html* de forma predeterminada.
+
+**** Ganchos
+Se usan como se haria habitualmente.
+
+- =nikola-build-before-hook=: Gancho ejecutado antes de =nikola-build=.
+
+- =nikola-build-after-hook=: Gancho ejecutado después de =nikola-build=.
+
+- =nikola-deploy-before-hook=: Gancho ejecutado antes de =nikola-deploy=.
+
+- =nikola-deploy-after-hook=: Gancho ejecutado después de =nikola-deploy=.
+
+Si sólo desea ejecutar un script o comando simple antes o después de crear o desplegar, se puede establecer las siguientes variables en la ruta del script o la orden:
+
+- =nikola-build-before-hook-script=: Ruta del script u órdenes a ejecutar antes de construir el sitio.
+
+- =nikola-build-after-hook-script=: Ruta del script u órdenes a ejecutar después de construir el sitio.
+
+- =nikola-deploy-antes-hook-script=: Ruta del script u órdenes a ejecutar antes de desplegar el sitio.
+
+- =nikola-deploy-after-hook-script=: Ruta del script u órdenes a ejecutar después de desplegar el sitio.
+
+  Por ejemplo, para ejecutar un script antes del despliegue:
+
+#+BEGIN_SRC emacs-lisp
+(setq nikola-deploy-before-hook-script "~/scripts/pre-deploy.sh")
+#+END_SRC
+
+  Para cosas más complejas, deberia usarse una función y agregarlo como un gancho.
+**** Ejemplo completo
+#+BEGIN_SRC emacs-lisp
+(use-package nikola
+  :load-path "~/.emacs.d/lisp/nikola.el/"
+  :config
+  (setq nikola-output-directory-root "~/Documents/blog/")
+  (setq nikola-verbose t)
+  (setq nikola-webserver-auto nil)
+  (setq nikola-webserver-host "0.0.0.0")
+  (setq nikola-webserver-port "8080")
+  (setq nikola-webserver-open-browser-p t)
+  (setq nikola-deploy-input t)
+  (setq nikola-deploy-input-default "New post")
+  (setq nikola-build-before-hook-script (concat nikola-output-directory-root "scripts/pre-build.sh"))
+  (Setq nikola-build-after-hook-script (concat nikola-output-directory-root "scripts/post-build.sh"))
+  (setq nikola-deploy-after-hook-script "nikola iarchiver"))
+#+END_SRC
+
+**** Licencia
+#+BEGIN_SRC text
+Autor:: drymer <drymer [EN] autistici.org>
+Derechos de autor:: Copyright (c) 2016, drymer
+
+Este programa es software libre: puedes redistribuirlo y/o modificarlo
+bajo los términos de la Licencia Pública General GNU publicada por
+la Free Software Foundation, ya sea la versión 2 de la Licencia, o
+su opción) cualquier versión posterior.
+Este programa se distribuye con la esperanza de que sea útil, pero
+SIN NINGUNA GARANTÍA; Sin la garantía implícita de
+COMERCIABILIDAD o APTITUD PARA UN PROPÓSITO PARTICULAR. Vea el GNU
+Licencia Pública General para más detalles.
+
+Debería haber recibido una copia de la GNU General Public License
+junto con este programa. Si no es así, consulte <http://www.gnu.org/licenses/>.
+#+END_SRC
+*** Bugs, parches y solicitudes de características
+Si encuentras un error, tienes un parche o tienes la solicitud de una característica, puedes enviar un correo electrónico a la dirección de la sección anterior o ir a [[https://git.daemons.cfr/drymer/nikola.el][https://git.daemons.cfr/drymer/nikola.el]].
