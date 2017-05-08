@@ -43,4 +43,5 @@ TAGS
 /flycheck-*
 eshell
 *.pyc
+.geometry
 .python-environments/

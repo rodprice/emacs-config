@@ -53,14 +53,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make emacs run the server so emacsclientw can connect
 
-;; From https://ipython.org/ipython-doc/1/config/editors.html
-(defvar server-buffer-clients)
-(when (and (fboundp 'server-start)
-           (string-equal (getenv "TERM") 'xterm))
-  (server-start)
-  (defun fp-kill-server-with-buffer-routine ()
-    (and server-buffer-clients (server-done)))
-  (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
+(require 'server)
+(unless (server-running-p)
+  (server-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set up use-package for use with MELPA and local archives
@@ -158,8 +153,15 @@
             (font-lock-comment-face
              . (:foreground "light slate gray"))
             (font-lock-comment-delimiter-face
-             . (:foreground "light slate gray")))))
+             . (:foreground "light slate gray"))
+            (aw-leading-char-face
+             . (:height 2.0 :foreground "cornflower blue")))))
   :pin melpa-stable)
+
+(use-package ace-window
+  :ensure t
+  :config
+  (global-set-key [remap other-window] 'ace-window))
 
 (use-package popwin
   :ensure t
@@ -306,6 +308,7 @@
 ;; Belongs in *-look.el file
 (global-visual-line-mode 0)
 (setq-default truncate-lines t)
+(fset 'yes-or-no-p 'y-or-n-p)
 
 ;; Backup file configuration
 ;; http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files?rq=1
@@ -438,6 +441,7 @@
 (global-set-key (kbd "M-<up>") 'scroll-row-up)
 (global-set-key (kbd "M-<down>") 'scroll-row-down)
 (global-set-key (kbd "C-x p") 'my-rotate-windows)
+(global-set-key (kbd "<f5>") 'revert-buffer)
 
 (global-set-key (kbd "C-c c") 'org-capture)
 (global-set-key (kbd "C-c l") 'org-store-link)
