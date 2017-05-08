@@ -35,6 +35,7 @@ org-clock-save.el
 ido.last
 ac-comphist.dat
 bookmarks
+.geometry
 .graphene-geometry
 smex-items
 TAGS
