@@ -31,52 +31,52 @@
 
 (defvar my-compilation-error-regexp-alist
   '(
-    absoft
-    ada
-    aix
-    ant
+    ;; absoft
+    ;; ada
+    ;; aix
+    ;; ant
     bash
-    borland
+    ;; borland
     python-tracebacks-and-caml
-    comma
-    cucumber
-    edg-1
-    epc
-    iar
-    ibm
+    ;; comma
+    ;; cucumber
+    ;; edg-1
+    ;; epc
+    ;; iar
+    ;; ibm
     java
-    jikes-file
-    maven
-    jikes-line
+    ;; jikes-file
+    ;; maven
+    ;; jikes-line
     gcc-include
-    ruby-Test::Unit
+    ;;    ruby-Test::Unit
     gnu
-    lcc
+    ;; lcc
     makepp
-    mips-1
-    mips-2
-    msft
-    omake
-    oracle
+    ;; mips-1
+    ;; mips-2
+    ;; msft
+    ;; omake
+    ;; oracle
     perl
     php
-    rxp
-    sparc-pascal-file
-    sparc-pascal-line
-    sparc-pascal-example
-    sun
-    sun-ada
-    watcom
-    4bsd
-    gcov-file
-    gcov-header
-    gcov-nomark
-    gcov-called-line
-    gcov-never-called
-    perl--Pod::Checker
-    perl--Test
-    perl--Test2
-    perl--Test::Harness
+    ;; rxp
+    ;; sparc-pascal-file
+    ;; sparc-pascal-line
+    ;; sparc-pascal-example
+    ;; sun
+    ;; sun-ada
+    ;; watcom
+    ;; 4bsd
+    ;; gcov-file
+    ;; gcov-header
+    ;; gcov-nomark
+    ;; gcov-called-line
+    ;; gcov-never-called
+    ;; perl--Pod::Checker
+    ;; perl--Test
+    ;; perl--Test2
+    ;; perl--Test::Harness
     weblint
     )
   )
