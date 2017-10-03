@@ -29,8 +29,13 @@
   :ensure t
   :pin org)
 
+(use-package htmlize
+  :ensure t
+  :pin melpa-stable)
+
 ;; Make lines wrap automatically when typing
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
+(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 
 ;; Keep ispell from spell-checking everything
 ;; http://endlessparentheses.com/ispell-and-org-mode.html

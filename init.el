@@ -89,10 +89,14 @@
 ;; Load packages and configure them
 
 (use-package beacon
-  :ensure t
+  :disabled
   :config
   (beacon-mode 1)
   (setq beacon-blink-delay 0.3))
+
+(use-package cdlatex
+  :ensure t
+  :pin melpa-stable)
 
 (use-package direx
   :ensure t
@@ -315,6 +319,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Programming modes
+
+(require 'my-compilation)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; C/C++

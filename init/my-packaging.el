@@ -26,7 +26,7 @@
 (unless (file-exists-p local-archive)
   (mkdir local-archive))
 (setq package-archive-upload-base local-archive)
-(add-to-list 'package-archives `("local" . ,local-archive) t)
+;; (add-to-list 'package-archives `("local" . ,local-archive) t)
 
 ;; Upload packages from current contents of pkgs directory
 ;; http://emacs.stackexchange.com/questions/19068/correct-usage-of-package-upload-file-for-multi-file-package

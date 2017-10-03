@@ -29,10 +29,15 @@
 (defun my-compile ()
   "Traveling up the path, find a Makefile and `compile'."
   (interactive)
-  (when (locate-dominating-file default-directory "Makefile")
+  (let ((makedir
+         (or
+          (locate-dominating-file default-directory "Makefile")
+          (locate-dominating-file default-directory "makefile"))))
+  (when makedir
     (with-temp-buffer
-      (cd (locate-dominating-file default-directory "Makefile"))
-      (call-interactively 'compile))))
+      (cd makedir)
+      (call-interactively 'compile))
+    (select-window (get-buffer-window "*compilation*") 'no-record))))
 
 ;; Automatically wrap lines for comments but not code
 ;; https://www.emacswiki.org/emacs/AutoFillMode
@@ -50,6 +55,8 @@
 (add-hook 'c-mode-hook 'my-c-mode-key-bindings)
 
 (add-to-list 'auto-mode-alist '("\\.ino\\'" . c-mode))
+
+
 
 (provide 'my-c)
 ;;; my-c.el ends here

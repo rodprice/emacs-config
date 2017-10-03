@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: table
+# key: table
+# expand-env: ((major-mode 'org-mode))
+# --
+#+name: table:$1
+#+caption: $2
+#+attr_html: :class table-condensed
+| $0 |
