@@ -54,9 +54,18 @@
 
 (add-hook 'c-mode-hook 'my-c-mode-key-bindings)
 
+(require 'highlight-indent-guides)
+(setq highlight-indent-guides-method 'column)
+(add-hook 'c-mode-hook 'highlight-indent-guides-mode)
+
 (add-to-list 'auto-mode-alist '("\\.ino\\'" . c-mode))
 
-
+(defun global-disable-mode (mode-fn)
+  "Disable `MODE-FN' in ALL buffers."
+  (interactive "a")
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (funcall mode-fn -1))))
 
 (provide 'my-c)
 ;;; my-c.el ends here

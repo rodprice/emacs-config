@@ -11,6 +11,17 @@
 (add-to-list 'default-frame-alist `(font . ,my-default-font))
 (set-face-font 'default my-default-font)
 
+
+;; Set relative font heights
+(defvar graphene-font-height
+  (face-attribute 'default :height)
+  "Default font height.")
+
+(defvar graphene-small-font-height
+  (floor (* 0.74 graphene-font-height))
+  "Relative size for 'small' fonts.")
+
+
 ;; Display the column number in the mode line
 (setq column-number-mode t)
 
@@ -59,7 +70,10 @@
             (font-lock-comment-face
              . (:foreground "light slate gray"))
             (font-lock-comment-delimiter-face
-             . (:foreground "light slate gray")))))
+             . (:foreground "light slate gray"))
+            (fringe
+             . (:background unspecified))
+            )))
   :pin melpa-stable)
 
 

@@ -516,7 +516,7 @@
 
 ;; Fixing DOuble capitals as you type
 ;; http://endlessparentheses.com/fixing-double-capitals-as-you-type.html
-(add-hook 'text-mode-hook #'dubcaps-mode)
+;; (add-hook 'text-mode-hook #'dubcaps-mode)
 
 
 ;; Edit gmail messages in emacs using Markdown syntax
