@@ -3,6 +3,10 @@
 ;;; Code:
 
 
+;; Get emacs 25 to stop pestering me about packages until I'm ready.
+;; (package-initialize)
+
+
 ;; Set up load paths within .emacs.d
 
 (add-to-list 'load-path (expand-file-name "init/" user-emacs-directory))
@@ -130,13 +134,19 @@
   :bind (("C-=" . er/expand-region)))
 
 (use-package ggtags
-:ensure t
-:config 
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              (ggtags-mode 1))))
-)
+  :ensure t
+  :config 
+  (add-hook 'c-mode-common-hook
+            (lambda ()
+              (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+                (ggtags-mode 1)))))
+
+(use-package highlight-indent-guides
+  :ensure t
+  :config
+  (progn
+    (setq highlight-indent-guides-method 'column)
+    (add-hook 'c-mode-hook 'highlight-indent-guides-mode)))
 
 ;; Mark and edit all copies of the marked region simultaneously. 
 (use-package iedit

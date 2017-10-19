@@ -5,7 +5,7 @@
 
 ;; The default font is set in the site-specific preload file
 (unless (boundp 'my-default-font)
-  (defvar my-default-font "Courier-10"))
+  (defvar my-default-font "Inconsolata-14"))
 
 ;; Specify the default font
 (add-to-list 'default-frame-alist `(font . ,my-default-font))

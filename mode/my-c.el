@@ -54,10 +54,6 @@
 
 (add-hook 'c-mode-hook 'my-c-mode-key-bindings)
 
-(require 'highlight-indent-guides)
-(setq highlight-indent-guides-method 'column)
-(add-hook 'c-mode-hook 'highlight-indent-guides-mode)
-
 (add-to-list 'auto-mode-alist '("\\.ino\\'" . c-mode))
 
 (defun global-disable-mode (mode-fn)
