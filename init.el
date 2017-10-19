@@ -4,6 +4,7 @@
 
 
 ;; Set up load paths within .emacs.d
+
 (add-to-list 'load-path (expand-file-name "init/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "mode/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
@@ -30,7 +31,7 @@
 
 ;; Load the site-specific preload file.  See the path variables
 ;; defined in `my-paths' for information on required paths.
-(load (concat system-name "-preload") 'noerror)
+(load (concat (system-name) "-preload") 'noerror)
 
 ;; Add site-specific paths to emacs' exec-path and $PATH
 (use-package my-paths
