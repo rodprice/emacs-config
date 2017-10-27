@@ -19,13 +19,13 @@
 ;; Run the emacs server and set up packaging systems
 
 ;; From https://ipython.org/ipython-doc/1/config/editors.html
-(defvar server-buffer-clients)
-(when (and (fboundp 'server-start)
-           (string-equal (getenv "TERM") 'xterm))
-  (server-start)
-  (defun fp-kill-server-with-buffer-routine ()
-    (and server-buffer-clients (server-done)))
-  (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
+;; (defvar server-buffer-clients)
+;; (when (and (fboundp 'server-start)
+;;            (string-equal (getenv "TERM") 'xterm))
+;;   (server-start)
+;;   (defun fp-kill-server-with-buffer-routine ()
+;;     (and server-buffer-clients (server-done)))
+;;   (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
 
 (require 'my-packaging)
 
@@ -57,6 +57,7 @@
 (require 'my-defaults)                  ; my misc settings
 (require 'my-geometry)                  ; save emacs frame
 (require 'my-theme)                     ; fonts and colors
+(message "past my-theme")
 
 (require 'my-functions)
 (setq ring-bell-function 'echo-area-bell)
@@ -177,6 +178,12 @@
   :disabled
   :ensure t
   :defer t
+  :pin melpa-stable)
+
+(use-package pkgbuild-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("/PKGBUILD$" . pkgbuild-mode))
   :pin melpa-stable)
 
 (use-package rainbow-mode

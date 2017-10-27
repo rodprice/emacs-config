@@ -11,24 +11,25 @@
 (add-to-list 'default-frame-alist `(font . ,my-default-font))
 (set-face-font 'default my-default-font)
 
+;; ;; Set relative font heights
+;; (defvar graphene-font-height
+;;   (face-attribute 'default :height)
+;;   "Default font height.")
 
-;; Set relative font heights
-(defvar graphene-font-height
-  (face-attribute 'default :height)
-  "Default font height.")
-
-(defvar graphene-small-font-height
-  (floor (* 0.74 graphene-font-height))
-  "Relative size for 'small' fonts.")
-
+;; (defvar graphene-small-font-height
+;;   (floor (* 0.74 graphene-font-height))
+;;   "Relative size for 'small' fonts.")
 
 ;; Display the column number in the mode line
 (setq column-number-mode t)
+
+(message "column-number-mode")
 
 ;; Truncate long lines everywhere
 (global-visual-line-mode 0)
 (setq-default truncate-lines t)
 
+(message "almost to base16-theme")
 
 (use-package base16-theme
   :ensure t
