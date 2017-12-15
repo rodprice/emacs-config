@@ -138,6 +138,20 @@ Version 2016-06-15"
         (delete-region beg (+ 1 end))
         (open-next-line-new 1)))))
 
+(defun transpose-next-line ()
+  (interactive)
+  (let ((col (current-column)))
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1)
+    (goto-char (+ col (line-beginning-position)))))
+
+(defun transpose-previous-line ()
+  (interactive)
+  (let ((col (current-column)))
+    (transpose-lines 1)
+    (forward-line -2)
+    (goto-char (+ col (line-beginning-position)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Yasnippet stuff (see https://www.emacswiki.org/emacs/Yasnippet)
