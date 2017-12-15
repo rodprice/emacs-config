@@ -66,6 +66,8 @@
 (global-set-key (kbd "M-j") 'my-join-lines)
 (global-set-key (kbd "C-o") 'open-next-line)
 (global-set-key (kbd "M-o") 'open-previous-line)
+(global-set-key (kbd "C-t") 'transpose-next-line)
+(global-set-key (kbd "M-t") 'transpose-previous-line)
 (global-set-key (kbd "M-<up>") 'scroll-row-up)
 (global-set-key (kbd "M-<down>") 'scroll-row-down)
 (global-set-key (kbd "C-<up>") 'xah-backward-block)
@@ -147,7 +149,8 @@
   :config
   (progn
     (setq highlight-indent-guides-method 'column)
-    (add-hook 'c-mode-hook 'highlight-indent-guides-mode)))
+    (add-hook 'c-mode-hook 'highlight-indent-guides-mode)
+    (add-hook 'c++-mode-hook 'highlight-indent-guides-mode)))
 
 ;; Mark and edit all copies of the marked region simultaneously. 
 (use-package iedit
@@ -157,6 +160,12 @@
   :ensure t
   :bind (("M-<prior>" . iflipb-next-buffer)
          ("M-<next>" . iflipb-previous-buffer))
+  :pin melpa-stable)
+
+(use-package magit
+  :ensure t
+  :bind (("C-x g" . magit-status)
+         ("C-x C-g" . magit-dispatch-popup))
   :pin melpa-stable)
 
 (use-package markdown-mode
@@ -187,6 +196,10 @@
   :pin melpa-stable)
 
 (use-package rainbow-mode
+  :ensure t
+  :pin gnu)
+
+(use-package realgud
   :ensure t
   :pin gnu)
 
@@ -544,3 +557,5 @@
 
 (provide 'init)
 ;;; init.el ends here
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)

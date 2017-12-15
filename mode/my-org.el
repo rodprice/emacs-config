@@ -27,6 +27,8 @@
 
 (use-package org
   :ensure t
+  :config
+  (setq fill-column 80)
   :pin org)
 
 (use-package htmlize

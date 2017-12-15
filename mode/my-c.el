@@ -43,18 +43,33 @@
 ;; https://www.emacswiki.org/emacs/AutoFillMode
 (add-hook 'c-mode-common-hook
           (lambda ()
+            (setq fill-column 80)
             (auto-fill-mode 1)
             (set (make-local-variable 'fill-nobreak-predicate)
                  (lambda ()
                    (not (eq (get-text-property (point) 'face)
                             'font-lock-comment-face))))))
 
+(defun my-insert-semicolon ()
+  (interactive)
+  (move-end-of-line 1)
+  (unless (looking-back ";" 1)
+      (insert ";")))
+
 (defun my-c-mode-key-bindings ()
+            (local-set-key (kbd "C-;") 'my-insert-semicolon)
             (local-set-key (kbd "C-c C-c") 'my-compile))
 
 (add-hook 'c-mode-hook 'my-c-mode-key-bindings)
 
-(add-to-list 'auto-mode-alist '("\\.ino\\'" . c-mode))
+(defun my-c++-mode-key-bindings ()
+            (local-set-key (kbd "C-;") 'my-insert-semicolon)
+            (local-set-key (kbd "C-c C-c") 'my-compile))
+
+(add-hook 'c++-mode-hook 'my-c++-mode-key-bindings)
+
+(add-to-list 'auto-mode-alist '("\\.ino\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.pde\\'" . c++-mode))
 
 (defun global-disable-mode (mode-fn)
   "Disable `MODE-FN' in ALL buffers."
