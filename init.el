@@ -106,22 +106,26 @@
   :ensure t
   :pin melpa-stable)
 
-(use-package direx
+(use-package clang-format
   :ensure t
-  :init
-  (use-package popwin
-    :ensure t
-    :config
-    (popwin-mode 1)
-    :pin melpa)
-  :config
-  (push '(direx:direx-mode
-          :position left
-          :width 25
-          :dedicated t)
-        popwin:special-display-config)
-  :bind (("C-x C-j" . direx:jump-to-directory-other-window))
   :pin melpa)
+
+;; (use-package direx
+;;   :ensure t
+;;   :init
+;;   (use-package popwin
+;;     :ensure t
+;;     :config
+;;     (popwin-mode 1)
+;;     :pin melpa)
+;;   :config
+;;   (push '(direx:direx-mode
+;;           :position left
+;;           :width 25
+;;           :dedicated t)
+;;         popwin:special-display-config)
+;;   :bind (("C-x C-j" . direx:jump-to-directory-other-window))
+;;   :pin melpa)
 
 (use-package dumb-jump
   :ensure t
@@ -151,6 +155,10 @@
     (setq highlight-indent-guides-method 'column)
     (add-hook 'c-mode-hook 'highlight-indent-guides-mode)
     (add-hook 'c++-mode-hook 'highlight-indent-guides-mode)))
+
+(use-package htmlize
+  :ensure t
+  :pin melpa-stable)
 
 ;; Mark and edit all copies of the marked region simultaneously. 
 (use-package iedit
@@ -189,10 +197,18 @@
   :defer t
   :pin melpa-stable)
 
+(setq split-height-threshold nil)
+(setq split-width-threshold 160)
+
 (use-package pkgbuild-mode
   :ensure t
   :config
   (add-to-list 'auto-mode-alist '("/PKGBUILD$" . pkgbuild-mode))
+  :pin melpa-stable)
+
+(use-package projectile  ; ... vomiting - awful name
+  :ensure t
+  :bind-keymap ("C-c p" . projectile-command-map)
   :pin melpa-stable)
 
 (use-package rainbow-mode
@@ -218,7 +234,8 @@
   (progn
     (sp-local-pair 'emacs-lisp-mode "`" nil :when '(sp-in-string-p)))
   :bind
-  (("C-M-k" . sp-kill-sexp-with-a-twist-of-lime)
+  (("M-<right>" . sp-slurp-hybrid-sexp)
+   ("C-M-k" . sp-kill-sexp-with-a-twist-of-lime)
    ("C-M-f" . sp-forward-sexp)
    ("C-M-b" . sp-backward-sexp)
    ("C-M-n" . sp-up-sexp)
@@ -235,6 +252,11 @@
    ("M-S" . sp-split-sexp)
    ("M-J" . sp-join-sexp)
    ("C-M-t" . sp-transpose-sexp)))
+
+(use-package spice-mode
+  :ensure t
+  :mode (("\\.cir\\'" . spice-mode))
+  :pin melpa)
 
 ;; Mike Zamansky's key bindings
 ;; (use-package smartparens
@@ -299,7 +321,9 @@
         web-mode-enable-current-column-highlight t)
   :config
   (setq web-mode-engines-alist
-        '(("php"    . "\\.phtml\\'")))
+        '(("php"    . "\\.phtml\\'")
+          ("jinja2" . "\\.html\\'")))
+  (setq web-mode-enable-auto-pairing nil)
   (defun my-web-mode-hook ()
     "Hooks for Web mode."
     (setq web-mode-markup-indent-offset 2))
@@ -362,19 +386,21 @@
 ;;   :commands (my-compile)
 ;;   :bind (("C-c C-c" . my-compile)))
 
-;; (use-package jedi
-;;   :ensure t
-;;   :config
-;;   (add-hook 'python-mode-hook 'jedi:setup)
-;;   (setq jedi:setup-keys t)
-;;   (setq jedi:complete-on-dot t)
-;;   :pin melpa-stable)
+(use-package jedi
+  :disabled
+  :config
+  (progn
+    (add-hook 'python-mode-hook 'jedi:setup)
+    (add-hook 'python-mode-hook 'jedi:ac-setup)
+    (setq jedi:setup-keys t)
+    (setq jedi:complete-on-dot t))
+  :pin melpa-stable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simple ipython setup
 ;; http://stackoverflow.com/questions/25669809/how-do-you-run-python-code-using-emacs
 
-;; (require 'python)
+(require 'python)
 ;; Arguments to the Python interpreter are as follows
 ;;   -u (unbuffered; interpreter running under comint can hang otherwise)
 ;;   -i (interactive)
@@ -413,20 +439,20 @@
 ;; --pprint
 ;;     Enable auto pretty printing of results.
 
-;; (setq python-shell-interpreter "ipython")
-;; (setq python-shell-interpreter-args "--pylab --pprint")
-;; (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
-;; (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
+(setq python-shell-interpreter "ipython")
+(setq python-shell-interpreter-args "--simple-prompt -i --pprint")
+(setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
+(setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
 
-;; ;; Stop python-mode from complaining about matching prompts
-;; (setq python-shell-prompt-detect-failure-warning nil)
-;; ;; Completion stuff that I don't understand
-;; (setq python-shell-completion-setup-code
-;;       "from IPython.core.completerlib import module_completion"
-;;       python-shell-completion-module-string-code
-;;       "';'.join(module_completion('''%s'''))\n"
-;;       python-shell-completion-string-code
-;;       "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+;; Stop python-mode from complaining about matching prompts
+(setq python-shell-prompt-detect-failure-warning nil)
+;; Completion stuff that I don't understand
+(setq python-shell-completion-setup-code
+      "from IPython.core.completerlib import module_completion"
+      python-shell-completion-string-code
+      "';'.join(module_completion('''%s'''))\n"
+      python-shell-completion-string-code
+      "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
 ;; TODO set `python-shell-virtualenv-path' correctly
 
@@ -448,6 +474,53 @@
 ;; ;; PYTHON CONFIGURATION
 ;; ;; --------------------------------------
 
+
+(use-package pydoc-info
+  :ensure t
+  :init (add-to-list 'load-path "/usr/share/info")
+  :pin melpa)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Testing
+
+(use-package s
+  :ensure t
+  :pin melpa-stable)
+
+(require 'pytest)
+(setq pytest-global-name "python -B -m pytest"
+      pytest-cmd-flags "-x -s -r a"
+      pytest-use-verbose nil
+      pytest-loop-on-failing nil
+      pytest-assert-plain t)
+
+(defun my-pytest-all (&optional flags)
+  (interactive)
+  (pytest-run nil flags)
+  (other-window 1))
+
+(defun my-pytest-module (&optional flags)
+  (interactive)
+  (pytest-run buffer-file-name flags)
+  (other-window 1))
+
+(defun my-pytest-one (&optional flags)
+  (interactive)
+  (pytest-run (format "%s" (pytest-py-testable)) flags)
+  (other-window 1))
+
+;; (defun my-pytest-one (&optional flags)
+;;   (interactive)
+;;   (save-window-excursion(pytest-run (format "%s" (pytest-py-testable)) flags))
+;;   (pop-to-buffer (get-buffer "*pytest")))
+
+(defun my-pytest-directory (&optional flags)
+  (interactive)
+  (pytest-run (file-name-directory buffer-file-name) flags)
+  (other-window 1))
+
+
+
 (use-package flycheck
   :ensure t
   :config
@@ -468,7 +541,7 @@
   :pin melpa)
 
 (use-package elpy
-  :ensure t
+  :disabled
   :config
   (elpy-enable)
   (elpy-use-ipython)
@@ -477,41 +550,42 @@
   ;;   (add-hook elpy-mode-hook 'flycheck-mode))
   :pin melpa)
 
-(defun my-pytest-all (&optional flags)
-  (interactive)
-  (pytest-run nil flags)
-  (other-window 1))
+;; (defun my-pytest-all (&optional flags)
+;;   (interactive)
+;;   (pytest-run nil flags)
+;;   (other-window 1))
 
-(defun my-pytest-module (&optional flags)
-  (interactive)
-  (pytest-run buffer-file-name flags)
-  (other-window 1))
+;; (defun my-pytest-module (&optional flags)
+;;   (interactive)
+;;   (pytest-run buffer-file-name flags)
+;;   (other-window 1))
 
-(defun my-pytest-one (&optional flags)
-  (interactive)
-  (pytest-run (format "%s" (pytest-py-testable)) flags)
-  (other-window 1))
+;; (defun my-pytest-one (&optional flags)
+;;   (interactive)
+;;   (pytest-run (format "%s" (pytest-py-testable)) flags)
+;;   (other-window 1))
 
-(defun my-pytest-directory (&optional flags)
-  (interactive)
-  (pytest-run (file-name-directory buffer-file-name) flags)
-  (other-window 1))
+;; (defun my-pytest-directory (&optional flags)
+;;   (interactive)
+;;   (pytest-run (file-name-directory buffer-file-name) flags)
+;;   (other-window 1))
 
-(use-package pytest
-  :ensure t
-  :config
-  (setq pytest-cmd-flags "-x -s -r a"
-        pytest-use-verbose nil
-        pytest-loop-on-failing nil
-        pytest-assert-plain t)
-  :pin melpa)
+;; (use-package pytest
+;;   :ensure t
+;;   :config
+;;   (setq pytest-cmd-flags "-x -s -r a"
+;;         pytest-use-verbose nil
+;;         pytest-loop-on-failing nil
+;;         pytest-assert-plain t)
+;;   :pin melpa)
 
 (add-hook 'python-mode-hook
           (lambda ()
             ;; (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
             (local-set-key (kbd "C-x C-e") 'python-shell-send-defun)
+            (local-set-key (kbd "C-c a") 'my-pytest-all)
             (local-set-key (kbd "C-c m") 'my-pytest-module)
-            (local-set-key (kbd "C-c f") 'my-pytest-one)
+            (local-set-key (kbd "C-c o") 'my-pytest-one)
             (local-set-key (kbd "C-c d") 'my-pytest-directory)))
 
 ;; (setq python-shell-interpreter-args "--simple-prompt -i")
