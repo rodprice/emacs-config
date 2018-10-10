@@ -79,6 +79,14 @@
 (setq set-mark-command-repeat-pop t)    ; better C-u C-SPC C-SPC ...
 (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
 
+(setq split-height-threshold nil)
+(setq split-width-threshold 160)
+
+(global-hl-line-mode t)                 ; Highlight current line
+
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+
 (add-hook 'comint-mode-hook
           (lambda ()
             (define-key comint-mode-map
@@ -109,23 +117,6 @@
 (use-package clang-format
   :ensure t
   :pin melpa)
-
-;; (use-package direx
-;;   :ensure t
-;;   :init
-;;   (use-package popwin
-;;     :ensure t
-;;     :config
-;;     (popwin-mode 1)
-;;     :pin melpa)
-;;   :config
-;;   (push '(direx:direx-mode
-;;           :position left
-;;           :width 25
-;;           :dedicated t)
-;;         popwin:special-display-config)
-;;   :bind (("C-x C-j" . direx:jump-to-directory-other-window))
-;;   :pin melpa)
 
 (use-package dumb-jump
   :ensure t
@@ -196,9 +187,6 @@
   :ensure t
   :defer t
   :pin melpa-stable)
-
-(setq split-height-threshold nil)
-(setq split-width-threshold 160)
 
 (use-package pkgbuild-mode
   :ensure t
@@ -311,34 +299,31 @@
   :init
   (global-undo-tree-mode))
 
-;; Highlight current line
-(global-hl-line-mode t)
-
-(use-package web-mode
-  :ensure t
-  :init
-  (setq web-mode-enable-current-element-highlight t
-        web-mode-enable-current-column-highlight t)
-  :config
-  (setq web-mode-engines-alist
-        '(("php"    . "\\.phtml\\'")
-          ("jinja2" . "\\.html\\'")))
-  (setq web-mode-enable-auto-pairing nil)
-  (defun my-web-mode-hook ()
-    "Hooks for Web mode."
-    (setq web-mode-markup-indent-offset 2))
-  (add-hook 'web-mode-hook  'my-web-mode-hook)
-  :mode
-  (("\\.html?\\'"     . web-mode)
-   ("\\.tmpl\\'"      . web-mode)
-   ("\\.phtml\\'"     . web-mode)
-   ("\\.tpl\\.php\\'" . web-mode)
-   ("\\.[agj]sp\\'"   . web-mode)
-   ("\\.as[cp]x\\'"   . web-mode)
-   ("\\.erb\\'"       . web-mode)
-   ("\\.mustache\\'"  . web-mode)
-   ("\\.djhtml\\'"    . web-mode))
-  :pin melpa-stable)
+;; (use-package web-mode
+;;   :ensure t
+;;   :init
+;;   (setq web-mode-enable-current-element-highlight t
+;;         web-mode-enable-current-column-highlight t)
+;;   :config
+;;   (setq web-mode-engines-alist
+;;         '(("php"    . "\\.phtml\\'")
+;;           ("jinja2" . "\\.html\\'")))
+;;   (setq web-mode-enable-auto-pairing nil)
+;;   (defun my-web-mode-hook ()
+;;     "Hooks for Web mode."
+;;     (setq web-mode-markup-indent-offset 2))
+;;   (add-hook 'web-mode-hook  'my-web-mode-hook)
+;;   :mode
+;;   (("\\.html?\\'"     . web-mode)
+;;    ("\\.tmpl\\'"      . web-mode)
+;;    ("\\.phtml\\'"     . web-mode)
+;;    ("\\.tpl\\.php\\'" . web-mode)
+;;    ("\\.[agj]sp\\'"   . web-mode)
+;;    ("\\.as[cp]x\\'"   . web-mode)
+;;    ("\\.erb\\'"       . web-mode)
+;;    ("\\.mustache\\'"  . web-mode)
+;;    ("\\.djhtml\\'"    . web-mode))
+;;   :pin melpa-stable)
 
 ;; Kill and yank entire lines
 (use-package whole-line-or-region
@@ -382,144 +367,17 @@
 
 (require 'my-c)
 
-;; (use-package my-c
-;;   :commands (my-compile)
-;;   :bind (("C-c C-c" . my-compile)))
-
-(use-package jedi
-  :disabled
-  :config
-  (progn
-    (add-hook 'python-mode-hook 'jedi:setup)
-    (add-hook 'python-mode-hook 'jedi:ac-setup)
-    (setq jedi:setup-keys t)
-    (setq jedi:complete-on-dot t))
-  :pin melpa-stable)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Simple ipython setup
-;; http://stackoverflow.com/questions/25669809/how-do-you-run-python-code-using-emacs
-
-(require 'python)
-;; Arguments to the Python interpreter are as follows
-;;   -u (unbuffered; interpreter running under comint can hang otherwise)
-;;   -i (interactive)
-;; Arguments to the ipython-script are
-;;   console (This appears to be the magic incantation to get plotting functionality.
-;;            Once the shell starts up, invoke %pylab and you're in business.)
-
-;; -i
-;;     If running code from the command line, become interactive afterwards.
-;;     It is often useful to follow this with `--` to treat remaining flags as
-;;     script arguments.
-;; --no-confirm-exit
-;;     Don't prompt the user when exiting.
-;; --pylab=<CaselessStrEnum> (InteractiveShellApp.pylab)
-;;     Default: None
-;;     Choices: [u'auto', u'gtk', u'gtk3', u'inline', u'nbagg', u'notebook', u'osx', u'qt', u'qt4', u'qt5', u'tk', u'wx']
-;;     Pre-load matplotlib and numpy for interactive use, selecting a particular
-;;     matplotlib backend and loop integration.
-;; --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
-;;     Default: None
-;;     Choices: [u'auto', u'gtk', u'gtk3', u'inline', u'nbagg', u'notebook', u'osx', u'qt', u'qt4', u'qt5', u'tk', u'wx']
-;;     Configure matplotlib for interactive use with the default matplotlib
-;;     backend.
-;; --colors=<CaselessStrEnum> (InteractiveShell.colors)
-;;     Default: 'Linux'
-;;     Choices: [u'NoColor', u'LightBG', u'Linux']
-;;     Set the color scheme (NoColor, Linux, or LightBG).
-;; --color-info
-;;     IPython can display information about objects via a set of functions,
-;;     and optionally can use colors for this, syntax highlighting
-;;     source code and various other elements. This is on by default, but can cause
-;;     problems with some pagers. If you see such problems, you can disable the
-;;     colours.
-;; --nosep
-;;     Eliminate all spacing between prompts.
-;; --pprint
-;;     Enable auto pretty printing of results.
-
-(setq python-shell-interpreter "ipython")
-(setq python-shell-interpreter-args "--simple-prompt -i --pprint")
-(setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
-(setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
-
-;; Stop python-mode from complaining about matching prompts
-(setq python-shell-prompt-detect-failure-warning nil)
-;; Completion stuff that I don't understand
-(setq python-shell-completion-setup-code
-      "from IPython.core.completerlib import module_completion"
-      python-shell-completion-string-code
-      "';'.join(module_completion('''%s'''))\n"
-      python-shell-completion-string-code
-      "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-
-;; TODO set `python-shell-virtualenv-path' correctly
-
-
-;; (defvar myPackages
-;;   '(ein
-;;     elpy
-;;     flycheck
-;;     py-autopep8))
-
-;; (mapc #'(lambda (package)
-;;     (unless (package-installed-p package)
-;;       (package-install package)))
-;;       myPackages)
-
-;; ;; BASIC CUSTOMIZATION
-;; ;; --------------------------------------
-
-;; ;; PYTHON CONFIGURATION
-;; ;; --------------------------------------
-
+;; Python
 
 (use-package pydoc-info
   :ensure t
   :init (add-to-list 'load-path "/usr/share/info")
   :pin melpa)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Testing
-
-(use-package s
+(use-package ein
   :ensure t
-  :pin melpa-stable)
-
-(require 'pytest)
-(setq pytest-global-name "python -B -m pytest"
-      pytest-cmd-flags "-x -s -r a"
-      pytest-use-verbose nil
-      pytest-loop-on-failing nil
-      pytest-assert-plain t)
-
-(defun my-pytest-all (&optional flags)
-  (interactive)
-  (pytest-run nil flags)
-  (other-window 1))
-
-(defun my-pytest-module (&optional flags)
-  (interactive)
-  (pytest-run buffer-file-name flags)
-  (other-window 1))
-
-(defun my-pytest-one (&optional flags)
-  (interactive)
-  (pytest-run (format "%s" (pytest-py-testable)) flags)
-  (other-window 1))
-
-;; (defun my-pytest-one (&optional flags)
-;;   (interactive)
-;;   (save-window-excursion(pytest-run (format "%s" (pytest-py-testable)) flags))
-;;   (pop-to-buffer (get-buffer "*pytest")))
-
-(defun my-pytest-directory (&optional flags)
-  (interactive)
-  (pytest-run (file-name-directory buffer-file-name) flags)
-  (other-window 1))
-
-
+  :pin melpa)
 
 (use-package flycheck
   :ensure t
@@ -540,15 +398,6 @@
   (global-flycheck-mode)
   :pin melpa)
 
-(use-package elpy
-  :disabled
-  :config
-  (elpy-enable)
-  (elpy-use-ipython)
-  ;; (when (require 'flycheck nil t)
-  ;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  ;;   (add-hook elpy-mode-hook 'flycheck-mode))
-  :pin melpa)
 
 ;; (defun my-pytest-all (&optional flags)
 ;;   (interactive)
@@ -579,14 +428,14 @@
 ;;         pytest-assert-plain t)
 ;;   :pin melpa)
 
-(add-hook 'python-mode-hook
-          (lambda ()
-            ;; (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
-            (local-set-key (kbd "C-x C-e") 'python-shell-send-defun)
-            (local-set-key (kbd "C-c a") 'my-pytest-all)
-            (local-set-key (kbd "C-c m") 'my-pytest-module)
-            (local-set-key (kbd "C-c o") 'my-pytest-one)
-            (local-set-key (kbd "C-c d") 'my-pytest-directory)))
+;; (add-hook 'python-mode-hook
+;;           (lambda ()
+;;             ;; (local-set-key (kbd "C-c l") 'my-python-shell-send-line)
+;;             (local-set-key (kbd "C-x C-e") 'python-shell-send-defun)
+;;             (local-set-key (kbd "C-c a") 'my-pytest-all)
+;;             (local-set-key (kbd "C-c m") 'my-pytest-module)
+;;             (local-set-key (kbd "C-c o") 'my-pytest-one)
+;;             (local-set-key (kbd "C-c d") 'my-pytest-directory)))
 
 ;; (setq python-shell-interpreter-args "--simple-prompt -i")
 
@@ -631,5 +480,3 @@
 
 (provide 'init)
 ;;; init.el ends here
-(put 'downcase-region 'disabled nil)
-(put 'upcase-region 'disabled nil)

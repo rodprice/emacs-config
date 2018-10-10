@@ -45,3 +45,4 @@ eshell
 .python-environments
 session.*
 projectile-bookmarks.eld
+request/
