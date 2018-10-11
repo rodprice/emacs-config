@@ -363,6 +363,16 @@
 (require 'my-compilation)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Javascript
+
+(use-package skewer-mode
+  :ensure t
+  :config
+  (setq httpd-port 8088)
+  :pin melpa)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; C/C++
 
 (require 'my-c)
