@@ -380,9 +380,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Python
 
+(defun my-pydoc-info-symbol ()
+  (interactive)
+  (info-lookup-symbol(pydoc-info-python-symbol-at-point))
+  (other-window 1))
+
 (use-package pydoc-info
   :ensure t
-  :init (add-to-list 'load-path "/usr/share/info")
+  :init
+  (progn
+    (add-to-list 'load-path "/usr/share/info")
+    (pydoc-info-add-help '("python" "matplotlib")))
+  :bind (("<f1>" . my-pydoc-info-symbol))
   :pin melpa)
 
 (use-package ein
