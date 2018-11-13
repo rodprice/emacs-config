@@ -104,6 +104,48 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
+(use-package tex
+  :ensure auctex
+  :custom
+  (TeX-auto-save t)
+  (TeX-parse-self t)
+  (TeX-PDF-mode t)
+  (TeX-source-correlate-mode t)
+  (TeX-source-correlate-method 'synctex)
+  (TeX-view-program-selection
+   (quote (((output-dvi has-no-display-manager) "dvi2tty")
+           ((output-dvi style-pstricks) "dvips and gv")
+           (output-pdf "Okular")
+           (output-dvi "xdvi")
+           (output-html "xdg-open"))))
+  :pin gnu)
+
+;; (use-package tex
+;;   :ensure auctex
+;;   :config
+;;   (progn
+;;     (setq TeX-auto-save t
+;;           TeX-parse-self t
+;;           TeX-PDF-mode t
+;;           TeX-source-correlate-mode t
+;;           TeX-source-correlate-method 'synctex
+;;           TeX-view-program-list
+;;           '(("Sumatra PDF" ("\"c:/Users/rodprice/Apps/protext/Sumatra/SumatraPDF.exe\" -reuse-instance"
+;;                             (mode-io-correlate " -forward-search %b %n ") " %o")))
+;;           TeX-view-program-selection '(((output-dvi style-pstricks)
+;;                                         "dvips and start")
+;;                                        (output-dvi "Yap")
+;;                                        (output-pdf "Sumatra PDF")
+;;                                        (output-html "start")))
+;;     (add-hook 'LaTeX-mode-hook
+;;               (lambda ()
+;;                 (visual-line-mode +1)
+;;                 (TeX-fold-mode 1)
+;;                 (assq-delete-all 'output-pdf TeX-view-program-selection)
+;;                 (add-to-list 'TeX-view-program-selection
+;;                              '(output-pdf "Sumatra PDF")))))
+;;   :pin gnu)
+
 (use-package beacon
   :disabled
   :config
