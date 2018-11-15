@@ -19,13 +19,13 @@
 ;; Run the emacs server and set up packaging systems
 
 ;; From https://ipython.org/ipython-doc/1/config/editors.html
-;; (defvar server-buffer-clients)
-;; (when (and (fboundp 'server-start)
-;;            (string-equal (getenv "TERM") 'xterm))
-;;   (server-start)
-;;   (defun fp-kill-server-with-buffer-routine ()
-;;     (and server-buffer-clients (server-done)))
-;;   (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
+(defvar server-buffer-clients)
+(when (and (fboundp 'server-start)
+           (string-equal (getenv "TERM") 'xterm))
+  (server-start)
+  (defun fp-kill-server-with-buffer-routine ()
+    (and server-buffer-clients (server-done)))
+  (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
 
 (require 'my-packaging)
 
@@ -40,14 +40,15 @@
 ;; Add site-specific paths to emacs' exec-path and $PATH
 (use-package my-paths
   :config
+  (my-harmonize-paths '(my-anaconda2-dir my-anaconda2-scripts-dir)))
   ;; Prepend the contents of `my-path-variables' to `exec-path'.
-  (setq exec-path
-        (let ((my-paths (mapcar 'symbol-value my-path-variables)))
-          (my-concat-paths my-paths exec-path)))
-  ;; Make the environment variable $PATH match `exec-path'
-  (let ((sep (if (eq system-type (intern "windows-nt")) ";" ":")))
-    (setenv "PATH" (mapconcat 'identity exec-path sep)))
-  (require 'exec-path-from-shell))
+  ;; (setq exec-path
+  ;;       (let ((my-paths (mapcar 'symbol-value my-path-variables)))
+  ;;         (my-concat-paths my-paths exec-path)))
+  ;; ;; Make the environment variable $PATH match `exec-path'
+  ;; (let ((sep (if (eq system-type (intern "windows-nt")) ";" ":")))
+  ;;   (setenv "PATH" (mapconcat 'identity exec-path sep))))
+  ;; (require 'exec-path-from-shell))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -96,6 +97,35 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load packages and configure them
 
+(use-package tex
+  :ensure auctex
+  :config
+  (progn
+    (setq TeX-auto-save t
+          TeX-parse-self t
+          TeX-PDF-mode t
+          TeX-source-correlate-mode t
+          TeX-source-correlate-method 'synctex
+          TeX-view-program-list
+          '(("Sumatra PDF" ("\"c:/Users/rodprice/Apps/protext/Sumatra/SumatraPDF.exe\" -reuse-instance"
+                            (mode-io-correlate " -forward-search %b %n ") " %o")))
+          TeX-view-program-selection '(((output-dvi style-pstricks)
+                                        "dvips and start")
+                                       (output-dvi "Yap")
+                                       (output-pdf "Sumatra PDF")
+                                       (output-html "start")))
+    (add-hook 'LaTeX-mode-hook
+              (lambda ()
+                (visual-line-mode +1)
+                (TeX-fold-mode 1)
+                (assq-delete-all 'output-pdf TeX-view-program-selection)
+                (add-to-list 'TeX-view-program-selection
+                             '(output-pdf "Sumatra PDF"))))
+    
+    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+    (setq reftex-plug-into-AUCTeX t))
+  :pin gnu)
+
 (use-package beacon
   :disabled
   :config
@@ -133,6 +163,19 @@
 	 ("M-g j" . dumb-jump-go)
 	 ("M-g x" . dumb-jump-go-prefer-external)
 	 ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  :pin melpa-stable)
+
+(use-package ebib
+  :ensure t
+  :config
+  (let ((path
+         (concat
+          (if (string-equal system-type "windows-nt")
+              (getenv "USERPROFILE")
+            (getenv "HOME"))
+          "\\working\\signal-adaptive\\papers")))
+    (setq ebib-bib-search-dirs (list path)
+          ebib-preload-bib-files (list(expand-file-name "references.bib" path))))
   :pin melpa-stable)
 
 (use-package expand-region
@@ -396,6 +439,14 @@
     (setq jedi:complete-on-dot t))
   :pin melpa-stable)
 
+(use-package ob-ipython
+  :ensure t
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((ipython . t)))
+  :pin melpa)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simple ipython setup
 ;; http://stackoverflow.com/questions/25669809/how-do-you-run-python-code-using-emacs
@@ -439,7 +490,7 @@
 ;; --pprint
 ;;     Enable auto pretty printing of results.
 
-(setq python-shell-interpreter "ipython")
+(setq python-shell-interpreter "ipython2")
 (setq python-shell-interpreter-args "--simple-prompt -i --pprint")
 (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
 (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
@@ -456,6 +507,73 @@
 
 ;; TODO set `python-shell-virtualenv-path' correctly
 
+;; To switch between python3 and python2, I had to issue
+;; (setq python-shell-interpreter "python3") or
+;; (setq python-shell-interpreter "python2")
+
+(defun run-python2 ()
+  (interactive)
+  (if (and my-anaconda2-dir my-anaconda2-scripts-dir)
+      (if (member "Python" (mapcar 'process-name (process-list)))
+          (message "Python interpreter already running")
+        (let ((paths2 (list 'my-anaconda2-dir
+                            'my-anaconda2-lib-dir
+                            'my-anaconda2-dlls-dir
+                            'my-anaconda2-scripts-dir))
+              (paths3 (list 'my-anaconda3-dir
+                            'my-anaconda3-lib-dir
+                            'my-anaconda3-dlls-dir
+                            'my-anaconda3-scripts-dir)))
+          (my-harmonize-paths paths2 paths3))
+        (run-python)
+        (select-window (display-buffer (get-buffer "*Python*"))))
+    (message "Variable MY-ANACONDA2-DIR or variable MY-ANACONDA2-SCRIPTS-DIR is nil")))
+
+;; (defun run-python2 ()
+;;   (interactive)
+;;   (if (and my-anaconda2-dir my-anaconda2-scripts-dir)
+;;       (if (member "Python" (mapcar 'process-name (process-list)))
+;;           (message "Python interpreter already running")
+;;           (progn 
+;;             (my-harmonize-paths my-anaconda3-dir my-anaconda2-dir)
+;;             (my-harmonize-paths my-anaconda3-lib-dir my-anaconda2-lib-dir)
+;;             (my-harmonize-paths my-anaconda3-dlls-dir my-anaconda2-dlls-dir)
+;;             (my-harmonize-paths my-anaconda3-scripts-dir my-anaconda2-scripts-dir)
+;;             (run-python)
+;;             (select-window (display-buffer (get-buffer "*Python*")))))
+;;     (message "Variable MY-ANACONDA2-DIR or variable MY-ANACONDA2-SCRIPTS-DIR is nil")))
+
+(defun run-python3 ()
+  (interactive)
+  (if (and my-anaconda2-dir my-anaconda2-scripts-dir)
+      (if (member "Python" (mapcar 'process-name (process-list)))
+          (message "Python interpreter already running")
+        (let ((paths2 (list 'my-anaconda2-dir
+                            'my-anaconda2-lib-dir
+                            'my-anaconda2-dlls-dir
+                            'my-anaconda2-scripts-dir))
+              (paths3 (list 'my-anaconda3-dir
+                            'my-anaconda3-lib-dir
+                            'my-anaconda3-dlls-dir
+                            'my-anaconda3-scripts-dir)))
+          (my-harmonize-paths paths3 paths2))
+        (run-python)
+        (select-window (display-buffer (get-buffer "*Python*"))))
+    (message "Variable MY-ANACONDA2-DIR or variable MY-ANACONDA2-SCRIPTS-DIR is nil")))
+
+;; (defun run-python3 ()
+;;   (interactive)
+;;   (if (and my-anaconda3-dir my-anaconda3-scripts-dir)
+;;       (if (member "Python" (mapcar 'process-name (process-list)))
+;;           (message "Python interpreter already running")
+;;           (progn 
+;;             (my-harmonize-paths my-anaconda2-dir my-anaconda3-dir)
+;;             (my-harmonize-paths my-anaconda2-lib-dir my-anaconda3-lib-dir)
+;;             (my-harmonize-paths my-anaconda2-dlls-dir my-anaconda3-dlls-dir)
+;;             (my-harmonize-paths my-anaconda2-scripts-dir my-anaconda3-scripts-dir)
+;;             (run-python)
+;;             (select-window (display-buffer (get-buffer "*Python*")))))
+;;     (message "Variable MY-ANACONDA3-DIR or variable MY-ANACONDA3-SCRIPTS-DIR is nil")))
 
 ;; (defvar myPackages
 ;;   '(ein
@@ -468,12 +586,15 @@
 ;;       (package-install package)))
 ;;       myPackages)
 
-;; ;; BASIC CUSTOMIZATION
-;; ;; --------------------------------------
-
-;; ;; PYTHON CONFIGURATION
-;; ;; --------------------------------------
-
+(use-package pyvenv
+  :ensure t
+  :init
+  (setenv "WORKON_HOME"
+          (concat
+           (getenv "USERPROFILE")
+           "\\Apps\\anaconda2\\envs"))
+  (pyvenv-mode 1)
+  (pyvenv-tracking-mode 1))
 
 (use-package pydoc-info
   :ensure t
@@ -519,6 +640,19 @@
   (pytest-run (file-name-directory buffer-file-name) flags)
   (other-window 1))
 
+
+;; (flycheck-define-checker
+;;     python-mypy ""
+;;     :command ("mypy"
+;;               "--ignore-missing-imports" "--fast-parser"
+;;               "--python-version" "3.6"
+;;               source-original)
+;;     :error-patterns
+;;     ((error line-start (file-name) ":" line ": error:" (message) line-end))
+;;     :modes python-mode)
+
+;; (add-to-list 'flycheck-checkers 'python-mypy t)
+;; (flycheck-add-next-checker 'python-pylint 'python-mypy t)
 
 
 (use-package flycheck

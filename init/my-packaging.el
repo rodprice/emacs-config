@@ -46,6 +46,12 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+(unless (package-installed-p 'bind-key)
+  (package-refresh-contents)
+  (package-install 'bind-key))
+(unless (package-installed-p 'diminish)
+  (package-refresh-contents)
+  (package-install 'diminish))
 (eval-when-compile
   (require 'use-package))
 (require 'bind-key)

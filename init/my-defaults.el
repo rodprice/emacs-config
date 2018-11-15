@@ -13,13 +13,6 @@
 (set-terminal-coding-system 'utf-8)
 (set-selection-coding-system 'utf-8)
 
-;; Make emacs open files in a reasonable directory by default
-(setq default-directory
-      (let ((home (if (eq (intern "windows-nt") system-type)
-                      (getenv "USERPROFILE")
-                    (getenv "HOME"))))
-       (expand-file-name "working/" home)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Windows

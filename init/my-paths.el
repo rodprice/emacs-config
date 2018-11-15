@@ -21,7 +21,26 @@
 (defvar my-path-variables nil
   "A list of path variables to be prepended to $PATH and `exec-path'.")
 
-;; Python
+;; Python 2
+(defvar my-anaconda2-dir nil
+  "The path to the top directory of my Python Anaconda2 distribution.")
+(defvar my-anaconda2-lib-dir nil
+  "The path to the Lib directory of my Python Anaconda2 distribution.")
+(defvar my-anaconda2-dlls-dir nil
+  "The path to the DLLs directory of my Python Anaconda2 distribution.")
+(defvar my-anaconda2-scripts-dir nil
+  "The path to the scripts directory of my Python Anaconda2 distribution.")
+
+;; Python 3
+(defvar my-anaconda3-dir nil
+  "The path to the top directory of my Python Anaconda3 distribution.")
+(defvar my-anaconda3-lib-dir nil
+  "The path to the Lib directory of my Python Anaconda2 distribution.")
+(defvar my-anaconda3-dlls-dir nil
+  "The path to the DLLs directory of my Python Anaconda2 distribution.")
+(defvar my-anaconda3-scripts-dir nil
+  "The path to the scripts directory of my Python Anaconda3 distribution.")
+
 (defvar my-anaconda-dir nil
   "The path to the top directory of my Python Anaconda distribution.")
 (add-to-list 'my-path-variables 'my-anaconda-dir)
@@ -83,6 +102,49 @@ directories will be pushed to the end of the list."
      (lambda (path1 path2) (not (my-windows-system-path-p path1)))))))
 
 
+(defun my-remove-path (path paths)
+  "Remove PATH from a list of paths PATHS."
+  (let ((path_ (my-normalize-path path))
+        (paths_ (delete-dups (mapcar 'my-normalize-path paths))))
+    (remove path_ paths_)))
+
+
+(defun my-remove-paths (ps1 ps2)
+  "Remove all paths in PS1 from the list of paths PS2"
+  (if ps1
+      (my-remove-paths
+       (cdr ps1)
+       (my-remove-path (car ps1) ps2))
+    ps2))
+
+
+(defun my-replace-exec-path (path1 path2)
+  "Replace PATH1 with PATH2 in exec-path."
+  (setq exec-path
+        (cons (my-normalize-path path2)
+              (my-remove-path path1 exec-path))))
+
+
+(defun my-harmonize-paths (newvars &optional oldvars)
+  "Modifies exec-path and the $PATH environment variable, by
+removing the contents of the variables in OLDVARS and adding the
+contents of the variables in NEWVARS.  Paths are normalized and
+sorted such that Windows system paths are last in the paths."
+  (let* ((no-old-paths (if oldvars
+                           (my-remove-paths
+                            (mapcar 'symbol-value oldvars)
+                            exec-path)
+                         (mapcar 'my-normalize-path exec-path)))
+         (paths (my-concat-paths
+                 (mapcar 'symbol-value newvars)
+                 no-old-paths))
+         (sorted (sort paths
+                       (lambda (p1 p2)
+                         (my-windows-system-path-p p2)))))
+    (setq exec-path sorted)
+    (setenv "PATH" (mapconcat 'identity sorted path-separator))))
+
+
 (defun my-windows-system-path-p (path)
   "Determine whether a string matches a Windows system path.
 Returns false unless running on MS Windows.  When on Windows, it
@@ -93,7 +155,7 @@ files, program files, or global data."
       (let* ((elems (split-string (my-normalize-path path) "/"))
              (topdir (if (eq (length elems) 1) "" (cadr elems))))
         (some (lambda (arg) (string-equal topdir arg))
-                    '("windows" "programdata" "program files")))
+                    '("windows" "programdata" "program files" "program files (x86)")))
     nil))
 
 
