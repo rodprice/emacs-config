@@ -20,3 +20,7 @@ org-clock-save.el
 ido.last
 ac-comphist.dat
 bookmarks
+transient/
+eln-cache/
+settings.el
+.geometry
