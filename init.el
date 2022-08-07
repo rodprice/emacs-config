@@ -19,6 +19,14 @@
   (kill-emacs))
 (global-set-key (kbd "C-c x") 'server-shutdown)
 
+;; Sane modifier keys for MacOS
+(when (eq system-type 'darwin)
+  (setq
+   ns-command-modifier 'control
+   ns-option-modifier 'meta
+   ns-control-modifier 'control
+   ns-function-modifier 'super))
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives

@@ -80,9 +80,23 @@
 
    Display buffer name in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
    #+BEGIN_SRC emacs-lisp
+     (defun my-conda-env-current-name ()
+       "Returns the name of the current conda environment."
+       (if (bound-and-true-p conda-env-current-name)
+           (concat " - Conda:" conda-env-current-name)
+         ""))
+
+     (defun my-git-branch-name ()
+       "Returns the name of the current git branch."
+       (if vc-mode
+           (concat " -" (substring-no-properties vc-mode))
+         ""))
+
      (setq frame-title-format
-           '("" (:eval (replace-regexp-in-string "^ +" "" (buffer-name)))
-             " - " invocation-name))
+           '(""
+             (:eval (replace-regexp-in-string "^ +" "" (gnus-emacs-version)))
+             (:eval (my-conda-env-current-name))
+             (:eval (my-git-branch-name))))
    #+END_SRC
 
 ** Mode line
@@ -205,7 +219,7 @@
   The default font is set in the site-specific preload file.
   #+BEGIN_SRC emacs-lisp
     (unless (boundp 'my-default-font)
-      (defvar my-default-font "Consolas-12"))
+      (defvar my-default-font "Fira Code-14"))
   #+END_SRC
     
   Specify the default font.
@@ -273,22 +287,22 @@
       :ensure t
       :config
       (load-theme 'base16-tomorrow-night t)
-      (let ((base00 (plist-get base16-tomorrow-night-colors :base00))
-            (base01 (plist-get base16-tomorrow-night-colors :base01))
-            (base02 (plist-get base16-tomorrow-night-colors :base02))
-            (base03 (plist-get base16-tomorrow-night-colors :base03))
-            (base04 (plist-get base16-tomorrow-night-colors :base04))
-            (base05 (plist-get base16-tomorrow-night-colors :base05))
-            (base06 (plist-get base16-tomorrow-night-colors :base06))
-            (base07 (plist-get base16-tomorrow-night-colors :base07))
-            (base08 (plist-get base16-tomorrow-night-colors :base08))
-            (base09 (plist-get base16-tomorrow-night-colors :base09))
-            (base0A (plist-get base16-tomorrow-night-colors :base0A))
-            (base0B (plist-get base16-tomorrow-night-colors :base0B))
-            (base0C (plist-get base16-tomorrow-night-colors :base0C))
-            (base0D (plist-get base16-tomorrow-night-colors :base0D))
-            (base0E (plist-get base16-tomorrow-night-colors :base0E))
-            (base0F (plist-get base16-tomorrow-night-colors :base0F)))
+      (let ((base00 (plist-get base16-tomorrow-night-theme-colors :base00))
+            (base01 (plist-get base16-tomorrow-night-theme-colors :base01))
+            (base02 (plist-get base16-tomorrow-night-theme-colors :base02))
+            (base03 (plist-get base16-tomorrow-night-theme-colors :base03))
+            (base04 (plist-get base16-tomorrow-night-theme-colors :base04))
+            (base05 (plist-get base16-tomorrow-night-theme-colors :base05))
+            (base06 (plist-get base16-tomorrow-night-theme-colors :base06))
+            (base07 (plist-get base16-tomorrow-night-theme-colors :base07))
+            (base08 (plist-get base16-tomorrow-night-theme-colors :base08))
+            (base09 (plist-get base16-tomorrow-night-theme-colors :base09))
+            (base0A (plist-get base16-tomorrow-night-theme-colors :base0A))
+            (base0B (plist-get base16-tomorrow-night-theme-colors :base0B))
+            (base0C (plist-get base16-tomorrow-night-theme-colors :base0C))
+            (base0D (plist-get base16-tomorrow-night-theme-colors :base0D))
+            (base0E (plist-get base16-tomorrow-night-theme-colors :base0E))
+            (base0F (plist-get base16-tomorrow-night-theme-colors :base0F)))
         (setq face-remapping-alist
               `((show-paren-match
                  . (:foreground ,base0D
@@ -524,6 +538,23 @@
 (provide 'fira-code-mode)
    #+END_SRC
    
+** Conda
+
+#+BEGIN_SRC emacs-lisp
+  (use-package conda
+    :ensure t
+    :config
+    (progn
+      (conda-env-initialize-interactive-shells)
+      (conda-env-initialize-eshell)
+      (conda-env-autoactivate-mode t)
+      (custom-set-variables '(conda-anaconda-home "~/opt/anaconda3/"))
+      (add-hook 'find-file-hook
+                (lambda ()
+                  (when (bound-and-true-p conda-project-env-path)
+                    (conda-env-activate-for-buffer))))))
+#+END_SRC
+
 ** Folding
 
   Folding
@@ -590,6 +621,12 @@
           xterm-color-names-bright mu--tomorrow-night-colours)
   #+END_SRC
 
+  Install vterm for Emacs
+  #+BEGIN_SRC emacs-lisp
+    (use-package vterm
+      :ensure t)
+  #+END_SRC
+  
 * Comint mode
 
   #+BEGIN_SRC emacs-lisp
@@ -885,6 +922,69 @@
    #+END_SRC
 
 * Python
+** LSP notes
+
+Install language server before executing the following.
+lsp-ui-sideline to adjust lsp-ui behavior
+lsp-focus-frame to put cursor in documentation popup
+
+  (defun my-lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+    (lsp-headerline-breadcrumb-mode))
+
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook (lsp-mode . my-lsp-mode-setup)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+    :config
+    (lsp-enable-which-key-integration t))
+
+  (use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :custom
+    (lsp-ui-doc-position 'bottom))
+
+  (use-package lsp-treemacs
+      :after lsp)
+
+  (use-package lsp-ivy)
+
+  (use-package which-key)
+
+(use-package typescript-mode
+    :mode "\\.ts\\'"
+    :hook (typescript-mode . lsp-deferred)
+    :config
+    (setq typescript-indent-level 2))
+
+Completion (emacs completion-at-point with ivy, perhaps)
+Gives automatic completion menu
+Signature help (eldoc?, ivy?)
+
+(use-package company
+      :after lsp-mode
+      :hook (lsp-mode . company-mode)
+      :bind (:map company-active-map
+                  ("<tab>" . company-complete-selection))
+            (:map lsp-mode-map
+                  ("<tab>" . company-indent-or-complete-common))
+      :custom
+      (company-minimum-prefix-length 1)
+      (company-idle-delay 0.0))
+
+    (use-package company-box
+      :hook (company-mode . company-box-mode))
+
+
+Disable line numbers for some modes
+            (dolist (mode '(org-mode-hook
+                            term-mode-hook
+                            shell-mode-hook
+                            treemacs-mode-hook
+                            eshell-mode-hook))
+              (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
 ** Python mode
 
    #+BEGIN_SRC emacs-lisp
@@ -913,19 +1013,6 @@
      (add-hook 'python-mode-hook 
        (lambda () 
          (setq fill-column 72)))
-   #+END_SRC
-
-** Conda
-
-   #+BEGIN_SRC emacs-lisp
-     (use-package conda
-       :config (progn
-            (conda-env-initialize-interactive-shells)
-            (conda-env-initialize-eshell)
-            (conda-env-autoactivate-mode t)
-            (setq conda-env-home-directory (expand-file-name "~/.conda/"))
-            (custom-set-variables '(conda-anaconda-home "/c/users/rdprice/apps/anaconda3/")))
-       :pin melpa)
    #+END_SRC
 
 ** Ipython
@@ -1087,8 +1174,7 @@
          (setq jedi:complete-on-dot t)
          ;; (setq python-environment-virtualenv
          ;;       '("python3" "-m" "venv" "--system-site-packages" "--quiet"))
-       )
-       :pin melpa-stable)
+       ))
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp
@@ -1162,7 +1248,7 @@
 
      - Anaconda2: gcc dies on the third step with gcc exit status 1.
        Works on Anaconda3.
-          
+       
 * Typesetting
 ** LaTeX
 
@@ -1327,7 +1413,8 @@
   #+END_SRC
   
   #+BEGIN_SRC emacs-lisp
-    ;; (global-set-key (kbd "C-a") 'smarter-move-beginning-of-line)
+    (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
+    (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
     (global-set-key (kbd "M-<") 'scroll-row-up)
     (global-set-key (kbd "M->") 'scroll-row-down)
     (global-set-key (kbd "C-<") 'xah-backward-block)
