@@ -1,0 +1,487 @@
+#+TITLE: Emacs org mode configuration
+#+STARTUP: overview indent
+
+** Org
+*** Org
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+    :straight (:type built-in)
+    :custom
+    (org-confirm-babel-evaluate nil)
+    (org-ellipsis "↴") ;; ↴, ▼, ▶, ⤵
+    (org-src-window-setup 'current-window)
+    (org-startup-indented t)
+    (org-startup-folded 'content)  ; show only headlines (and sub headlines, recursively) at startup
+    (org-startup-with-inline-images t)
+    (org-image-actual-width '(400))
+    (org-hierarchical-todo-statistics nil)
+    (org-checkbox-hierarchical-statistics nil)
+    (org-src-preserve-indentation t)
+    (org-adapt-indentation nil)
+    (org-tags-column 0)
+    (org-imenu-depth 20)
+    (org-hide-emphasis-markers t)
+    (org-catch-invisible-edits 'show-and-error)
+    (org-cycle-separator-lines 0)  ; Never leave empty lines between headings in collapsed view
+    ;;;; Getting Things Done ;;;;
+    (org-directory "~/org")  ; This is default already but lets declare explicitly
+    (org-agenda-files `(,(expand-file-name "agenda.org" org-directory)))
+    (org-agenda-start-on-weekday nil)
+    (org-deadline-warning-days 5)
+    (org-display-custom-times t)
+    (org-time-stamp-custom-formats '("<%d/%m/%Y %A>" . "<%d/%m/%Y %A %H:%M>"))
+    (org-bookmark-names-plist '())  ; Do not create bookmarks
+    (org-capture-templates '(("i" "Capture to inbox" entry
+                              (file "inbox.org")
+                              "* %?\nCREATED: %U"
+                              :empty-lines 1)))
+    (org-refile-targets '(("todos.org" :level . 1)
+                          ("someday.org" :level . 1)
+                          ("archive.org" :level . 1)
+                          ("agenda.org" :level . 1)))
+    (org-priority-default ?A)  ; Highest
+    ;; (org-log-done 'time)
+    (org-fontify-done-headline t)
+    (org-log-into-drawer t)  ; Log TODO state changes into :LOGBOOK: drawer insted of directly adding lines to the subtree
+    (org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "HOLD(h)" "|" "DONE(d)")))
+    (org-todo-keyword-faces
+     '(("TODO" :foreground "orangered2" :weight bold)
+       ("WIP" :foreground "#86DC2F" :weight bold)
+       ("HOLD" :foreground "#DC752F" :weight bold)))
+    ;;;; Getting Things Done ;;;;
+    :custom-face
+    (org-block ((t (:family ,fk/default-font-family :extend t))))
+    (org-ellipsis ((t (:foreground nil :inherit org-tag :weight light :height 0.9))))
+    (org-checkbox ((t (:foreground "white"))))
+    (org-level-1 ((t (:height 1.3 :weight bold))))
+    (org-level-2 ((t (:height 1.2 :weight bold))))
+    (org-level-3 ((t (:height 1.15 :weight bold))))
+    (org-level-4 ((t (:height 1.1 :weight bold))))
+    (org-level-5 ((t (:height 1.0 :weight bold))))
+    (org-level-6 ((t (:height 1.0 :weight bold))))
+    (org-level-7 ((t (:height 1.0 :weight bold))))
+    (org-level-8 ((t (:height 1.0 :weight bold))))
+    (org-drawer ((t (:foreground nil :inherit font-lock-comment-face))))
+    (org-table ((t (:family ,fk/default-font-family :foreground "white"))))
+    (org-document-title ((t (:family "AV Qest" :height 3.0))))
+    (org-block-begin-line ((t (:foreground ,fk/light-color3 :background ,fk/background-color :extend t))))
+    (org-document-info-keyword ((t (:foreground ,fk/background-color))))  ; Make #+TITLE: invisible
+    (org-meta-line ((t (:foreground ,fk/light-color3))))  ; Less distractive
+    (org-agenda-date ((t (:foreground "#ECBE7B"))))
+    (org-agenda-date-today ((t (:foreground "LightGoldenrod"))))
+    (org-agenda-current-time ((t (:foreground "LightGoldenrod"))))
+    (org-agenda-calendar-event ((t (:weight bold))))
+    :bind
+    ( :map org
+      ("a" . fk/org-agenda-posframe)
+      ("f" . (lambda () (interactive) (helm-find-files-1 "~/org/")))
+      ("c" . (lambda () (interactive) (org-capture :keys "i")))
+      ("t" . fk/org-babel-tangle-block)
+      ("d" . (lambda () (interactive) (org-todo "DONE")))
+      :map org-mode-map
+      ("C-c C-e" . org-edit-special)
+      ("M-n" . org-next-visible-heading)
+      ("M-p" . org-previous-visible-heading)
+      ("C-x C-1" . outline-hide-other)
+      ("C-c C-r" . org-refile-hydra/body)
+      ("C-c C-a" . fk/org-refile-done)  ; "a" for archive
+      ("C-c C-t" . fk/org-refile-trash)
+      ("C-c t" . org-todo)
+      ("C-c C-p" . org-priority-down)
+      ("C-M-j" . org-open-at-point)
+      ("C-c r" . org-shiftright)
+      ("C-c l" . org-shiftleft)
+      ("C-c u" . org-shiftup)
+      ("C-c d" . org-shiftdown)
+      ("C-c R" . org-metaright)
+      ("C-c L" . org-metaleft)
+      ("C-c U" . org-metaup)
+      ("C-c D" . org-metadown)
+      :map org-src-mode-map
+      ("C-c C-c" . org-edit-src-exit)
+      ;; Better, intuitive movement when selecting a date for schedule or deadline
+      :map org-read-date-minibuffer-local-map
+      ("C-n". (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-week 1))))
+      ("C-p". (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-week 1))))
+      ("C-f". (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-day 1))))
+      ("C-b". (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-day 1))))
+      ("C-v". (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-month 1))))
+      ("M-v". (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-month 1)))))
+    :hook
+    (org-babel-after-execute . org-redisplay-inline-images)
+    (org-mode . (lambda () (fk/add-local-hook 'before-save-hook 'org-redisplay-inline-images)))
+    (org-after-refile-insert . (lambda () (fk/org-sort-by-priority) (save-buffer)))
+    (org-capture-mode . delete-other-windows)  ; make capture buffer fullscreen
+    (org-agenda-mode . (lambda () (require 'org-habit)))
+    :config
+    (add-to-list 'org-emphasis-alist '("#" (:box '(:line-width -1))))  ; FIXME: does not work.
+    (setf (cdr (assoc "*" org-emphasis-alist)) '((:weight extra-bold :foreground "#DDDDDD")))
+
+    (defun fk/org-babel-load-languages ()
+      "Load languages I use."
+      (interactive)
+      (org-babel-do-load-languages 'org-babel-load-languages '((python . t)
+                                                               (emacs-lisp . t)
+                                                               (shell . t)
+                                                               (ein . t))))
+
+    (defun fk/org-babel-tangle-block()
+      (interactive)
+      (let ((current-prefix-arg '(4)))
+        (call-interactively 'org-babel-tangle)))
+
+    (with-eval-after-load 'org-agenda
+      (bind-key "m" 'org-agenda-month-view org-agenda-mode-map))
+
+    ;; Beautify org mode
+    (font-lock-add-keywords 'org-mode
+                            '(("^ *\\([-]\\) "
+                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+    (font-lock-add-keywords 'org-mode
+                            '(("^ *\\([+]\\) "
+                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
+    (defface org-checkbox-done-text
+      '((t (:inherit 'font-lock-comment-face :slant normal)))
+      "Face for the text part of a checked org-mode checkbox.")
+
+    (font-lock-add-keywords
+     'org-mode
+     `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
+        1 'org-checkbox-done-text prepend))
+     'append)
+
+    (defun fk/org-insert-created-time ()
+      (interactive)
+      (insert "CREATED: " (format-time-string (org-time-stamp-format t t) (current-time))))
+
+    (defun fk/org-refile-fixed-location (file headline)
+      "Refile headline without selecting from refile-targets."
+      (let ((pos (save-window-excursion
+                   (find-file file)
+                   (org-find-exact-headline-in-buffer headline))))
+        (org-refile nil nil (list headline file nil pos))))
+
+    (defun fk/org-refile-fixed-location-with-closed-timestamp (file headline)
+      "Refile headline without selecting from refile-targets. Add
+      \"CLOSED\" timestamp info."
+      (add-hook 'org-after-refile-insert-hook (lambda () (org-add-planning-info 'closed (org-current-effective-time))) -100)
+      (fk/org-refile-fixed-location file headline)
+      (remove-hook 'org-after-refile-insert-hook (lambda () (org-add-planning-info 'closed (org-current-effective-time)))))
+
+    (defun fk/org-refile-done ()
+      (interactive)
+      (fk/org-refile-fixed-location-with-closed-timestamp "archive.org" "Done"))
+
+    (defun fk/org-refile-trash ()
+      (interactive)
+      (fk/org-refile-fixed-location-with-closed-timestamp "archive.org" "Trash"))
+
+    (defhydra org-refile-hydra
+      (:color red :hint nil)
+      "
+  ^Move^                 ^Todo^         ^Someday^          ^Archive^
+  -----------------------------------------------------------
+  _n_: Next              _w_: Work      _E_: Emacs         _d_: Done
+  _p_: Previous          _e_: Emacs     _R_: Presentation  _x_: Trash
+  _P_: Priority          _t_: Tech      _T_: Tech          ^^
+  _1_: Low Priority      _h_: Home      _M_: Movie         ^^
+  _2_: Medium Priority   _o_: Other     _S_: TV Show       ^^
+  _3_: High Priority     ^^             _A_: Anime         ^^
+  ^^                     ^^             _V_: Video         ^^
+  ^^                     ^^             _F_: Food          ^^
+  ^^                     ^^             _O_: Other         ^^
+
+  "
+      ;; Move
+      ("n" next-line)
+      ("p" previous-line)
+      ("P" org-priority-down)
+      ("1" (lambda () (interactive) (org-priority ?C)))
+      ("2" (lambda () (interactive) (org-priority ?B)))
+      ("3" (lambda () (interactive) (org-priority ?A)))
+      ;; Todo
+      ("w" (lambda () (interactive) (fk/org-refile-fixed-location "todos.org" "Work")))
+      ("e" (lambda () (interactive) (fk/org-refile-fixed-location "todos.org" "Emacs")))
+      ("t" (lambda () (interactive) (fk/org-refile-fixed-location "todos.org" "Tech")))
+      ("h" (lambda () (interactive) (fk/org-refile-fixed-location "todos.org" "Home")))
+      ("o" (lambda () (interactive) (fk/org-refile-fixed-location "todos.org" "Other")))
+      ;; Someday
+      ("E" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Emacs")))
+      ("R" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Emacs Presentation")))
+      ("T" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Tech")))
+      ("M" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Movie")))
+      ("S" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "TV Show")))
+      ("A" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Anime")))
+      ("V" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Video")))
+      ("F" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Food")))
+      ("O" (lambda () (interactive) (fk/org-refile-fixed-location "someday.org" "Other")))
+      ;; Archive
+      ("d" fk/org-refile-done)
+      ("x" fk/org-refile-trash)
+      ;; General
+      ("m" org-refile "Refile manually")
+      ("s" save-buffer "Save buffer")
+      ("q" nil "Quit" :color blue)))
+#+END_SRC
+
+*** Custom Functions
+**** org-screenshot
+#+BEGIN_SRC emacs-lisp
+(defun fk/org-screenshot ()
+  ;; fork from: https://delta.re/org-screenshot/
+  ;; https://github.com/kadircancetin/.emacs.d
+  "Take a screenshot into a time stamped unique-named file in the
+  same directory as the org-buffer and insert a link to this file."
+  (interactive)
+  (when (eq major-mode 'org-mode)
+    (suspend-frame)
+    (run-at-time
+     "500 millisec" nil  ; I have animation when minimize window
+     (lambda ()
+       (org-display-inline-images)
+       (setq filename
+             (concat
+              (make-temp-name
+               (concat (file-name-nondirectory (buffer-file-name))
+                       "_imgs/"
+                       (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
+       (unless (file-exists-p (file-name-directory filename))
+         (make-directory (file-name-directory filename)))
+       ;; take screenshot
+       (if (eq system-type 'darwin)
+           (call-process "screencapture" nil nil nil "-i" filename))
+       (if (eq system-type 'gnu/linux)
+           (call-process "import" nil nil nil filename))
+       ;; insert into file if correctly taken
+       (if (file-exists-p filename)
+           (insert (concat "[[file:" filename "]]")))
+       (org-remove-inline-images)
+       (org-display-inline-images)
+       (other-frame 0)))))
+#+END_SRC
+
+**** org-indent-src-block
+#+BEGIN_SRC emacs-lisp
+(defun fk/org-indent-src-block ()
+  (interactive)
+  (org-edit-special)
+  (fk/indent-buffer)
+  (org-edit-src-exit))
+#+END_SRC
+
+**** org-sort-by-priority
+#+BEGIN_SRC emacs-lisp
+(defun fk/org-sort-by-priority ()
+  "Sort entries in level=2 by priority."
+  (interactive)
+  (org-map-entries (lambda () (condition-case nil
+                                  (org-sort-entries nil ?p)
+                                (error nil)))
+                   "LEVEL=1")
+  (org-set-startup-visibility))
+#+END_SRC
+
+**** org-agenda-posframe
+#+BEGIN_SRC emacs-lisp
+(defun fk/org-agenda-posframe ()
+  "`org-agenda-list' in a posframe. Quit with 'q' as usual."
+  (interactive)
+  (save-window-excursion
+    (org-agenda-list)
+    (fk/darken-background))
+  (let ((frame (posframe-show org-agenda-buffer
+                              :poshandler 'posframe-poshandler-frame-center
+                              :border-width 30
+                              :border-color fk/dark-color)))
+    (x-focus-frame frame)
+    (with-current-buffer org-agenda-buffer
+      (setq-local cursor-type 'box))))
+#+END_SRC
+
+*** Org Bullets
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+  :custom
+  (org-bullets-bullet-list '("⁖"))
+  ;;;; Alternatives
+  ;; (org-bullets-bullet-list '("①" "②" "③" "④" "⑤" "⑥" "⑦" "⑧" "⑨"))
+  ;; (org-bullets-bullet-list '("➀" "➁" "➂" "➃" "➄" "➅" "➆" "➇" "➈"))
+  ;; (org-bullets-bullet-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼" "❽" "❾"))
+  ;; (org-bullets-bullet-list '("➊" "➋" "➌" "➍" "➎" "➏" "➐" "➑" "➒"))
+  ;; (org-bullets-bullet-list '("⒈" "⒉" "⒊" "⒋" "⒌" "⒍" "⒎" "⒏" "⒐"))
+  :hook (org-mode . org-bullets-mode))
+#+END_SRC
+
+*** Toc Org
+#+BEGIN_SRC emacs-lisp
+(use-package toc-org
+  :straight (:host github :repo "KaratasFurkan/toc-org" :branch "insert-silently")
+  :custom
+  (toc-org-max-depth 10)
+  (toc-org-insert-silently t)
+  :hook (org-mode . toc-org-mode))
+#+END_SRC
+
+*** Org Table Auto Align
+#+BEGIN_SRC emacs-lisp
+;; TODO: make this snippet a package
+;; (use-package org-table-auto-align-mode ; NOTE: breaks undo
+;;   :load-path (lambda () (concat user-emacs-directory "load/org-table-auto-align-mode"))
+;;   :hook org-mode)
+#+END_SRC
+
+*** ob-async
+#+BEGIN_SRC emacs-lisp
+(use-package ob-async
+  :after org)
+#+END_SRC
+
+*** Org Pomodoro
+#+BEGIN_SRC emacs-lisp
+(use-package org-pomodoro
+  :straight (:files ("*"))  ; For sound files
+  :commands org-pomodoro
+  :custom
+  (org-pomodoro-audio-player "ffplay")
+  :config
+  ;; Apply args for all sounds
+  (advice-add 'org-pomodoro-sound-args :override (lambda (_) "-volume 20 -nodisp -nostats -hide_banner")))
+#+END_SRC
+
+*** Org Roam
+**** Org Roam
+#+BEGIN_SRC emacs-lisp
+(use-package org-roam
+  :custom
+  (org-roam-directory "~/org/roam/")
+  :bind
+  ( :map org
+    ("o" . org-roam-find-file)))
+#+END_SRC
+
+**** Org Roam Server
+#+BEGIN_SRC emacs-lisp
+;;(use-package org-roam-server
+;;  :after org-roam)
+#+END_SRC
+
+**** Company Org Roam
+#+BEGIN_SRC emacs-lisp
+(use-package company-org-roam
+  :disabled
+  :after org-roam
+  :config
+  (add-to-list 'company-backends 'company-org-roam))
+#+END_SRC
+
+*** Org Fancy Priorities
+#+BEGIN_SRC emacs-lisp
+(use-package org-fancy-priorities
+  :custom
+  (org-fancy-priorities-list '("[!!!]" "[!!] " "[!]  "))  ; same length
+  (org-priority-faces '((?A . (:foreground "orangered2" :weight extrabold :height 1.3))  ; org-mode
+                        (?B . (:foreground "orange" :weight extrabold :height 1.3))
+                        (?C . (:foreground "Burlywood" :weight extrabold :height 1.3))))
+  :hook
+  (org-mode . org-fancy-priorities-mode))
+#+END_SRC
+
+*** Org Tree Slide
+#+BEGIN_SRC emacs-lisp
+(use-package org-tree-slide
+  :commands org-tree-slide-mode
+  :custom
+  (org-tree-slide-activate-message "")
+  (org-tree-slide-deactivate-message "")
+  (org-tree-slide-breadcrumbs "    >    ")
+  (org-tree-slide-heading-emphasis t)
+  (org-tree-slide-slide-in-waiting 0.025)
+  (org-tree-slide-content-margin-top 4)
+  :custom-face
+  (org-tree-slide-heading-level-1 ((t (:height 1.8 :weight bold))))
+  (org-tree-slide-heading-level-2 ((t (:height 1.5 :weight bold))))
+  (org-tree-slide-heading-level-3 ((t (:height 1.5 :weight bold))))
+  (org-tree-slide-heading-level-4 ((t (:height 1.5 :weight bold))))
+  :bind
+  ( :map org
+    ("s" . org-tree-slide-mode)
+    :map org-tree-slide-mode-map
+    ("<f8>" . org-tree-slide-content)
+    ("<f9>" . org-tree-slide-move-previous-tree)
+    ("<f10>" . org-tree-slide-move-next-tree)
+    ("<left>" . org-tree-slide-move-previous-tree)
+    ("<right>" . org-tree-slide-move-next-tree)
+    ("C-n" . (lambda () (interactive) (if cursor-type
+                                          (next-line)
+                                        (setq-local cursor-type t)
+                                        (next-line)))))
+  :hook
+  (org-tree-slide-before-narrow . (lambda () (setq-local cursor-type nil)))
+  (org-tree-slide-stop . (lambda () (setq-local cursor-type t)))
+  (org-tree-slide-play . variable-pitch-mode)
+  (org-tree-slide-stop . (lambda () (variable-pitch-mode -1)))
+  (org-tree-slide-play . fk/hide-org-metalines-toggle)
+  (org-tree-slide-stop . fk/hide-org-metalines-toggle)
+  (org-tree-slide-before-narrow . org-remove-inline-images)
+  (org-tree-slide-after-narrow . org-display-inline-images)
+  (org-tree-slide-play . fk/org-tree-slide-update-modeline)
+  (org-tree-slide-stop . fk/org-tree-slide-update-modeline)
+  (org-tree-slide-mode . (lambda () (fk/adjust-font-size 40)))
+  ;; (org-tree-slide-stop . (lambda () (fk/adjust-font-size -40)))
+  ;; (org-tree-slide-play . (lambda () (setq-local olivetti-body-width 95) (olivetti-mode 1)))
+  ;; (org-tree-slide-stop . (lambda () (setq-local olivetti-body-width 120) (olivetti-mode 1)))
+  (org-tree-slide-mode . (lambda () (org-appear-mode -1)))
+  (org-tree-slide-mode . (lambda () (setq olivetti-enable-borders nil) (olivetti-mode 1)))
+  :config
+  (defun fk/buffer-contains-substring (string)
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (and-let* ((pos (search-forward string nil t))
+                   (visible (not (outline-invisible-p pos))))))))
+
+  (setq fk/org-meta-line-hide-p nil)
+  (setq fk/org-meta-line-face-remap nil)
+
+  (defun fk/hide-org-metalines-toggle ()
+    "Hide or unhide meta lines starting with \"#+\" in org-mode."
+    (interactive)
+    (if fk/org-meta-line-hide-p
+        (face-remap-remove-relative fk/org-meta-line-face-remap)
+      (setq fk/org-meta-line-face-remap (face-remap-add-relative 'org-meta-line
+                                                                 :foreground fk/background-color)))
+    (setq fk/org-meta-line-hide-p (not fk/org-meta-line-hide-p)))
+
+  (defun fk/org-tree-slide-update-modeline ()
+    "Show current page in modeline."
+    (let ((slide-position '(:eval (format " %s " (org-tree-slide--count-slide (point))))))
+      (if (org-tree-slide--active-p)
+          (setq-local global-mode-string (append global-mode-string (list slide-position)))
+        (setq-local global-mode-string (delete slide-position global-mode-string))))))
+
+;; Alternative
+(use-package epresent
+  :commands epresent-run)
+#+END_SRC
+
+*** Org Export Twitter Bootstrap
+#+BEGIN_SRC emacs-lisp
+(use-package ox-twbs
+  :after org)
+#+END_SRC
+
+*** Valign Mode
+#+BEGIN_SRC emacs-lisp
+(use-package valign
+  :straight (:host github :repo "casouri/valign")
+  :commands valign-mode
+  :custom
+  (valign-fancy-bar t))
+#+END_SRC
+
+*** Org Appear
+#+BEGIN_SRC emacs-lisp
+(use-package org-appear
+  :hook (org-mode . org-appear-mode))
+#+END_SRC
+

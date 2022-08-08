@@ -24,3 +24,10 @@ transient/
 eln-cache/
 settings.el
 .geometry
+.authinfo
+.lsp-session*
+forge-database.sqlite
+notes.el
+settings-*.el
+*.old
+*.old2

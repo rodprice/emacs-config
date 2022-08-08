@@ -3,7 +3,7 @@
 ;;; Code:
 
 
-(add-to-list 'load-path (expand-file-name "init/" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "lisp/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "mode/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
@@ -27,12 +27,13 @@
    ns-control-modifier 'control
    ns-function-modifier 'super))
 
+;; Set up packaging
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
 (add-to-list 'package-archives
-	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+             '("org" . "http://orgmode.org/elpa/"))
 (package-initialize)
 
 ;; Bootstrap `use-package'
@@ -40,7 +41,12 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(org-babel-load-file (expand-file-name "~/.emacs.d/settings.org"))
+;; Load the various settings files
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-theme.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-global.org"))
+;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-org-mode.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))
 
 ;; Load the site-specific postload file
 (load (concat (system-name) "-postload") 'noerror)
