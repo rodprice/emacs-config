@@ -127,7 +127,7 @@
                . (:strike-through t
                   :foreground "#cc6666"))
               (font-lock-function-name-face
-               . (:foreground "#cc6666"
+               . (:foreground "#4ec9b0"
                   :weight normal))
               (font-lock-keyword-face
                . (:foreground "cornflower blue"
