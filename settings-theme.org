@@ -108,50 +108,75 @@
     (global-hl-line-mode t)
   #+END_SRC
 
-  The following are face definitions from the zenburn theme.  These
-  are not defined in the base16 theme above, with the exception of
-  the builtin and constant faces.
-
-      `(web-mode-builtin-face ((t (:inherit ,font-lock-builtin-face))))
-      `(web-mode-comment-face ((t (:inherit ,font-lock-comment-face))))
-      `(web-mode-constant-face ((t (:inherit ,font-lock-constant-face))))
-      `(web-mode-css-at-rule-face ((t (:foreground ,zenburn-orange ))))
-      `(web-mode-css-prop-face ((t (:foreground ,zenburn-orange))))
-      `(web-mode-css-pseudo-class-face ((t (:foreground ,zenburn-green+3 :weight bold))))
-      `(web-mode-css-rule-face ((t (:foreground ,zenburn-blue))))
-      `(web-mode-doctype-face ((t (:inherit ,font-lock-comment-face))))
-      `(web-mode-folded-face ((t (:underline t))))
-      `(web-mode-function-name-face ((t (:foreground ,zenburn-blue))))
-      `(web-mode-html-attr-name-face ((t (:foreground ,zenburn-orange))))
-      `(web-mode-html-attr-value-face ((t (:inherit ,font-lock-string-face))))
-      `(web-mode-html-tag-face ((t (:foreground ,zenburn-cyan))))
-      `(web-mode-keyword-face ((t (:inherit ,font-lock-keyword-face))))
-      `(web-mode-preprocessor-face ((t (:inherit ,font-lock-preprocessor-face))))
-      `(web-mode-string-face ((t (:inherit ,font-lock-string-face))))
-      `(web-mode-type-face ((t (:inherit ,font-lock-type-face))))
-      `(web-mode-variable-name-face ((t (:inherit ,font-lock-variable-name-face))))
-      `(web-mode-server-background-face ((t (:background ,zenburn-bg))))
-      `(web-mode-server-comment-face ((t (:inherit web-mode-comment-face))))
-      `(web-mode-server-string-face ((t (:inherit web-mode-string-face))))
-      `(web-mode-symbol-face ((t (:inherit font-lock-constant-face))))
-      `(web-mode-warning-face ((t (:inherit font-lock-warning-face))))
-      `(web-mode-whitespaces-face ((t (:background ,zenburn-red))))
-
-  Load hc-zenburn theme first, then load the base16 theme we will use
-  throughout, except in web-mode.  This is a nasty hack used to make
-  web-mode syntax highlight HTML, since otherwise the faces in the
-  listing above are not defined.  I really should define these
-  directly, but I kind of like the hc-zenburn highighting for HTML.
-
   #+BEGIN_SRC emacs-lisp
-    (use-package hc-zenburn-theme
+    (use-package vscode-dark-plus-theme
       :ensure t
       :config
-      (load-theme 'hc-zenburn t))
+      (load-theme 'vscode-dark-plus t)
+      (setq face-remapping-alist
+            `((show-paren-match
+               . (:weight bold
+                  :foreground "#ecbc9c"))
+              (show-paren-mismatch
+               . (:strike-through t
+                  :foreground "#cc6666"))
+              (sp-show-pair-match-face
+               . (:weight bold
+                  :foreground "#ecbc9c"))
+              (sp-show-pair-mismatch-face
+               . (:strike-through t
+                  :foreground "#cc6666"))
+              (font-lock-function-name-face
+               . (:foreground "#cc6666"
+                  :weight normal))
+              (font-lock-keyword-face
+               . (:foreground "cornflower blue"
+                  :weight normal))
+              (font-lock-variable-name-face
+               . (:foreground "#f0c674"))
+              (lsp-face-highlight-read
+               . (:underline t
+                  :background nil
+                  :foreground nil))
+              (lsp-face-highlight-textual
+               . (:underline t
+                  :background nil
+                  :foreground nil))
+              (lsp-face-highlight-write
+               . (:underline t
+                  :background nil
+                  :foreground nil))
+              (lsp-ui-peek-highlight
+               . (:inherit nil
+                  :background nil
+                  :foreground nil
+                  :weight semi-bold
+                  :box (:line-width -1)))
+              (org-block
+               . (:extend t
+                  :background "gray12"
+                  :foreground "#e8e8e8"))
+              (org-block-begin-line
+               . (:extend t
+                  :background "gray12"
+                  :foreground "gray40"))
+              (org-tree-slide-heading-level-1
+               . (:height 1.8
+                  :weight bold))
+              (org-tree-slide-heading-level-2
+               . (:height 1.5
+                  :weight bold))
+              (org-tree-slide-heading-level-3
+               . (:height 1.5
+                  :weight bold))
+              (org-tree-slide-heading-level-4
+               . (:height 1.5
+                  :weight bold)))))
   #+END_SRC
     
   #+BEGIN_SRC emacs-lisp
     (use-package base16-theme
+      :disabled
       :ensure t
       :config
       (load-theme 'base16-tomorrow-night t)
