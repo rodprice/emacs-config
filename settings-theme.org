@@ -69,10 +69,10 @@
          (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
          (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
 
-    (defun my-geometry-startup-after-init ()
+    (defun my-geometry-startup-after-init (&optional frame)
       "Called after loading the init file."
       (if (display-graphic-p)
-          (progn
+          (with-selected-frame (or frame (selected-frame))
             (my-set-geometry)
             (add-hook 'kill-emacs-hook 'my-save-frame-geometry))))
             ;; (add-to-list 'default-frame-alist '(internal-border-width . 0))
@@ -81,6 +81,7 @@
         ;; (menu-bar-mode -1))))
 
     (add-hook 'after-init-hook 'my-geometry-startup-after-init)
+    (add-hook 'before-make-frame-hook 'my-set-geometry)
   #+END_SRC
   
 * Theme
@@ -175,75 +176,75 @@
   #+END_SRC
     
   #+BEGIN_SRC emacs-lisp
-    (use-package base16-theme
-      :disabled
-      :ensure t
-      :config
-      (load-theme 'base16-tomorrow-night t)
-      (let ((base00 (plist-get base16-tomorrow-night-theme-colors :base00))
-            (base01 (plist-get base16-tomorrow-night-theme-colors :base01))
-            (base02 (plist-get base16-tomorrow-night-theme-colors :base02))
-            (base03 (plist-get base16-tomorrow-night-theme-colors :base03))
-            (base04 (plist-get base16-tomorrow-night-theme-colors :base04))
-            (base05 (plist-get base16-tomorrow-night-theme-colors :base05))
-            (base06 (plist-get base16-tomorrow-night-theme-colors :base06))
-            (base07 (plist-get base16-tomorrow-night-theme-colors :base07))
-            (base08 (plist-get base16-tomorrow-night-theme-colors :base08))
-            (base09 (plist-get base16-tomorrow-night-theme-colors :base09))
-            (base0A (plist-get base16-tomorrow-night-theme-colors :base0A))
-            (base0B (plist-get base16-tomorrow-night-theme-colors :base0B))
-            (base0C (plist-get base16-tomorrow-night-theme-colors :base0C))
-            (base0D (plist-get base16-tomorrow-night-theme-colors :base0D))
-            (base0E (plist-get base16-tomorrow-night-theme-colors :base0E))
-            (base0F (plist-get base16-tomorrow-night-theme-colors :base0F)))
-        (setq face-remapping-alist
-              `((show-paren-match
-                 . (:foreground ,base0D
-                    :background ,base01))
-                (show-paren-mismatch
-                 . (:strike-through t
-                    :foreground ,base09
-                    :background ,base01))
-                (sp-show-pair-match-face
-                 . (:foreground ,base0D
-                    :background ,base01))
-                (sp-show-pair-mismatch-face
-                 . (:strike-through t
-                    :foreground ,base09
-                    :background ,base01))
-                (font-lock-keyword-face
-                 . (:foreground ,base0E))
-                (font-lock-builtin-face
-                 . (:foreground ,base0C))
-                (font-lock-function-name-face
-                 . (:foreground "cornflower blue"))
-                (font-lock-doc-face
-                 . (:foreground ,base0C))
-                (font-lock-string-face
-                 . (:foreground "slate gray"))
-                (font-lock-comment-face
-                 . (:foreground "light slate gray"))
-                (font-lock-comment-delimiter-face
-                 . (:foreground "light slate gray"))
-                (py-builtins-face
-                 . (:foreground "#ECBC9C"))
-                (org-block
-                 . (:foreground "#ECBC9C"))
-                (fringe
-                 . (:background unspecified))
-                (avy-lead-face
-                 . (:foreground "#FFD700"
-                    :background unspecified
-                    :weight bold))
-                (avy-lead-face-0
-                 . (:foreground "#FFD700"
-                    :background unspecified
-                    :weight bold))
-                (avy-lead-face-2
-                 . (:foreground "#FFD700"
-                    :background unspecified
-                    :weight bold))
-                ))))
+    ;; (use-package base16-theme
+    ;;   :disabled
+    ;;   :ensure t
+    ;;   :config
+    ;;   (load-theme 'base16-tomorrow-night t)
+    ;;   (let ((base00 (plist-get base16-tomorrow-night-theme-colors :base00))
+    ;;         (base01 (plist-get base16-tomorrow-night-theme-colors :base01))
+    ;;         (base02 (plist-get base16-tomorrow-night-theme-colors :base02))
+    ;;         (base03 (plist-get base16-tomorrow-night-theme-colors :base03))
+    ;;         (base04 (plist-get base16-tomorrow-night-theme-colors :base04))
+    ;;         (base05 (plist-get base16-tomorrow-night-theme-colors :base05))
+    ;;         (base06 (plist-get base16-tomorrow-night-theme-colors :base06))
+    ;;         (base07 (plist-get base16-tomorrow-night-theme-colors :base07))
+    ;;         (base08 (plist-get base16-tomorrow-night-theme-colors :base08))
+    ;;         (base09 (plist-get base16-tomorrow-night-theme-colors :base09))
+    ;;         (base0A (plist-get base16-tomorrow-night-theme-colors :base0A))
+    ;;         (base0B (plist-get base16-tomorrow-night-theme-colors :base0B))
+    ;;         (base0C (plist-get base16-tomorrow-night-theme-colors :base0C))
+    ;;         (base0D (plist-get base16-tomorrow-night-theme-colors :base0D))
+    ;;         (base0E (plist-get base16-tomorrow-night-theme-colors :base0E))
+    ;;         (base0F (plist-get base16-tomorrow-night-theme-colors :base0F)))
+    ;;     (setq face-remapping-alist
+    ;;           `((show-paren-match
+    ;;              . (:foreground ,base0D
+    ;;                 :background ,base01))
+    ;;             (show-paren-mismatch
+    ;;              . (:strike-through t
+    ;;                 :foreground ,base09
+    ;;                 :background ,base01))
+    ;;             (sp-show-pair-match-face
+    ;;              . (:foreground ,base0D
+    ;;                 :background ,base01))
+    ;;             (sp-show-pair-mismatch-face
+    ;;              . (:strike-through t
+    ;;                 :foreground ,base09
+    ;;                 :background ,base01))
+    ;;             (font-lock-keyword-face
+    ;;              . (:foreground ,base0E))
+    ;;             (font-lock-builtin-face
+    ;;              . (:foreground ,base0C))
+    ;;             (font-lock-function-name-face
+    ;;              . (:foreground "cornflower blue"))
+    ;;             (font-lock-doc-face
+    ;;              . (:foreground ,base0C))
+    ;;             (font-lock-string-face
+    ;;              . (:foreground "slate gray"))
+    ;;             (font-lock-comment-face
+    ;;              . (:foreground "light slate gray"))
+    ;;             (font-lock-comment-delimiter-face
+    ;;              . (:foreground "light slate gray"))
+    ;;             (py-builtins-face
+    ;;              . (:foreground "#ECBC9C"))
+    ;;             (org-block
+    ;;              . (:foreground "#ECBC9C"))
+    ;;             (fringe
+    ;;              . (:background unspecified))
+    ;;             (avy-lead-face
+    ;;              . (:foreground "#FFD700"
+    ;;                 :background unspecified
+    ;;                 :weight bold))
+    ;;             (avy-lead-face-0
+    ;;              . (:foreground "#FFD700"
+    ;;                 :background unspecified
+    ;;                 :weight bold))
+    ;;             (avy-lead-face-2
+    ;;              . (:foreground "#FFD700"
+    ;;                 :background unspecified
+    ;;                 :weight bold))
+    ;;             ))))
   #+END_SRC
 
 * Fira Code mode
@@ -254,64 +255,64 @@
    community library.
 
    #+BEGIN_SRC emacs-lisp
-   
-(defun fira-code-mode--make-alist (list)
-  "Generate prettify-symbols alist from LIST."
-  (let ((idx -1))
-    (mapcar
-     (lambda (s)
-       (setq idx (1+ idx))
-       (let* ((code (+ #Xe100 idx))
-          (width (string-width s))
-          (prefix ())
-          (suffix '(?\s (Br . Br)))
-          (n 1))
-     (while (< n width)
-       (setq prefix (append prefix '(?\s (Br . Bl))))
-       (setq n (1+ n)))
-     (cons s (append prefix suffix (list (decode-char 'ucs code))))))
-     list)))
 
-(defconst fira-code-mode--ligatures
-  '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
-    "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
-    "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
-    "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
-    ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*"
-    "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
-    "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
-    "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
-    ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
-    "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
-    "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
-    "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"
-    "x" ":" "+" "+" "*"))
+     (defun fira-code-mode--make-alist (list)
+       "Generate prettify-symbols alist from LIST."
+       (let ((idx -1))
+         (mapcar
+          (lambda (s)
+            (setq idx (1+ idx))
+            (let* ((code (+ #Xe100 idx))
+               (width (string-width s))
+               (prefix ())
+               (suffix '(?\s (Br . Br)))
+               (n 1))
+          (while (< n width)
+            (setq prefix (append prefix '(?\s (Br . Bl))))
+            (setq n (1+ n)))
+          (cons s (append prefix suffix (list (decode-char 'ucs code))))))
+          list)))
 
-(defvar fira-code-mode--old-prettify-alist)
+     (defconst fira-code-mode--ligatures
+       '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+         "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
+         "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
+         "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
+         ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*"
+         "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
+         "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+         "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
+         ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
+         "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
+         "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
+         "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"
+         "x" ":" "+" "+" "*"))
 
-(defun fira-code-mode--enable ()
-  "Enable Fira Code ligatures in current buffer."
-  (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
-  (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
-  (prettify-symbols-mode t))
+     (defvar fira-code-mode--old-prettify-alist)
 
-(defun fira-code-mode--disable ()
-  "Disable Fira Code ligatures in current buffer."
-  (setq-local prettify-symbols-alist fira-code-mode--old-prettify-alist)
-  (prettify-symbols-mode -1))
+     (defun fira-code-mode--enable ()
+       "Enable Fira Code ligatures in current buffer."
+       (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
+       (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
+       (prettify-symbols-mode t))
 
-(define-minor-mode fira-code-mode
-  "Fira Code ligatures minor mode"
-  :lighter " Fira Code"
-  (setq-local prettify-symbols-unprettify-at-point 'right-edge)
-  (if fira-code-mode
-      (fira-code-mode--enable)
-    (fira-code-mode--disable)))
+     (defun fira-code-mode--disable ()
+       "Disable Fira Code ligatures in current buffer."
+       (setq-local prettify-symbols-alist fira-code-mode--old-prettify-alist)
+       (prettify-symbols-mode -1))
 
-(defun fira-code-mode--setup ()
-  "Setup Fira Code Symbols"
-  (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
+     (define-minor-mode fira-code-mode
+       "Fira Code ligatures minor mode"
+       :lighter " Fira Code"
+       (setq-local prettify-symbols-unprettify-at-point 'right-edge)
+       (if fira-code-mode
+           (fira-code-mode--enable)
+         (fira-code-mode--disable)))
 
-(provide 'fira-code-mode)
+     (defun fira-code-mode--setup ()
+       "Setup Fira Code Symbols"
+       (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
+
+     (provide 'fira-code-mode)
    #+END_SRC
    

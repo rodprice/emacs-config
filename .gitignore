@@ -31,3 +31,4 @@ notes.el
 settings-*.el
 *.old
 *.old2
+eshell/

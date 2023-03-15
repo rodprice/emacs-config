@@ -1,6 +1,43 @@
 #+TITLE: Emacs Python mode configuration
 #+STARTUP: overview indent
 
+* Virtual environments
+
+#+BEGIN_SRC emacs-lisp
+  (use-package conda
+     :ensure t
+     :init
+       (setq conda-anaconda-home my-anaconda-dir)
+       (setq conda-env-home-directory my-anaconda-dir)
+
+     :config
+       ;; Fix bug in conda.el package for Windows systems
+       (when (eq window-system 'w32)
+         (defun conda--get-executable-path ()
+           "Return full path to Conda binary, or throw an error if it can't be found.
+           Cached for the lifetime of the process."
+           (if (not (eq conda--executable-path nil))
+               conda--executable-path
+             (setq conda--executable-path
+                   (cond
+                    ((file-executable-p (f-join conda-anaconda-home conda-env-executables-dir "conda.exe"))
+                     (f-join conda-anaconda-home conda-env-executables-dir "conda.exe"))
+                    ((file-executable-p (f-join conda-anaconda-home conda-env-executables-dir "mamba.exe"))
+                     (f-join conda-anaconda-home conda-env-executables-dir "mamba.exe"))
+                    ((executable-find "conda.exe"))
+                    ((executable-find "mamba.exe"))
+                    (t (error
+                        "There doesn't appear to be a conda or mamba executable on your exec-path.")))))))
+
+       (conda-env-initialize-interactive-shells)
+       (conda-env-initialize-eshell)
+       (conda-env-autoactivate-mode 0)
+       (add-hook 'find-file-hook
+                 (lambda ()
+                   (when (bound-and-true-p conda-project-env-path)
+                     (conda-env-activate-for-buffer)))))
+#+END_SRC
+
 * Language server for Python
 
 See the Emacs documentation at [[https://emacs-lsp.github.io/lsp-pyright/][lsp-pyright]].
@@ -17,6 +54,16 @@ See the Emacs documentation at [[https://emacs-lsp.github.io/lsp-pyright/][lsp-p
 Install language server before executing the following.
 lsp-ui-sideline to adjust lsp-ui behavior
 lsp-focus-frame to put cursor in documentation popup
+
+  (use-package python-mode
+    :ensure nil
+    :hook (python-mode . lsp-deferred)
+    :custom
+      (python-shell-interpreter "python3")
+      (dap-python-executable "python3")
+      (dap-python-debugger 'debugpy)
+    :config
+      (require 'dap-python))
 
   (defun my-lsp-mode-setup ()
     (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))

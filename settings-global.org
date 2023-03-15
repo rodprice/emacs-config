@@ -320,7 +320,7 @@ Additional information in help buffers
       (conda-env-initialize-interactive-shells)
       (conda-env-initialize-eshell)
       (conda-env-autoactivate-mode 0)
-      (custom-set-variables '(conda-anaconda-home "~/opt/anaconda3/"))
+      (setq conda-anaconda-home my-anaconda-dir)
       (add-hook 'find-file-hook
                 (lambda ()
                   (when (bound-and-true-p conda-project-env-path)
