@@ -1,6 +1,12 @@
 #+TITLE: Settings that apply everywhere
 #+STARTUP: overview indent
 
+* Org mode
+
+#+begin_src emacs-lisp
+  ;; (require org-tempo)
+#+end_src
+
 * Comint mode
 
   #+BEGIN_SRC emacs-lisp

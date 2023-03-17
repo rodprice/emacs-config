@@ -1,6 +1,131 @@
 #+TITLE: Emacs Python mode configuration
 #+STARTUP: overview indent
 
+* Python mode
+
+Reference: Nathan Furnal's [[https://gist.github.com/Nathan-Furnal/b327f14e861f009c014af36c1790ec49][python-setup-init.el]]
+
+Remove "guess indent" python message
+#+begin_src emacs-lisp
+  (use-package python
+    :config
+    (setq python-indent-guess-indent-offset-verbose nil))
+#+end_src
+
+Hide the modeline for inferior python processes.  This is not a necessary
+package but it's helpful to make better use of the screen real-estate at our
+disposal. See: https://github.com/hlissner/emacs-hide-mode-line.
+
+#+begin_src emacs-lisp
+(use-package hide-mode-line
+  :ensure t
+  :defer t
+  :hook (inferior-python-mode . hide-mode-line-mode))
+#+end_src
+
+<OPTIONAL> Buffer formatting on save using black.
+See: https://github.com/pythonic-emacs/blacken.
+#+begin_src emacs-lisp
+  (use-package blacken
+    :ensure t
+    :defer t
+    :custom
+    (blacken-allow-py36 t)
+    (blacken-skip-string-normalization t)
+    :hook (python-mode-hook . blacken-mode))
+#+end_src
+
+<OPTIONAL> Numpy style docstring for Python.  See:
+https://github.com/douglasdavis/numpydoc.el.  There are other packages
+available for docstrings, see: https://github.com/naiquevin/sphinx-doc.el
+#+begin_src emacs-lisp
+  (use-package numpydoc
+    :ensure t
+    :defer t
+    :custom
+    (numpydoc-insert-examples-block nil)
+    (numpydoc-template-long nil)
+    :bind (:map python-mode-map
+                ("C-c C-n" . numpydoc-generate)))
+#+end_src
+
+Provide drop-down completion.
+#+begin_src emacs-lisp
+  (use-package company
+    :disabled
+    :ensure t
+    :defer t
+    :custom
+    ;; Search other buffers with the same modes for completion instead of
+    ;; searching all other buffers.
+    (company-dabbrev-other-buffers t)
+    (company-dabbrev-code-other-buffers t)
+    ;; M-<num> to select an option according to its number.
+    (company-show-numbers t)
+    ;; Only 2 letters required for completion to activate.
+    (company-minimum-prefix-length 3)
+    ;; Do not downcase completions by default.
+    (company-dabbrev-downcase nil)
+    ;; Even if I write something with the wrong case,
+    ;; provide the correct casing.
+    (company-dabbrev-ignore-case t)
+    ;; company completion wait
+    (company-idle-delay 0.2)
+    ;; No company-mode in shell & eshell
+    (company-global-modes '(not eshell-mode shell-mode))
+    ;; Use company with text and programming modes.
+      :hook ((text-mode . company-mode)
+             (prog-mode . company-mode)))
+#+end_src
+
+* Code folding
+
+Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
+#+begin_src emacs-lisp
+  (use-package hideshow
+    :ensure t
+    :config
+    (defun hs-cycle (&optional level)
+      (interactive "p")
+      (let (message-log-max
+            (inhibit-message t))
+        (if (= level 1)
+            (pcase last-command
+              ('hs-cycle
+               (hs-hide-level 1)
+               (setq this-command 'hs-cycle-children))
+              ('hs-cycle-children
+               ;; TODO: Fix this case. `hs-show-block' needs to be
+               ;; called twice to open all folds of the parent
+               ;; block.
+               (save-excursion (hs-show-block))
+               (hs-show-block)
+               (setq this-command 'hs-cycle-subtree))
+              ('hs-cycle-subtree
+               (hs-hide-block))
+              (_
+               (if (not (hs-already-hidden-p))
+                   (hs-hide-block)
+                 (hs-hide-level 1)
+                 (setq this-command 'hs-cycle-children))))
+          (hs-hide-level level)
+          (setq this-command 'hs-hide-level))))
+
+    (defun hs-global-cycle ()
+      (interactive)
+      (pcase last-command
+        ('hs-global-cycle
+         (save-excursion (hs-show-all))
+         (setq this-command 'hs-global-show))
+        (_ (hs-hide-all))))    
+
+    :bind (:map python-mode-map
+                (("C-<tab>" . hs-cycle)
+                 ("S-C-<tab>" . hs-global-cycle)))
+    
+    :hook (python-mode . hs-minor-mode))
+#+end_src
+
 * Virtual environments
 
 #+BEGIN_SRC emacs-lisp
@@ -38,18 +163,31 @@
                      (conda-env-activate-for-buffer)))))
 #+END_SRC
 
-* Language server for Python
-
-See the Emacs documentation at [[https://emacs-lsp.github.io/lsp-pyright/][lsp-pyright]].
+<OPTIONAL> Use [[https://python-poetry.org/][poetry]] to manage python environments.
+See: https://github.com/galaunay/poetry.el.
 #+begin_src emacs-lisp
-  (use-package lsp-pyright
+  (use-package poetry
+    :disabled
     :ensure t
-    :hook (python-mode . (lambda ()
-                           (require 'lsp-pyright)
-                           (lsp))))
+    :defer t
+    :config
+    ;; Checks for the correct virtualenv. Better strategy IMO because the default
+    ;; one is quite slow.
+    (setq poetry-tracking-strategy 'switch-buffer)
+    :hook (python-mode . poetry-tracking-mode))
 #+end_src
 
-** Notes
+* Language server for Python
+
+Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
+#+begin_src emacs-lisp
+(use-package eglot
+  :ensure t
+  :defer t
+  :hook (python-mode . eglot-ensure))
+#+end_src
+
+* Notes
 
 Install language server before executing the following.
 lsp-ui-sideline to adjust lsp-ui behavior

@@ -247,6 +247,50 @@
     ;;             ))))
   #+END_SRC
 
+** Modus theme setup
+
+#+begin_src emacs-lisp
+  ;; Modus-themes are just excellent, easy to read and work really well
+  ;; with code as well as text (org-mode, markdown).
+  (use-package modus-themes
+    :disabled
+    :ensure nil
+    :config
+      (setq modus-themes-org-blocks 'gray-background
+            modus-themes-fringes 'subtle
+            modus-themes-italic-constructs t
+            modus-themes-bold-constructs t
+            modus-themes-syntax '(alt-syntax)
+            modus-themes-hl-line '(intense)
+            modus-themes-paren-match '(intense)
+            modus-themes-mode-line '(borderless))
+      (setq modus-themes-headings
+            (quote ((1 . (background overline variable-pitch 1.4))
+                    (2 . (overline rainbow variable-pitch 1.25))
+                    (3 . (overline 1.1))
+                    (t . (monochrome))))))
+
+  ;; Running modus-themes depending on the time of the day.  <ATTENTION>
+  ;; You need to set the longitude and latitude to your city's for this
+  ;; to be accurate.
+  (use-package solar
+    :disabled
+    :ensure nil
+    :custom
+    ;; Brussels ;)
+    (calendar-latitude 50.85)
+    (calendar-longitude 4.35))
+
+  (use-package circadian
+    :disabled
+    :ensure t
+    :after solar
+    :config
+    (setq circadian-themes '((:sunrise . modus-operandi)
+                             (:sunset  . modus-vivendi)))
+    (circadian-setup))
+#+end_src
+
 * Fira Code mode
 
    See instructions [[https://github.com/tonsky/FiraCode/wiki/Emacs-instructions][here]]. The Fira Code Symbol font must be installed

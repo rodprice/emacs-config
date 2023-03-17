@@ -73,7 +73,9 @@
 
    Show line numbers on the left.
    #+BEGIN_SRC emacs-lisp
-     (global-linum-mode t)
+     (if (>= emacs-major-version 29)
+         (global-display-line-numbers-mode 1)
+       (global-linum-mode t))
    #+END_SRC
 
    #+begin_src emacs-lisp

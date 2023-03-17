@@ -32,3 +32,4 @@ settings-*.el
 *.old
 *.old2
 eshell/
+org-persist/
