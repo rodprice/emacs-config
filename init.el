@@ -12,10 +12,10 @@
 (load (concat (system-name) "-preload") 'noerror)
 
 ;; Have this available just in case
-(defun server-shutdown () 
-  "Save buffers, quit, and shutdown (kill) server" 
-  (interactive) 
-  (save-some-buffers) 
+(defun server-shutdown ()
+  "Save buffers, quit, and shutdown (kill) server."
+  (interactive)
+  (save-some-buffers)
   (kill-emacs))
 (global-set-key (kbd "C-c x") 'server-shutdown)
 
@@ -46,7 +46,7 @@
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-theme.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-global.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-org-mode.org"))
-;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))
 
 ;; Load the site-specific postload file
 (load (concat (system-name) "-postload") 'noerror)

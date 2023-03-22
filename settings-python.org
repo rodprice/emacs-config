@@ -1,6 +1,96 @@
 #+TITLE: Emacs Python mode configuration
 #+STARTUP: overview indent
 
+* Virtual environments
+
+#+begin_src emacs-lisp
+  (use-package conda
+     :ensure nil
+     :load-path "lisp"
+     :init
+       (setq conda-anaconda-home my-anaconda-dir)
+       (setq conda-env-home-directory my-anaconda-dir)
+     :config
+       (conda-env-initialize-interactive-shells)
+       (conda-env-initialize-eshell)
+       (conda-env-autoactivate-mode 0)
+       (add-hook 'find-file-hook
+                 (lambda ()
+                   (when (bound-and-true-p conda-project-env-path)
+                     (conda-env-activate-for-buffer)))))
+#+end_src
+
+<OPTIONAL> Use [[https://python-poetry.org/][poetry]] to manage python environments.
+See: https://github.com/galaunay/poetry.el.
+#+begin_src emacs-lisp
+  (use-package poetry
+    :disabled
+    :ensure t
+    :defer t
+    :config
+    ;; Checks for the correct virtualenv. Better strategy IMO because the default
+    ;; one is quite slow.
+    (setq poetry-tracking-strategy 'switch-buffer)
+    :hook (python-mode . poetry-tracking-mode))
+#+end_src
+
+* Linting
+
+Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t
+    :after conda
+    :defer t
+    :hook (python-mode . eglot-ensure))
+#+end_src
+
+Documentation for flycheck [[https://www.flycheck.org][here]].
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode)
+    :bind (("M-n" . flycheck-next-error)
+           ("M-p" . flycheck-previous-error)
+           ("M-l" . flycheck-list-errors)))
+#+end_src
+
+Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
+#+begin_src emacs-lisp
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config (global-flycheck-eglot-mode 1))
+#+end_src
+  
+From Gavinok's [[https://github.com/Gavinok/emacs.d/blob/main/init.el][init.el]]:
+#+begin_src emacs-lisp
+  (use-package flymake
+    :disabled
+    :defer 10
+    :bind (("M-g d"   . flymake-show-buffer-diagnostics)
+           ("M-g M-d" . flymake-show-project-diagnostics)
+           ("M-g M-n" . flymake-goto-next-error)
+           ("M-g M-p" . flymake-goto-prev-error)
+           :repeat-map flymake-repeatmap
+           ("p" . flymake-goto-prev-error)
+           ("n" . flymake-goto-next-error)
+           :map flymake-diagnostics-buffer-mode-map
+           ("?" . flymake-show-diagnostic-here)
+           :map flymake-project-diagnostics-mode-map
+           ("?" . flymake-show-diagnostic-here))
+    :hook (prog-mode . (lambda () (flymake-mode t)))
+    :config
+      (defun flymake-show-diagnostic-here (pos &optional other-window)
+        "Show the full multi-line diagnostic of this error."
+        (interactive (list (point) t))
+        (let* ((id (or (tabulated-list-get-id pos)
+                       (user-error "Nothing at point")))
+               (text (flymake-diagnostic-text (plist-get id :diagnostic))))
+          (message text)))
+      (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+#+end_src
+
 * Python mode
 
 Reference: Nathan Furnal's [[https://gist.github.com/Nathan-Furnal/b327f14e861f009c014af36c1790ec49][python-setup-init.el]]
@@ -126,66 +216,7 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
     :hook (python-mode . hs-minor-mode))
 #+end_src
 
-* Virtual environments
-
-#+BEGIN_SRC emacs-lisp
-  (use-package conda
-     :ensure t
-     :init
-       (setq conda-anaconda-home my-anaconda-dir)
-       (setq conda-env-home-directory my-anaconda-dir)
-
-     :config
-       ;; Fix bug in conda.el package for Windows systems
-       (when (eq window-system 'w32)
-         (defun conda--get-executable-path ()
-           "Return full path to Conda binary, or throw an error if it can't be found.
-           Cached for the lifetime of the process."
-           (if (not (eq conda--executable-path nil))
-               conda--executable-path
-             (setq conda--executable-path
-                   (cond
-                    ((file-executable-p (f-join conda-anaconda-home conda-env-executables-dir "conda.exe"))
-                     (f-join conda-anaconda-home conda-env-executables-dir "conda.exe"))
-                    ((file-executable-p (f-join conda-anaconda-home conda-env-executables-dir "mamba.exe"))
-                     (f-join conda-anaconda-home conda-env-executables-dir "mamba.exe"))
-                    ((executable-find "conda.exe"))
-                    ((executable-find "mamba.exe"))
-                    (t (error
-                        "There doesn't appear to be a conda or mamba executable on your exec-path.")))))))
-
-       (conda-env-initialize-interactive-shells)
-       (conda-env-initialize-eshell)
-       (conda-env-autoactivate-mode 0)
-       (add-hook 'find-file-hook
-                 (lambda ()
-                   (when (bound-and-true-p conda-project-env-path)
-                     (conda-env-activate-for-buffer)))))
-#+END_SRC
-
-<OPTIONAL> Use [[https://python-poetry.org/][poetry]] to manage python environments.
-See: https://github.com/galaunay/poetry.el.
-#+begin_src emacs-lisp
-  (use-package poetry
-    :disabled
-    :ensure t
-    :defer t
-    :config
-    ;; Checks for the correct virtualenv. Better strategy IMO because the default
-    ;; one is quite slow.
-    (setq poetry-tracking-strategy 'switch-buffer)
-    :hook (python-mode . poetry-tracking-mode))
-#+end_src
-
 * Language server for Python
-
-Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
-#+begin_src emacs-lisp
-(use-package eglot
-  :ensure t
-  :defer t
-  :hook (python-mode . eglot-ensure))
-#+end_src
 
 * Notes
 

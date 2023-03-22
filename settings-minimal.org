@@ -4,48 +4,48 @@
 * Character encodings
    
    Character encodings default to utf-8.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (prefer-coding-system 'utf-8)
      (set-language-environment 'utf-8)
      (set-default-coding-systems 'utf-8)
      (set-terminal-coding-system 'utf-8)
      (set-selection-coding-system 'utf-8)
-   #+END_SRC
+   #+end_src
    
 * Tabs
    
    Always insert spaces, never tab characters.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (setq-default indent-tabs-mode nil)
-   #+END_SRC
+   #+end_src
 
 * Clipboard
    
    Use the system clipboard.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (setq select-enable-clipboard t
            select-enable-primary t
            save-interprogram-paste-before-kill t
            mouse-yank-at-point t)
-   #+END_SRC
+   #+end_src
    
 * File locations
    
    Make emacs open files in a reasonable directory by default.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (setq default-directory (getenv "HOME"))
-   #+END_SRC
+   #+end_src
    
    [[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (setq delete-old-versions t
            kept-new-versions 2
            kept-old-versions 2
            version-control t)
-   #+END_SRC
+   #+end_src
    
    File locations for custom settings.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
      (unless (file-exists-p custom-file)
        (custom-save-all))                   ; Create new, empty custom file
@@ -54,12 +54,12 @@
      (setq save-place-file (concat user-emacs-directory "places")
            backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                     "backups"))))
-   #+END_SRC
+   #+end_src
 
 * GUI elements
 
    Keep menu bar, drop toolbar and scroll bars.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (setq inhibit-startup-message t)
      ;;  (menu-bar-mode -1)
      (when (fboundp 'tool-bar-mode)
@@ -69,14 +69,14 @@
      (when (fboundp 'horizontal-scroll-bar-mode)
        (horizontal-scroll-bar-mode -1))
      (setq visible-bell t)
-   #+END_SRC
+   #+end_src
 
    Show line numbers on the left.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (if (>= emacs-major-version 29)
          (global-display-line-numbers-mode 1)
        (global-linum-mode t))
-   #+END_SRC
+   #+end_src
 
    #+begin_src emacs-lisp
      ;; (require 'paren)
@@ -116,16 +116,16 @@
 
 * Mode line
    
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
      ;; Display the column number in the mode line
      (setq column-number-mode t)
-   #+END_SRC
+   #+end_src
    
 * IDO mode
 
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (require 'ido)
      (ido-mode t)
      (setq ido-enable-flex-matching t
@@ -134,88 +134,88 @@
            ido-default-file-method 'selected-window
            ;; Don't pop up window of completions
            ido-cannot-complete-command 'ido-next-match)
-   #+END_SRC
+   #+end_src
 
 * Help and Info files
 
   See [[See https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html][Installing TeXinfo documents]].
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     ;; When opening a help window, always select the new help window
     (setq help-window-select t)
     (require 'info)
     (info-initialize)                      ; populate Info-directory-list
     (require 'apropos)
     (setq apropos-do-all t)                ; apropos searches more extensively
-  #+END_SRC
+  #+end_src
 
 * Grepping
 
    Put the cursor in the results window after a grep.
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
      (defun my-other-other-window (&rest r)
        (message "Executing my-other-window after rgrep...")
        (other-window 1))
      (advice-add 'rgrep :after 'my-other-other-window)
-   #+END_SRC
+   #+end_src
 
 * Key bindings
 ** Prerequisites
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (require 'my-functions)
-  #+END_SRC
+  #+end_src
 
 ** Completions
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "M-/") 'hippie-expand)
-  #+END_SRC
+  #+end_src
 
 ** Switch buffers
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "C-x C-b") 'ibuffer)
-  #+END_SRC
+  #+end_src
   
 ** Search
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "C-s") 'isearch-forward-regexp)
     (global-set-key (kbd "C-r") 'isearch-backward-regexp)
     (global-set-key (kbd "C-M-s") 'isearch-forward)
     (global-set-key (kbd "C-M-r") 'isearch-backward)
     (global-set-key (kbd "C-c r") 'rgrep)
-  #+END_SRC
+  #+end_src
   
 ** Line wrapping
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
         (global-set-key (kbd "C-c q") 'auto-fill-mode)
-  #+END_SRC
+  #+end_src
 
 ** Join, open, or transpose lines
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "C-;") 'my-insert-semicolon)
     (global-set-key (kbd "M-j") 'my-join-lines)
     (global-set-key (kbd "C-o") 'open-next-line)
     (global-set-key (kbd "M-o") 'open-previous-line)
     (global-set-key (kbd "C-t") 'transpose-next-line)
     (global-set-key (kbd "M-t") 'transpose-previous-line)
-  #+END_SRC
+  #+end_src
   
 ** Cursor movement
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (use-package mwim
       :ensure t
       :bind
       (("C-a" . mwim-beginning-of-line-or-code)
        ("C-e" . mwim-end-of-line-or-code))
       :pin melpa)
-  #+END_SRC
+  #+end_src
   
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
     (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
     (global-set-key (kbd "M-<") 'scroll-row-up)
@@ -224,7 +224,7 @@
     (global-set-key (kbd "C->") 'xah-forward-block)
     (global-set-key (kbd "M-<up>") 'scroll-row-up)
     (global-set-key (kbd "M-<down>") 'scroll-row-down)
-  #+END_SRC
+  #+end_src
 
 *** Notes
 
@@ -232,32 +232,32 @@
   
 ** Window movement
 
-  #+BEGIN_SRC emacs-lisp
-    (global-set-key (kbd "C-x p") 'my-rearrange-windows)
-  #+END_SRC
+  #+begin_src emacs-lisp
+    ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
+  #+end_src
   
 ** Window and frame selection
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "C-x C-o") 'other-frame)
-  #+END_SRC
+  #+end_src
   
 ** Camel case
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-set-key (kbd "M-c") 'toggle-camelcase-underscores)
-  #+END_SRC
+  #+end_src
   
 ** Narrow or widen to the region
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
-  #+END_SRC
+  #+end_src
 
 ** Which Key package
 
   Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org][Emacs from scratch]].
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
 
     (use-package which-key
       :defer 0
@@ -266,7 +266,7 @@
       (which-key-mode)
       (setq which-key-idle-delay 1))
     
-  #+END_SRC
+  #+end_src
 
 ** Unfill package
 
@@ -305,18 +305,87 @@
 * Regions
   
   Kill or yank entire lines
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (use-package whole-line-or-region
       :ensure t
       :bind (("C-w" . whole-line-or-region-kill-region)
              ("M-w" . whole-line-or-region-copy-region-as-kill)))
-  #+END_SRC
+  #+end_src
 
   Expand or contract the region by sexp
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (use-package expand-region
       :ensure t
       :config
-      :bind (("C-=" . er/expand-region)))
-  #+END_SRC
+      :bind (("C-=" . er/expand-region)
+             ("M-=" . er/contract-region)))
+  #+end_src
 
+* Packages
+
+** Org mode
+
+Appearance
+#+begin_src emacs-lisp
+  (use-package org-bullets
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+#+end_src
+  
+#+begin_src emacs-lisp
+  (eval-after-load 'org
+    '(progn
+       (add-to-list 'org-structure-template-alist
+                    '("el" . "src emacs-lisp"))))
+#+end_src
+
+LaTeX
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+#+end_src
+
+Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
+#+begin_src emacs-lisp
+  (use-package org-tufte
+    :ensure nil
+    :config
+      (require 'org-tufte)
+      (setq org-tufte-htmlize-code t
+            org-tufte-embed-images nil))
+#+end_src
+
+** Project
+
+#+begin_src emacs-lisp
+  (defun my-project-list-files (&optional project)
+    (interactive)
+    (with-help-window "*project files*"
+      (dolist (file (project-files (project-current)))
+        (prin1 file)
+        (princ "\n"))))
+#+end_src
+
+
+** Popper
+
+#+begin_src emacs-lisp
+  (use-package popper
+    :ensure t ; or :straight t
+    :bind (("C-`"   . popper-toggle-latest)
+           ("M-`"   . popper-cycle)
+           ("C-M-`" . popper-toggle-type))
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*grep\\*"
+            "\\*Backtrace\\*"
+            "\\*Completions\\*"
+            "\\*Flycheck errors\\*"
+            ("\\*Warnings\\*" . hide)
+            help-mode
+            compilation-mode))
+    (popper-mode +1)
+    (popper-echo-mode +1))                ; For echo area hints
+#+end_src

@@ -316,23 +316,6 @@ Additional information in help buffers
       :config
       (setq auth-sources '("~/.emacs.d/.authinfo")))
   #+END_SRC
-* Virtual environments
-
-#+BEGIN_SRC emacs-lisp
-  (use-package conda
-    :ensure t
-    :config
-    (progn
-      (conda-env-initialize-interactive-shells)
-      (conda-env-initialize-eshell)
-      (conda-env-autoactivate-mode 0)
-      (setq conda-anaconda-home my-anaconda-dir)
-      (add-hook 'find-file-hook
-                (lambda ()
-                  (when (bound-and-true-p conda-project-env-path)
-                    (conda-env-activate-for-buffer))))))
-#+END_SRC
-
 * Language server
 
 Install language server before executing the following.

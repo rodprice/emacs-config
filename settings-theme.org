@@ -4,13 +4,13 @@
   
 * Geometry
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (require 'saveplace)
     (setq-default save-place t)
-  #+END_SRC
+  #+end_src
 
   Save emacs frames on exit, and restore them on startup
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     ;; These are the same values that a bare-naked emacs uses on initial startup
     (defvar my-initial-geometry '(nil 80 38 100 100)
       "The initial frame geometry to use when no geometry file is present.")
@@ -82,34 +82,34 @@
 
     (add-hook 'after-init-hook 'my-geometry-startup-after-init)
     (add-hook 'before-make-frame-hook 'my-set-geometry)
-  #+END_SRC
+  #+end_src
   
 * Theme
 
   The default font is set in the site-specific preload file.
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (unless (boundp 'my-default-font)
       (defvar my-default-font "Fira Code-14"))
-  #+END_SRC
+  #+end_src
     
   Specify the default font.
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (add-to-list 'default-frame-alist `(font . ,my-default-font))
     (set-face-font 'default my-default-font)
-  #+END_SRC
+  #+end_src
   
   Truncate long lines everywhere.
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-visual-line-mode 0)
     (setq-default truncate-lines t)
-  #+END_SRC
+  #+end_src
     
   Highlight current line.
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (global-hl-line-mode t)
-  #+END_SRC
+  #+end_src
 
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     (use-package vscode-dark-plus-theme
       :ensure t
       :config
@@ -173,9 +173,9 @@
               (org-tree-slide-heading-level-4
                . (:height 1.5
                   :weight bold)))))
-  #+END_SRC
+  #+end_src
     
-  #+BEGIN_SRC emacs-lisp
+  #+begin_src emacs-lisp
     ;; (use-package base16-theme
     ;;   :disabled
     ;;   :ensure t
@@ -245,7 +245,7 @@
     ;;                 :background unspecified
     ;;                 :weight bold))
     ;;             ))))
-  #+END_SRC
+  #+end_src
 
 ** Modus theme setup
 
@@ -298,7 +298,7 @@
    installed from AUR [[https://aur.archlinux.org/packages/otf-fira-code-symbol/][here]]. The Fira Code font itself is in the pacman
    community library.
 
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
 
      (defun fira-code-mode--make-alist (list)
        "Generate prettify-symbols alist from LIST."
@@ -358,5 +358,5 @@
        (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
 
      (provide 'fira-code-mode)
-   #+END_SRC
+   #+end_src
    

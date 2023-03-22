@@ -33,3 +33,5 @@ settings-*.el
 *.old2
 eshell/
 org-persist/
+ltximg/
+projects
