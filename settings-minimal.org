@@ -113,7 +113,7 @@
                (:eval (my-conda-env-current-name))
                (:eval (my-git-branch-name))))
    #+end_src
-
+   
 * Mode line
    
    #+begin_src emacs-lisp
@@ -122,7 +122,7 @@
      ;; Display the column number in the mode line
      (setq column-number-mode t)
    #+end_src
-   
+
 * IDO mode
 
    #+begin_src emacs-lisp
@@ -383,6 +383,7 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
             "\\*Backtrace\\*"
             "\\*Completions\\*"
             "\\*Flycheck errors\\*"
+            "^\\*Shortdoc"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
