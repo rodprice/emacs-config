@@ -328,6 +328,7 @@
 Appearance
 #+begin_src emacs-lisp
   (use-package org-bullets
+    :disabled
     :config
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 #+end_src
@@ -359,10 +360,9 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
 #+begin_src emacs-lisp
   (defun my-project-list-files (&optional project)
     (interactive)
-    (with-help-window "*project files*"
-      (dolist (file (project-files (project-current)))
-        (prin1 file)
-        (princ "\n"))))
+    (let ((files (last (split-string (project-files (project-current)) "/"))))
+      (with-output-to-temp-buffer "*Project files*"
+        (princ (s-join "\n" files)))))
 #+end_src
 
 

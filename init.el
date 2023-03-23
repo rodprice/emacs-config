@@ -9,7 +9,7 @@
 (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
 
 ;; Load the site-specific preload file.
-(load (concat (system-name) "-preload") 'noerror)
+(load (concat (car (split-string (system-name) "\\.")) "-preload") 'noerror)
 
 ;; Have this available just in case
 (defun server-shutdown ()
@@ -49,5 +49,5 @@
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))
 
 ;; Load the site-specific postload file
-(load (concat (system-name) "-postload") 'noerror)
+(load (concat (car (split-string (system-name) "\\.")) "-postload") 'noerror)
 (put 'upcase-region 'disabled nil)

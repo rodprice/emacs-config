@@ -4,8 +4,12 @@
 * Virtual environments
 
 #+begin_src emacs-lisp
+  (use-package pythonic
+    :ensure t)
+
   (use-package conda
      :ensure nil
+     :after pythonic
      :load-path "lisp"
      :init
        (setq conda-anaconda-home my-anaconda-dir)
