@@ -296,6 +296,17 @@
     (global-set-key (kbd "M-<down>") 'scroll-row-down)
   #+end_src
 
+** Spelling
+
+#+begin_src emacs-lisp
+  (let ((aspell-exe (if (eq system-type 'windows-nt)
+                        (executable-find "aspell.exe")
+                      (executable-find "aspell"))))
+    (if aspell-exe
+        (setq-default ispell-program-name aspell-exe)
+      (error "Could not find an aspell executable on exec-path.")))
+#+end_src
+
 * Window management
 
 * Completions

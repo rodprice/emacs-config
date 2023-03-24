@@ -41,14 +41,15 @@
     (defun my-set-geometry ()
       "Set the default frame geometry using the values loaded from my-geometry-file."
       (let ((geom (my-load-frame-geometry)))
-        (setq default-frame-alist
-              (append
-               default-frame-alist
-               `((fullscreen . ,(nth 0 geom))
-                 (width . ,(nth 1 geom))
-                 (height . ,(nth 2 geom))
-                 (top . ,(nth 3 geom))
-                 (left . ,(nth 4 geom)))))))
+        (modify-all-frames-parameters
+         `((fullscreen . ,(nth 0 geom))
+           (width . ,(nth 1 geom))
+           (height . ,(nth 2 geom))
+           (top . ,(nth 3 geom))
+           (left . ,(nth 4 geom))))))
+        ;; (setq default-frame-alist
+        ;;       (append
+        ;;        default-frame-alist
 
     ;; Returns (top left bottom right) measured in pixels
     (defun my-get-geometry-pixels ()

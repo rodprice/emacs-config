@@ -327,22 +327,21 @@
 
 Appearance
 #+begin_src emacs-lisp
-  (use-package org-bullets
-    :disabled
-    :config
-    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  (use-package org-modern
+    :ensure t
+    :hook ((org-mode . org-modern-mode)
+           (org-agenda-finalize . org-modern-agenda)))
 #+end_src
   
 #+begin_src emacs-lisp
   (eval-after-load 'org
-    '(progn
-       (add-to-list 'org-structure-template-alist
-                    '("el" . "src emacs-lisp"))))
+    (lambda ()
+      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))))
 #+end_src
 
 LaTeX
 #+begin_src emacs-lisp
-  (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
 #+end_src
 
 Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
@@ -384,6 +383,8 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
             "\\*Completions\\*"
             "\\*Flycheck errors\\*"
             "^\\*Shortdoc"
+            "\\*grep\\*"
+            "\\*Apropos\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
