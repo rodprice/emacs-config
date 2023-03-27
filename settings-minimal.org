@@ -364,7 +364,6 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
         (princ (s-join "\n" files)))))
 #+end_src
 
-
 ** Popper
 
 #+begin_src emacs-lisp

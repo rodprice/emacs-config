@@ -245,7 +245,96 @@
                   :weight bold)))))
   #+end_src
 
+* Geometry
+
+  #+begin_src emacs-lisp
+    (require 'saveplace)
+    (setq-default save-place t)
+  #+end_src
+
+  Save emacs frames on exit, and restore them on startup
+  #+begin_src emacs-lisp
+    ;; These are the same values that a bare-naked emacs uses on initial startup
+    (defvar my-initial-geometry '(nil 80 38 100 100)
+      "The initial frame geometry to use when no geometry file is present.")
+
+    (defvar my-geometry-file
+      (expand-file-name ".geometry" user-emacs-directory)
+      "The file where frame geometry settings are saved.")
+
+    (defun my-load-frame-geometry ()
+      "Load saved frame geometry settings."
+      (if (file-readable-p my-geometry-file)
+          (with-temp-buffer
+            (insert-file-contents my-geometry-file)
+            (read (buffer-string)))
+        my-initial-geometry))
+
+    (defun my-get-geometry ()
+      "Get the current geometry of the active frame."
+      (mapcar
+       (apply-partially 'frame-parameter nil)
+       (list 'fullscreen 'width 'height 'top 'left)))
+
+    (defun my-save-frame-geometry ()
+      "Save current frame geometry settings."
+      (with-temp-file my-geometry-file
+        (print (my-get-geometry) (current-buffer))))
+
+    (defun my-set-geometry ()
+      "Set the default frame geometry using the values loaded from my-geometry-file."
+      (let ((geom (my-load-frame-geometry)))
+        (modify-all-frames-parameters
+         `((fullscreen . ,(nth 0 geom))
+           (width . ,(nth 1 geom))
+           (height . ,(nth 2 geom))
+           (top . ,(nth 3 geom))
+           (left . ,(nth 4 geom))))))
+        ;; (setq default-frame-alist
+        ;;       (append
+        ;;        default-frame-alist
+
+    ;; Returns (top left bottom right) measured in pixels
+    (defun my-get-geometry-pixels ()
+      "Get the current geometry, measured in pixels, of the active frame."
+      (let ((width (frame-pixel-width))
+            (height (frame-pixel-height))
+            (top (eval (frame-parameter nil 'top)))
+            (left (eval (frame-parameter nil 'left))))
+        (list top left (+ top width) (+ left height))))
+
+    (defun my-get-margins-pixels ()
+      "Return the margins remaining on each side of the frame, measured in pixels."
+      (let ((frame-size (my-get-geometry-pixels))
+            (display-size (cdr (assq 'workarea (frame-monitor-attributes)))))
+        (list
+         (- (nth 0 frame-size) (nth 0 display-size))      ; left side of the frame
+         (- (nth 1 frame-size) (nth 1 display-size))      ; top side of the frame
+         (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
+         (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
+
+    (defun my-geometry-startup-after-init (&optional frame)
+      "Called after loading the init file."
+      (if (display-graphic-p)
+          (with-selected-frame (or frame (selected-frame))
+            (my-set-geometry)
+            (add-hook 'kill-emacs-hook 'my-save-frame-geometry))))
+            ;; (add-to-list 'default-frame-alist '(internal-border-width . 0))
+            ;; (set-fringe-mode '(8 . 0)))
+        ;; Menu bar always off in text mode
+        ;; (menu-bar-mode -1))))
+
+    (add-hook 'after-init-hook 'my-geometry-startup-after-init)
+    (add-hook 'before-make-frame-hook 'my-set-geometry)
+  #+end_src
+  
 * Editing
+
+** Prerequisites
+
+  #+begin_src emacs-lisp
+    (require 'my-functions)
+  #+end_src
 
 ** Search
 
@@ -274,6 +363,12 @@
     (global-set-key (kbd "M-t") 'transpose-previous-line)
   #+end_src
   
+** Camel case
+
+  #+begin_src emacs-lisp
+    (global-set-key (kbd "M-c") 'toggle-camelcase-underscores)
+  #+end_src
+
 ** Cursor movement
 
   #+begin_src emacs-lisp
@@ -307,14 +402,409 @@
       (error "Could not find an aspell executable on exec-path.")))
 #+end_src
 
+** Regions
+  
+  Kill or yank entire lines
+  #+begin_src emacs-lisp
+    (use-package whole-line-or-region
+      :ensure t
+      :bind (("C-w" . whole-line-or-region-kill-region)
+             ("M-w" . whole-line-or-region-copy-region-as-kill)))
+  #+end_src
+
+  Expand or contract the region by sexp
+  #+begin_src emacs-lisp
+    (use-package expand-region
+      :ensure t
+      :config
+      :bind (("C-=" . er/expand-region)
+             ("M-=" . er/contract-region)))
+  #+end_src
+
 * Window management
 
+** Window movement
+
+  #+begin_src emacs-lisp
+    ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
+  #+end_src
+  
+** Window and frame selection
+
+  #+begin_src emacs-lisp
+    (global-set-key (kbd "C-x C-o") 'other-frame)
+  #+end_src
+
+#+begin_src emacs-lisp
+  (desktop-save-mode 1)
+#+end_src
+
+** Popper
+
+#+begin_src emacs-lisp
+  (use-package popper
+    :ensure t ; or :straight t
+    :bind (("C-`"   . popper-toggle-latest)
+           ("M-`"   . popper-cycle)
+           ("C-M-`" . popper-toggle-type))
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*grep\\*"
+            "\\*Backtrace\\*"
+            "\\*Completions\\*"
+            "\\*Flycheck errors\\*"
+            "^\\*Shortdoc"
+            "\\*grep\\*"
+            "\\*Apropos\\*"
+            ("\\*Warnings\\*" . hide)
+            help-mode
+            compilation-mode))
+    (popper-mode +1)
+    (popper-echo-mode +1))                ; For echo area hints
+#+end_src
+
 * Completions
+
+** Vertico package and friends
+
+#+begin_src emacs-lisp
+  (use-package vertico
+    :ensure t
+    :custom
+    (vertico-cycle t)
+    :init
+    (vertico-mode +1))
+
+  (use-package vertico-mouse
+    :ensure nil)
+
+  (use-package vertico-directory
+    :after vertico
+    :ensure nil
+    :init
+      (keymap-set vertico-map "RET" #'vertico-directory-enter)
+      (keymap-set vertico-map "DEL" #'vertico-directory-delete-char)
+      (keymap-set vertico-map "M-DEL" #'vertico-directory-delete-word)
+      (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy))
+
+  (use-package orderless
+    :ensure t
+    :init
+    (defun basic-remote-try-completion (string table pred point)
+      (and (vertico--remote-p string)
+           (completion-basic-try-completion string table pred point)))
+    (defun basic-remote-all-completions (string table pred point)
+      (and (vertico--remote-p string)
+           (completion-basic-all-completions string table pred point)))
+    (add-to-list
+     'completion-styles-alist
+     '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
+    (setq completion-styles '(orderless basic)
+          completion-category-overrides '((file (styles basic-remote partial-completion)))
+          completion-category-defaults nil))
+
+  ;; Persist history over Emacs restarts. Vertico sorts by history position.
+  (use-package savehist
+    :ensure t
+    :init
+    (savehist-mode))
+
+  (use-package marginalia
+    :ensure t
+    :config (marginalia-mode))
+  #+end_src
+
+** Consult and friends
+
+#+begin_src emacs-lisp
+  (use-package consult
+    :ensure t
+    :after vertico
+    :init
+    ;; Use `consult-completion-in-region' if Vertico is enabled.
+    ;; Otherwise use the default `completion--in-region' function.
+    ;; (setq completion-in-region-function
+    ;;       (lambda (&rest args)
+    ;;         (apply (if vertico-mode
+    ;;                    #'consult-completion-in-region
+    ;;                  #'completion--in-region)
+    ;;                args)))
+    :bind
+    (("M-y" . consult-yank-from-kill-ring)
+     ("C-x b" . consult-buffer)))
+
+  (recentf-mode)
+  (setq completion-ignore-case t)
+  (setq read-file-name-completion-ignore-case t)
+
+        ;; (use-package company
+        ;;   :config
+        ;;   (setq company-idle-delay 0)
+        ;;   (setq company-minimum-prefix-length 3)
+        ;;   (global-company-mode t))
+#+end_src
+
+** Corfu and friends
+
+#+begin_src emacs-lisp
+  (use-package corfu
+    :ensure t
+    ;; Optional customizations
+    :custom
+    (corfu-cycle t)                 ; Allows cycling through candidates
+    (corfu-preselect 'prompt)
+    ;; (corfu-auto t)                  ; Enable auto completion
+    ;; (corfu-auto-prefix 2)
+    ;; (corfu-auto-delay 0.0)
+    ;; (corfu-echo-documentation 0.25) ; Enable documentation for completions
+    ;; (corfu-preview-current 'insert) ; Do not preview current candidate
+    ;; (corfu-preselect-first nil)
+    ;; (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
+
+    ;; Optionally use TAB for cycling, default is `corfu-complete'.
+    :bind (:map corfu-map
+                ("M-SPC"      . corfu-insert-separator)
+                ("TAB"        . corfu-next)
+                ([tab]        . corfu-next)
+                ("S-TAB"      . corfu-previous)
+                ([backtab]    . corfu-previous)
+                ("C-<return>" . corfu-insert)
+                ("RET"        . nil))
+
+    :init
+    (global-corfu-mode)
+    ;;(corfu-history-mode)
+
+    :config
+    (setq tab-always-indent 'complete)
+    (add-hook 'eshell-mode-hook
+              (lambda () (setq-local corfu-quit-at-boundary t
+                                corfu-quit-no-match t
+                                corfu-auto nil)
+                (corfu-mode))))
+#+end_src
+
+** Embark package
+
+#+begin_src emacs-lisp
+    (use-package embark
+      :disabled
+      :ensure t
+
+      :bind
+      (("C-." . embark-act)         ;; pick some comfortable binding
+       ("C-;" . embark-dwim)        ;; good alternative: M-.
+       ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+      :init
+
+      ;; Optionally replace the key help with a completing-read interface
+      (setq prefix-help-command #'embark-prefix-help-command)
+
+      :config
+
+      ;; Hide the mode line of the Embark live/completions buffers
+      (add-to-list 'display-buffer-alist
+                   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                     nil
+                     (window-parameters (mode-line-format . none)))))
+
+    ;; Consult users will also want the embark-consult package.
+    (use-package embark-consult
+      :ensure t
+      :after (embark consult)
+      :demand t ; only necessary if you have the hook below
+      ;; if you want to have consult previews as you move around an
+      ;; auto-updating embark collect buffer
+      :hook
+      (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
+** Notes
 
 https://www.masteringemacs.org/article/understanding-minibuffer-completion
 https://www.masteringemacs.org/article/introduction-to-ido-mode
 
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-/") 'hippie-expand)
+#+end_src
+
 Show all buffers currently displayed in windows in all frames
 #+begin_src emacs-lisp
-  (mapcar (lambda (frame) (cons frame (list (window-list frame)))) (frame-list))
+  ;; (mapcar (lambda (frame) (cons frame (list (window-list frame)))) (frame-list))
 #+end_src
+
+* Remote
+
+From [[https://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82bhttps://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82b][init-tramp-plink.el]]
+#+begin_src emacs-lisp
+  (require 'tramp)
+  (modify-coding-system-alist 'process "plink" 'utf-8-unix)
+  (setq tramp-default-method "plink"
+        tramp-completion-without-shell-p t
+        tramp-verbose 10
+        tramp-debug-buffer t)
+
+  ;; (let ((path (getenv "PATH"))
+  ;;       (plink (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)"))))
+  ;;   (setenv "PATH" (concat plink path-separator path)))
+
+  ;; ;; (add-to-list 'exec-path "C:/Program Files (x86)/PuTTY/")
+  ;; (add-to-list 'exec-path (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)")))
+#+end_src
+
+From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
+#+begin_src emacs-lisp
+  ;; (when (eq window-system 'w32)
+  ;;   (setq tramp-default-method "plink")
+  ;;   (when (and (not (string-match my-putty-directory (getenv "PATH")))
+  ;; 	     (file-directory-p my-putty-directory))
+  ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
+  ;;     (add-to-list 'exec-path my-putty-directory)))
+#+end_src
+
+* Org mode
+
+Appearance
+#+begin_src emacs-lisp
+  (use-package org-modern
+    :ensure t
+    :hook ((org-mode . org-modern-mode)
+           (org-agenda-finalize . org-modern-agenda)))
+#+end_src
+  
+#+begin_src emacs-lisp
+  (eval-after-load 'org
+    (lambda ()
+      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))))
+#+end_src
+
+LaTeX
+#+begin_src emacs-lisp
+  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+#+end_src
+
+Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
+#+begin_src emacs-lisp
+  (use-package org-tufte
+    :ensure nil
+    :config
+      (require 'org-tufte)
+      (setq org-tufte-htmlize-code t
+            org-tufte-embed-images nil))
+#+end_src
+
+* Code folding
+
+Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
+#+begin_src emacs-lisp
+  (use-package hideshow
+    :ensure t
+    :config
+    (defun hs-cycle (&optional level)
+      (interactive "p")
+      (let (message-log-max
+            (inhibit-message t))
+        (if (= level 1)
+            (pcase last-command
+              ('hs-cycle
+               (hs-hide-level 1)
+               (setq this-command 'hs-cycle-children))
+              ('hs-cycle-children
+               ;; TODO: Fix this case. `hs-show-block' needs to be
+               ;; called twice to open all folds of the parent
+               ;; block.
+               (save-excursion (hs-show-block))
+               (hs-show-block)
+               (setq this-command 'hs-cycle-subtree))
+              ('hs-cycle-subtree
+               (hs-hide-block))
+              (_
+               (if (not (hs-already-hidden-p))
+                   (hs-hide-block)
+                 (hs-hide-level 1)
+                 (setq this-command 'hs-cycle-children))))
+          (hs-hide-level level)
+          (setq this-command 'hs-hide-level))))
+
+    (defun hs-global-cycle ()
+      (interactive)
+      (pcase last-command
+        ('hs-global-cycle
+         (save-excursion (hs-show-all))
+         (setq this-command 'hs-global-show))
+        (_ (hs-hide-all))))    
+
+    :bind (:map prog-mode-map
+                (("C-<tab>" . hs-cycle)
+                 ("S-C-<tab>" . hs-global-cycle)))
+    
+    :hook (prog-mode . hs-minor-mode))
+#+end_src
+
+* Python modes
+
+** Python mode
+
+Remove "guess indent" python message
+#+begin_src emacs-lisp
+  (use-package python
+    :config
+    (setq python-indent-guess-indent-offset-verbose nil))
+#+end_src
+
+** Virtual environments
+
+#+begin_src emacs-lisp
+  (use-package pythonic
+    :ensure t)
+
+  (use-package conda
+     :ensure nil
+     :after pythonic
+     :load-path "lisp"
+     :init
+       (setq conda-anaconda-home my-anaconda-dir)
+       (setq conda-env-home-directory my-anaconda-dir)
+     :config
+       (conda-env-initialize-interactive-shells)
+       (conda-env-initialize-eshell)
+       (conda-env-autoactivate-mode 0)
+       (add-hook 'find-file-hook
+                 (lambda ()
+                   (when (bound-and-true-p conda-project-env-path)
+                     (conda-env-activate-for-buffer)))))
+#+end_src
+
+** Linting
+
+Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t
+    :after conda
+    :defer t
+    :hook (python-mode . eglot-ensure))
+#+end_src
+
+Documentation for flycheck [[https://www.flycheck.org][here]].
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode)
+    :bind (("M-n" . flycheck-next-error)
+           ("M-p" . flycheck-previous-error)
+           ("M-l" . flycheck-list-errors)))
+#+end_src
+
+Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
+#+begin_src emacs-lisp
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config (global-flycheck-eglot-mode 1))
+#+end_src
+  

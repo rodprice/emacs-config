@@ -2,6 +2,30 @@
 ;;; Commentary:
 ;;; Code:
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utility functions to print lists in readable form
+
+(defun print-path-list (paths)
+  "Print the paths in a list of strings like exec-path."
+  (dolist (path paths)
+    (prin1 path)
+    (princ "\n")))
+
+(defun print-path-string (path-str)
+  "Print the paths in a string like $PATH."
+  (let* ((separator (if (memq window-system '(mac ns x)) ":" ";"))
+         (paths (split-string path-str separator)))
+    (print-path-list paths)))
+
+(defun print-paths (paths)
+  "Print a set of paths, either a string or a list of strings."
+  (if (stringp paths)
+      (print-path-string paths)
+    (if (listp paths)
+        (print-path-list paths)
+      (princ "Argument `paths` is not a string or list of strings"))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement of cursor
 
