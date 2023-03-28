@@ -1,6 +1,10 @@
 #+TITLE: Emacs Configuration
 #+STARTUP: overview indent
 
+  #+begin_src emacs-lisp :comments no :tangle yes
+    ;; -*- lexical-binding: t -*-
+  #+end_src
+
 * Defaults
 
 ** Text
@@ -470,6 +474,15 @@
 
 ** Vertico package and friends
 
+Persist history over Emacs restarts. Vertico sorts by history position.
+#+begin_src emacs-lisp
+  (use-package savehist
+    :ensure t
+    :init
+    (savehist-mode))
+#+end_src
+
+Vertico is vertical interactive completion: [[https://github.com/minad/vertico][README]]
 #+begin_src emacs-lisp
   (use-package vertico
     :ensure t
@@ -477,19 +490,46 @@
     (vertico-cycle t)
     :init
     (vertico-mode +1))
+#+end_src
 
+Mouse integration into Vertico
+#+begin_src emacs-lisp
   (use-package vertico-mouse
+    :after vertico
     :ensure nil)
+#+end_src
 
+IDO-like directory navigation
+#+begin_src emacs-lisp
   (use-package vertico-directory
     :after vertico
     :ensure nil
-    :init
-      (keymap-set vertico-map "RET" #'vertico-directory-enter)
-      (keymap-set vertico-map "DEL" #'vertico-directory-delete-char)
-      (keymap-set vertico-map "M-DEL" #'vertico-directory-delete-word)
-      (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy))
+    :bind (:map vertico-map
+                ("RET" . vertico-directory-enter)
+                ("DEL" . vertico-directory-delete-char)
+                ("M-DEL" . vertico-directory-delete-word))
+    ;; Tidy shadowed file names
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+#+end_src
 
+Configure Vertico per command or completion category: [[https://github.com/minad/vertico#configure-vertico-per-command-or-completion-category][README]]
+#+begin_src emacs-lisp
+  (use-package vertico-multiform
+    :after vertico
+    :ensure nil
+    :init
+    (vertico-multiform-mode)
+    (setq vertico-multiform-commands
+          '((consult-imenu buffer indexed)
+            (describe-variable unobtrusive)
+            (describe-function unobtrusive)))
+    (setq vertico-multiform-categories
+          '((consult-grep buffer))))
+#+end_src
+
+The [[https://github.com/oantolin/orderless][Orderless]] package enables completion without regard to the order in which
+candidates are entered. 
+#+begin_src emacs-lisp
   (use-package orderless
     :ensure t
     :init
@@ -506,24 +546,42 @@
           completion-category-overrides '((file (styles basic-remote partial-completion)))
           completion-category-defaults nil))
 
-  ;; Persist history over Emacs restarts. Vertico sorts by history position.
-  (use-package savehist
-    :ensure t
-    :init
-    (savehist-mode))
+#+end_src
 
+The [[https://github.com/minad/marginalia][Marginalia]] package adds extra information to minibuffer completions.
+#+begin_src emacs-lisp
   (use-package marginalia
     :ensure t
     :config (marginalia-mode))
-  #+end_src
+#+end_src
 
 ** Consult and friends
 
+These buffers will be ignored by the consult-buffer command (C-x b)
+#+begin_src emacs-lisp
+  (defvar my-hidden-buffers '("\\`\\*Compile-Log\\*\\'"
+                              "\\`\\*Async-native-compile-log\\*\\'"
+                              "\\`\\*Flycheck errors\\*\\'"
+                              "\\`\\*Flycheck error messages\\*\\'"
+                              "\\`\\*EGLOT.*\\*\\'"
+                              "\\`\\*Native-compile-Log\\*\\'"
+                              "\\`\\*debug tramp/.*\\*\\'"))
+#+end_src
+
+Simplify the =consult-buffer= command: [[https://github.com/minad/consult/wiki#hide-all-sources-except-normal-buffers-in-consult-buffer-by-default][Consult wiki]]
+Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/yy79pn/how_to_hideignore_orgroam_buffersfiles_when_using/][Reddit]]
 #+begin_src emacs-lisp
   (use-package consult
     :ensure t
     :after vertico
-    :init
+    :config
+    ;; Make consult-buffer show only buffers initially
+    (dolist (src consult-buffer-sources)
+      (unless (eq src 'consult--source-buffer)
+        (set src (plist-put (symbol-value src) :hidden t))))
+    ;; Filter out unwanted buffers shown by consult-buffer
+    (dolist (buff my-hidden-buffers)
+      (add-to-list 'consult-buffer-filter buff t))
     ;; Use `consult-completion-in-region' if Vertico is enabled.
     ;; Otherwise use the default `completion--in-region' function.
     ;; (setq completion-in-region-function
@@ -539,12 +597,15 @@
   (recentf-mode)
   (setq completion-ignore-case t)
   (setq read-file-name-completion-ignore-case t)
+#+end_src
 
-        ;; (use-package company
-        ;;   :config
-        ;;   (setq company-idle-delay 0)
-        ;;   (setq company-minimum-prefix-length 3)
-        ;;   (global-company-mode t))
+Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-git][README]]
+#+begin_src emacs-lisp
+  (use-package consult-ls-git
+    :ensure t
+    :bind
+    (("C-c g f" . #'consult-ls-git)
+     ("C-c g F" . #'consult-ls-git-other-window)))
 #+end_src
 
 ** Corfu and friends
@@ -580,11 +641,11 @@
 
     :config
     (setq tab-always-indent 'complete)
-    (add-hook 'eshell-mode-hook
-              (lambda () (setq-local corfu-quit-at-boundary t
-                                corfu-quit-no-match t
-                                corfu-auto nil)
-                (corfu-mode))))
+    :hook
+    (eshell-mode . (lambda () (setq-local corfu-quit-at-boundary t
+                                          corfu-quit-no-match t
+                                          corfu-auto nil)
+                     (corfu-mode))))
 #+end_src
 
 ** Embark package
@@ -654,6 +715,27 @@ From [[https://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82bhttps:/
 
   ;; ;; (add-to-list 'exec-path "C:/Program Files (x86)/PuTTY/")
   ;; (add-to-list 'exec-path (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)")))
+#+end_src
+
+Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers][Consult wiki]]
+#+begin_src emacs-lisp
+  (defun consult-buffer-state-no-tramp ()
+    "Buffer state function that doesn't preview Tramp buffers."
+    (let ((orig-state (consult--buffer-state))
+          (filter (lambda (action cand)
+                    (if (and cand
+                             (or (eq action 'return)
+                                 (let ((buffer (get-buffer cand)))
+                                   (and buffer
+                                        (not (file-remote-p
+                                              (buffer-local-value 'default-directory buffer)))))))
+                        cand
+                      nil))))
+      (lambda (action cand)
+        (funcall orig-state action (funcall filter action cand)))))
+
+  ;; (setq consult--source-buffer
+  ;;       (plist-put consult--source-buffer :state #'consult-buffer-state-no-tramp))
 #+end_src
 
 From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
