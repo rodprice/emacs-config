@@ -1,11 +1,14 @@
 #+TITLE: Emacs Configuration
 #+STARTUP: overview indent
 
-  #+begin_src emacs-lisp :comments no :tangle yes
-    ;; -*- lexical-binding: t -*-
-  #+end_src
 
 * Defaults
+
+** Preliminaries
+
+#+begin_src emacs-lisp
+  ;; -*- coding: utf-8; lexical-binding: t -*-
+#+end_src
 
 ** Text
 
@@ -472,7 +475,22 @@
 
 * Completions
 
+** Which-key package
+
+Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org][Emacs from scratch]]. Source code and README is [[https://github.com/justbur/emacs-which-key][here]].
+#+begin_src emacs-lisp
+  (use-package which-key
+    :ensure t
+    :defer 0
+    :diminish which-key-mode
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 1))
+#+end_src
+
 ** Vertico package and friends
+
+Note: [[https://www.reddit.com/r/emacs/comments/ymriwz/can_i_start_executeextendedcommand_with_an/][Can I start "execute-extended-command" with an initial input?]]
 
 Persist history over Emacs restarts. Vertico sorts by history position.
 #+begin_src emacs-lisp
@@ -491,18 +509,29 @@ from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-
     :custom
     (vertico-cycle t)
     (vertico-preselect 'directory)
-    :init
-    (vertico-mode)
-    (defun my/vertico-insert ()
-      (interactive)
-      (let* ((mb (minibuffer-contents-no-properties))
-             (lc (if (string= mb "") mb (substring mb -1))))
-        (cond ((string-match-p "^[/~:]" lc) (self-insert-command 1 ?/))
-              ((file-directory-p (vertico--candidate)) (vertico-insert))
-              (t (self-insert-command 1 ?/)))))
+    (completion-cycle-threshold t)
     :bind (:map vertico-map
-                ("/" . #'my/vertico-insert)))
-    #+end_src
+                ("<tab>" . vertico-insert)
+                ("C-M-n" . vertico-next-group)
+                ("C-M-p" . vertico-previous-group)
+                ("?"     . minibuffer-completion-help)
+                ("C-M-i" . minibuffer-complete)
+                ("M-RET" . minibuffer-force-complete-and-exit))
+    :init
+    ;; Prefix the current candidate with "» ". From
+    ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
+    (advice-add #'vertico--format-candidate
+                :around
+                (lambda (orig cand prefix suffix index _start)
+                  (setq cand (funcall orig cand prefix suffix index _start))
+                  (concat
+                   (if (= vertico--index index)
+                       (propertize "» " 'face 'vertico-current)
+                     "  ")
+                   cand)))
+    :config
+    (vertico-mode))
+#+end_src
 
 Mouse integration into Vertico
 #+begin_src emacs-lisp
@@ -542,36 +571,62 @@ Configure Vertico per command or completion category: [[https://github.com/minad
         command))
     (vertico-multiform-mode)
     (setq vertico-multiform-commands
-          '((consult-imenu buffer indexed)
+          '( ;; ("\\`execute-extended-command" flat +vertico-annotate-binding)
+            (consult-imenu buffer indexed)
             (describe-variable unobtrusive)
             (describe-function unobtrusive)))
     (setq vertico-multiform-categories
           '((consult-grep buffer))))
 #+end_src
 
+** Orderless package
+
 The [[https://github.com/oantolin/orderless][Orderless]] package enables completion without regard to the order in which
-candidates are entered. 
-#+begin_src emacs-lisp
+candidates are entered. [[https://github.com/oantolin/orderless#style-dispatchers][Style dispatchers]] can be used to customize the completion
+behaviors for =M-x= and the =describe-*= commands, for instance.
+#+begin_src emacs-lisp :tangle no
   (use-package orderless
+    :disabled 
     :ensure t
     :init
     (defun basic-remote-try-completion (string table pred point)
       (and (vertico--remote-p string)
            (completion-basic-try-completion string table pred point)))
+
     (defun basic-remote-all-completions (string table pred point)
       (and (vertico--remote-p string)
            (completion-basic-all-completions string table pred point)))
+
+    (defun flex-if-twiddle (pattern _index _total)
+      (when (string-suffix-p "~" pattern)
+        `(orderless-flex . ,(substring pattern 0 -1))))
+
+    (defun first-initialism (pattern index _total)
+      (if (= index 0) 'orderless-initialism))
+
+    (defun without-if-bang (pattern _index _total)
+      (cond
+       ((equal "!" pattern)
+        '(orderless-literal . ""))
+       ((string-prefix-p "!" pattern)
+        `(orderless-without-literal . ,(substring pattern 1)))))
+
+    (setq orderless-matching-styles '(orderless-regexp)
+          orderless-style-dispatchers '(first-initialism
+                                        flex-if-twiddle
+                                        without-if-bang))
+
     (add-to-list
      'completion-styles-alist
      '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
+
     (setq completion-styles '(orderless basic)
           completion-category-overrides '((file (styles basic-remote partial-completion)))
           completion-category-defaults nil))
-
 #+end_src
 
 The [[https://github.com/minad/marginalia][Marginalia]] package adds extra information to minibuffer completions.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package marginalia
     :ensure t
     :config (marginalia-mode))
@@ -632,20 +687,20 @@ Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-
 
 ** Corfu and friends
 
+Note: [[https://github.com/minad/corfu/issues/136][How to make corfu + orderless work well with eglot + clangd]]
+Note: [[https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot][Configuring corfu for eglot]]
+Note: [[https://github.com/minad/corfu#completing-in-the-eshell-or-shell][Completing in eshell or shell]]
+
+[[https://github.com/minad/corfu][Corfu]] is a completion UI that makes use of emacs' native completion functions.
+Here I set it up with [[https://github.com/minad/corfu#tab-and-go-completion][tab-and-go completion]]. It could also be used for completion
+in the [[https://github.com/minad/corfu#completing-in-the-minibuffer][minibuffer]].
 #+begin_src emacs-lisp
   (use-package corfu
     :ensure t
     ;; Optional customizations
     :custom
-    (corfu-cycle t)                 ; Allows cycling through candidates
+    (corfu-cycle t)
     (corfu-preselect 'prompt)
-    ;; (corfu-auto t)                  ; Enable auto completion
-    ;; (corfu-auto-prefix 2)
-    ;; (corfu-auto-delay 0.0)
-    ;; (corfu-echo-documentation 0.25) ; Enable documentation for completions
-    ;; (corfu-preview-current 'insert) ; Do not preview current candidate
-    ;; (corfu-preselect-first nil)
-    ;; (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
 
     ;; Optionally use TAB for cycling, default is `corfu-complete'.
     :bind (:map corfu-map
@@ -658,52 +713,112 @@ Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-
                 ("RET"        . nil))
 
     :init
+    (defun corfu-enable-in-eshell ()
+      "Enable completion with corfu in the eshell buffer."
+      (setq-local corfu-quit-at-boundary t
+                  corfu-quit-no-match t
+                  corfu-auto nil)
+      (corfu-mode 1))
+
+    (defun corfu-send-shell (&rest _)
+      "Send completion candidate when inside comint/eshell."
+      (cond
+       ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
+        (eshell-send-input))
+       ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
+        (comint-send-input))))
+
+    (advice-add #'corfu-insert :after #'corfu-send-shell)
+
     (global-corfu-mode)
     ;;(corfu-history-mode)
 
     :config
     (setq tab-always-indent 'complete)
     :hook
-    (eshell-mode . (lambda () (setq-local corfu-quit-at-boundary t
-                                          corfu-quit-no-match t
-                                          corfu-auto nil)
-                     (corfu-mode))))
+    (eshell-mode . corfu-enable-in-eshell))
+#+end_src
+
+[[https://github.com/minad/cape][Cape]] provides =completion-at-point= extensions.
+#+begin_src emacs-lisp
+  (use-package cape
+    :ensure t
+    ;; Bind dedicated completion commands
+    ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+    :bind (("C-c p p" . completion-at-point) ;; capf
+           ("C-c p t" . complete-tag)        ;; etags
+           ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+           ("C-c p h" . cape-history)
+           ("C-c p f" . cape-file)
+           ("C-c p k" . cape-keyword)
+           ("C-c p s" . cape-symbol)
+           ("C-c p a" . cape-abbrev)
+           ("C-c p i" . cape-ispell)
+           ("C-c p l" . cape-line)
+           ("C-c p w" . cape-dict)
+           ("C-c p \\" . cape-tex)
+           ("C-c p _" . cape-tex)
+           ("C-c p ^" . cape-tex)
+           ("C-c p &" . cape-sgml)
+           ("C-c p r" . cape-rfc1345))
+    :init
+    ;; Add `completion-at-point-functions', used by `completion-at-point'.
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    ;;(add-to-list 'completion-at-point-functions #'cape-history)
+    ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+    ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+    ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+    ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+    ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+    ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+    ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+    ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+    ;;(add-to-list 'completion-at-point-functions #'cape-line)
+
+    (when (< emacs-major-version 29)
+      ;; Silence the pcomplete capf, no errors or messages!
+      (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+      ;; Ensure that pcomplete does not write to the buffer
+      ;; and behaves as a pure `completion-at-point-function'.
+      (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+  )
 #+end_src
 
 ** Embark package
 
-#+begin_src emacs-lisp
-    (use-package embark
-      :disabled
-      :ensure t
+#+begin_src emacs-lisp :tangle no
+  (use-package embark
+    :disabled
+    :ensure t
 
-      :bind
-      (("C-." . embark-act)         ;; pick some comfortable binding
-       ("C-;" . embark-dwim)        ;; good alternative: M-.
-       ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("C-;" . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
-      :init
+    :init
 
-      ;; Optionally replace the key help with a completing-read interface
-      (setq prefix-help-command #'embark-prefix-help-command)
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
 
-      :config
+    :config
 
-      ;; Hide the mode line of the Embark live/completions buffers
-      (add-to-list 'display-buffer-alist
-                   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                     nil
-                     (window-parameters (mode-line-format . none)))))
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
 
-    ;; Consult users will also want the embark-consult package.
-    (use-package embark-consult
-      :ensure t
-      :after (embark consult)
-      :demand t ; only necessary if you have the hook below
-      ;; if you want to have consult previews as you move around an
-      ;; auto-updating embark collect buffer
-      :hook
-      (embark-collect-mode . consult-preview-at-point-mode))
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :ensure t
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
 ** Notes
@@ -762,12 +877,12 @@ Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-n
 
 From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
 #+begin_src emacs-lisp
-  ;; (when (eq window-system 'w32)
-  ;;   (setq tramp-default-method "plink")
-  ;;   (when (and (not (string-match my-putty-directory (getenv "PATH")))
-  ;; 	     (file-directory-p my-putty-directory))
-  ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
-  ;;     (add-to-list 'exec-path my-putty-directory)))
+    ;; (when (eq window-system 'w32)
+    ;;   (setq tramp-default-method "plink")
+    ;;   (when (and (not (string-match my-putty-directory (getenv "PATH")))
+    ;; 	     (file-directory-p my-putty-directory))
+    ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
+    ;;     (add-to-list 'exec-path my-putty-directory)))
 #+end_src
 
 * Org mode
@@ -860,6 +975,18 @@ Remove "guess indent" python message
     (setq python-indent-guess-indent-offset-verbose nil))
 #+end_src
 
+** Environment variables
+
+The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consisten set of environment variables depending on
+which project the current buffer is in.
+#+begin_src emacs-lisp
+  (use-package direnv
+    :disabled
+    :ensure t
+    :config
+    (add-to-list 'warning-suppress-types '(direnv)))
+#+end_src
+
 ** Virtual environments
 
 #+begin_src emacs-lisp
@@ -906,9 +1033,9 @@ Documentation for flycheck [[https://www.flycheck.org][here]].
 
 Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 #+begin_src emacs-lisp
-(use-package flycheck-eglot
-  :ensure t
-  :after (flycheck eglot)
-  :config (global-flycheck-eglot-mode 1))
+  (use-package flycheck-eglot
+    :ensure t
+    :after (flycheck eglot)
+    :config (global-flycheck-eglot-mode 1))
 #+end_src
   
