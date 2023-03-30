@@ -13,57 +13,57 @@
 ** Text
 
    Character encodings default to utf-8.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (prefer-coding-system 'utf-8)
      (set-language-environment 'utf-8)
      (set-default-coding-systems 'utf-8)
      (set-terminal-coding-system 'utf-8)
      (set-selection-coding-system 'utf-8)
-   #+end_src
+ #+end_src
    
    Always insert spaces, never tab characters.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (setq-default indent-tabs-mode nil)
-   #+end_src
+ #+end_src
 
   Truncate long lines everywhere.
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (global-visual-line-mode 0)
     (setq-default truncate-lines t)
-  #+end_src
+#+end_src
     
   Highlight current line.
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (global-hl-line-mode t)
-  #+end_src
+#+end_src
 
 ** Clipboard
    
    Use the system clipboard.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (setq select-enable-clipboard t
            select-enable-primary t
            save-interprogram-paste-before-kill t
            mouse-yank-at-point t)
-   #+end_src
+ #+end_src
    
 ** File locations
    
    Make emacs open files in a reasonable directory by default.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (setq default-directory (getenv "HOME"))
-   #+end_src
+ #+end_src
    
    [[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (setq delete-old-versions t
            kept-new-versions 2
            kept-old-versions 2
            version-control t)
-   #+end_src
+ #+end_src
    
    File locations for custom settings.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
      (unless (file-exists-p custom-file)
        (custom-save-all))                   ; Create new, empty custom file
@@ -72,14 +72,14 @@
      (setq save-place-file (concat user-emacs-directory "places")
            backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                     "backups"))))
-   #+end_src
+ #+end_src
 
 * GUI elements
 
 ** Menu bar, tool bar, scroll bars
 
    Keep menu bar, drop toolbar and scroll bars.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (setq inhibit-startup-message t)
      ;;  (menu-bar-mode -1)
      (when (fboundp 'tool-bar-mode)
@@ -89,25 +89,25 @@
      (when (fboundp 'horizontal-scroll-bar-mode)
        (horizontal-scroll-bar-mode -1))
      (setq visible-bell t)
-   #+end_src
+ #+end_src
 
    Show line numbers on the left.
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (if (>= emacs-major-version 29)
          (global-display-line-numbers-mode 1)
        (global-linum-mode t))
-   #+end_src
+ #+end_src
 
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      ;; (require 'paren)
      ;; (setq show-paren-style 'parenthesis)
      ;; (show-paren-mode 1)
-   #+end_src
+ #+end_src
 
 ** Frame titles
 
    Display buffer name in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
 
      (defun my-emacs-version ()
        "Returns a shortened Emacs name and version string."
@@ -134,35 +134,35 @@
              (:eval (replace-regexp-in-string "^ +" "" (my-emacs-version)))
              (:eval (my-conda-env-current-name))
              (:eval (my-git-branch-name))))
-   #+end_src
+ #+end_src
    
 ** Mode line
    
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
      ;; Display the column number in the mode line
      (setq column-number-mode t)
-   #+end_src
+ #+end_src
   
 * Fonts
 
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (defun my-font-in-family-p (font-family)
       "True iff the current frame's font is in font-family."
       (let ((font-name (cdr (assoc 'font default-frame-alist))))
         (string-prefix-p (downcase font-family) (downcase font-name))))
-  #+end_src
+#+end_src
 
   The default font can also be set in the site-specific preload file.
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (unless (boundp 'my-default-font)
       (defvar my-default-font "Fira Code-11"))
     (add-to-list 'default-frame-alist `(font . ,my-default-font))
     (set-face-font 'default my-default-font)
-  #+end_src
+#+end_src
 
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (use-package ligature
       :if (or (my-font-in-family-p "Fira Code")
               (my-font-in-family-p "JuliaMono"))
@@ -182,11 +182,11 @@
       ;; Enables ligature checks globally in all buffers. You can also do it
       ;; per mode with `ligature-mode'.
       (global-ligature-mode t))
-  #+end_src
+#+end_src
   
 * Themes
 
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (use-package vscode-dark-plus-theme
       :ensure t
       :config
@@ -250,17 +250,17 @@
               (org-tree-slide-heading-level-4
                . (:height 1.5
                   :weight bold)))))
-  #+end_src
+#+end_src
 
 * Geometry
 
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (require 'saveplace)
     (setq-default save-place t)
-  #+end_src
+#+end_src
 
   Save emacs frames on exit, and restore them on startup
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     ;; These are the same values that a bare-naked emacs uses on initial startup
     (defvar my-initial-geometry '(nil 80 38 100 100)
       "The initial frame geometry to use when no geometry file is present.")
@@ -333,70 +333,70 @@
 
     (add-hook 'after-init-hook 'my-geometry-startup-after-init)
     (add-hook 'before-make-frame-hook 'my-set-geometry)
-  #+end_src
+#+end_src
   
 * Editing
 
 ** Prerequisites
 
-  #+begin_src emacs-lisp
-    (require 'my-functions)
-  #+end_src
+#+begin_src emacs-lisp
+  (require 'my-functions)
+#+end_src
 
 ** Search
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-s") 'isearch-forward-regexp)
-    (global-set-key (kbd "C-r") 'isearch-backward-regexp)
-    (global-set-key (kbd "C-M-s") 'isearch-forward)
-    (global-set-key (kbd "C-M-r") 'isearch-backward)
-    (global-set-key (kbd "C-c r") 'rgrep)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+  (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+  (global-set-key (kbd "C-M-s") 'isearch-forward)
+  (global-set-key (kbd "C-M-r") 'isearch-backward)
+  (global-set-key (kbd "C-c r") 'rgrep)
+#+end_src
   
 ** Line wrapping
 
-  #+begin_src emacs-lisp
-        (global-set-key (kbd "C-c q") 'auto-fill-mode)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c q") 'auto-fill-mode)
+#+end_src
 
 ** Join, open, or transpose lines
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-;") 'my-insert-semicolon)
-    (global-set-key (kbd "M-j") 'my-join-lines)
-    (global-set-key (kbd "C-o") 'open-next-line)
-    (global-set-key (kbd "M-o") 'open-previous-line)
-    (global-set-key (kbd "C-t") 'transpose-next-line)
-    (global-set-key (kbd "M-t") 'transpose-previous-line)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-;") 'my-insert-semicolon)
+  (global-set-key (kbd "M-j") 'my-join-lines)
+  (global-set-key (kbd "C-o") 'open-next-line)
+  (global-set-key (kbd "M-o") 'open-previous-line)
+  (global-set-key (kbd "C-t") 'transpose-next-line)
+  (global-set-key (kbd "M-t") 'transpose-previous-line)
+#+end_src
   
 ** Camel case
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "M-c") 'toggle-camelcase-underscores)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-c") 'toggle-camelcase-underscores)
+#+end_src
 
 ** Cursor movement
 
-  #+begin_src emacs-lisp
-    (use-package mwim
-      :ensure t
-      :bind
-      (("C-a" . mwim-beginning-of-line-or-code)
-       ("C-e" . mwim-end-of-line-or-code))
-      :pin melpa)
-  #+end_src
+#+begin_src emacs-lisp
+  (use-package mwim
+    :ensure t
+    :bind
+    (("C-a" . mwim-beginning-of-line-or-code)
+     ("C-e" . mwim-end-of-line-or-code))
+    :pin melpa)
+#+end_src
   
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
-    (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
-    (global-set-key (kbd "M-<") 'scroll-row-up)
-    (global-set-key (kbd "M->") 'scroll-row-down)
-    (global-set-key (kbd "C-<") 'xah-backward-block)
-    (global-set-key (kbd "C->") 'xah-forward-block)
-    (global-set-key (kbd "M-<up>") 'scroll-row-up)
-    (global-set-key (kbd "M-<down>") 'scroll-row-down)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
+  (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
+  (global-set-key (kbd "M-<") 'scroll-row-up)
+  (global-set-key (kbd "M->") 'scroll-row-down)
+  (global-set-key (kbd "C-<") 'xah-backward-block)
+  (global-set-key (kbd "C->") 'xah-forward-block)
+  (global-set-key (kbd "M-<up>") 'scroll-row-up)
+  (global-set-key (kbd "M-<down>") 'scroll-row-down)
+#+end_src
 
 ** Spelling
 
@@ -411,36 +411,49 @@
 
 ** Regions
   
-  Kill or yank entire lines
-  #+begin_src emacs-lisp
-    (use-package whole-line-or-region
-      :ensure t
-      :bind (("C-w" . whole-line-or-region-kill-region)
-             ("M-w" . whole-line-or-region-copy-region-as-kill)))
-  #+end_src
+Kill or yank entire lines
+#+begin_src emacs-lisp
+  (use-package whole-line-or-region
+    :ensure t
+    :bind (("C-w" . whole-line-or-region-kill-region)
+           ("M-w" . whole-line-or-region-copy-region-as-kill)))
+#+end_src
 
-  Expand or contract the region by sexp
-  #+begin_src emacs-lisp
-    (use-package expand-region
-      :ensure t
-      :config
-      :bind (("C-=" . er/expand-region)
-             ("M-=" . er/contract-region)))
-  #+end_src
+Expand or contract the region by sexp
+#+begin_src emacs-lisp
+  (use-package expand-region
+    :ensure t
+    :config
+    :bind (("C-=" . er/expand-region)
+           ("M-=" . er/contract-region)))
+#+end_src
+
+** Which-key package
+
+Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org][Emacs from scratch]]. Source code and README is [[https://github.com/justbur/emacs-which-key][here]].
+#+begin_src emacs-lisp
+  (use-package which-key
+    :ensure t
+    :defer 0
+    :diminish which-key-mode
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 1))
+#+end_src
 
 * Window management
 
 ** Window movement
 
-  #+begin_src emacs-lisp
-    ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
-  #+end_src
+#+begin_src emacs-lisp
+  ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
+#+end_src
   
 ** Window and frame selection
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-x C-o") 'other-frame)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x C-o") 'other-frame)
+#+end_src
 
 #+begin_src emacs-lisp
   (desktop-save-mode 1)
@@ -474,19 +487,6 @@
 #+end_src
 
 * Completions
-
-** Which-key package
-
-Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org][Emacs from scratch]]. Source code and README is [[https://github.com/justbur/emacs-which-key][here]].
-#+begin_src emacs-lisp
-  (use-package which-key
-    :ensure t
-    :defer 0
-    :diminish which-key-mode
-    :config
-    (which-key-mode)
-    (setq which-key-idle-delay 1))
-#+end_src
 
 ** Vertico package and friends
 
