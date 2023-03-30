@@ -6,25 +6,31 @@
 
 ** Preliminaries
 
+All functions below use lexical binding.
 #+begin_src emacs-lisp
   ;; -*- coding: utf-8; lexical-binding: t -*-
 #+end_src
 
+For some reason, the org-element-cache keeps getting messed up.
+#+begin_src emacs-lisp
+    (setq org-element-use-cache nil)
+#+end_src
+
 ** Text
 
-   Character encodings default to utf-8.
- #+begin_src emacs-lisp
-     (prefer-coding-system 'utf-8)
-     (set-language-environment 'utf-8)
-     (set-default-coding-systems 'utf-8)
-     (set-terminal-coding-system 'utf-8)
-     (set-selection-coding-system 'utf-8)
- #+end_src
+Character encodings default to utf-8.
+#+begin_src emacs-lisp
+   (prefer-coding-system 'utf-8)
+   (set-language-environment 'utf-8)
+   (set-default-coding-systems 'utf-8)
+   (set-terminal-coding-system 'utf-8)
+   (set-selection-coding-system 'utf-8)
+#+end_src
    
-   Always insert spaces, never tab characters.
- #+begin_src emacs-lisp
-     (setq-default indent-tabs-mode nil)
- #+end_src
+Always insert spaces, never tab characters.
+#+begin_src emacs-lisp
+   (setq-default indent-tabs-mode nil)
+#+end_src
 
   Truncate long lines everywhere.
 #+begin_src emacs-lisp
@@ -40,30 +46,30 @@
 ** Clipboard
    
    Use the system clipboard.
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (setq select-enable-clipboard t
            select-enable-primary t
            save-interprogram-paste-before-kill t
            mouse-yank-at-point t)
- #+end_src
+#+end_src
    
 ** File locations
    
    Make emacs open files in a reasonable directory by default.
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (setq default-directory (getenv "HOME"))
- #+end_src
+#+end_src
    
    [[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (setq delete-old-versions t
            kept-new-versions 2
            kept-old-versions 2
            version-control t)
- #+end_src
+#+end_src
    
    File locations for custom settings.
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
      (unless (file-exists-p custom-file)
        (custom-save-all))                   ; Create new, empty custom file
@@ -72,14 +78,14 @@
      (setq save-place-file (concat user-emacs-directory "places")
            backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                     "backups"))))
- #+end_src
+#+end_src
 
 * GUI elements
 
 ** Menu bar, tool bar, scroll bars
 
    Keep menu bar, drop toolbar and scroll bars.
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (setq inhibit-startup-message t)
      ;;  (menu-bar-mode -1)
      (when (fboundp 'tool-bar-mode)
@@ -89,25 +95,25 @@
      (when (fboundp 'horizontal-scroll-bar-mode)
        (horizontal-scroll-bar-mode -1))
      (setq visible-bell t)
- #+end_src
+#+end_src
 
    Show line numbers on the left.
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (if (>= emacs-major-version 29)
          (global-display-line-numbers-mode 1)
        (global-linum-mode t))
- #+end_src
+#+end_src
 
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      ;; (require 'paren)
      ;; (setq show-paren-style 'parenthesis)
      ;; (show-paren-mode 1)
- #+end_src
+#+end_src
 
 ** Frame titles
 
    Display buffer name in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 
      (defun my-emacs-version ()
        "Returns a shortened Emacs name and version string."
@@ -134,16 +140,16 @@
              (:eval (replace-regexp-in-string "^ +" "" (my-emacs-version)))
              (:eval (my-conda-env-current-name))
              (:eval (my-git-branch-name))))
- #+end_src
+#+end_src
    
 ** Mode line
    
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
      ;; Display the column number in the mode line
      (setq column-number-mode t)
- #+end_src
+#+end_src
   
 * Fonts
 
@@ -520,15 +526,15 @@ from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-
     :init
     ;; Prefix the current candidate with "» ". From
     ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-    (advice-add #'vertico--format-candidate
-                :around
-                (lambda (orig cand prefix suffix index _start)
-                  (setq cand (funcall orig cand prefix suffix index _start))
-                  (concat
-                   (if (= vertico--index index)
-                       (propertize "» " 'face 'vertico-current)
-                     "  ")
-                   cand)))
+    ;; (advice-add #'vertico--format-candidate
+    ;;             :around
+    ;;             (lambda (orig cand prefix suffix index _start)
+    ;;               (setq cand (funcall orig cand prefix suffix index _start))
+    ;;               (concat
+    ;;                (if (= vertico--index index)
+    ;;                    (propertize "» " 'face 'vertico-current)
+    ;;                  "  ")
+    ;;                cand)))
     :config
     (vertico-mode))
 #+end_src
@@ -887,15 +893,35 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
 
 * Org mode
 
-Appearance
+Appearance (see [[https://github.com/minad/org-modern][org-modern]])
 #+begin_src emacs-lisp
-  (use-package org-modern
-    :ensure t
-    :hook ((org-mode . org-modern-mode)
-           (org-agenda-finalize . org-modern-agenda)))
+(use-package org-modern
+  :ensure t
+  :custom
+  (org-modern-hide-stars nil)		; adds extra indentation
+  (org-modern-table nil)
+  :hook
+  (org-mode . org-modern-mode)
+  (org-agenda-finalize . org-modern-agenda))
 #+end_src
-  
+
+Handle indentation correctly (see [[https://github.com/jdtsmith/org-modern-indent][org-modern-indent]])
 #+begin_src emacs-lisp
+  (use-package org-modern-indent
+    :ensure nil
+    :load-path "lisp"
+    :config ; add late to hook
+    (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+#+end_src
+
+Use Unicode characters for bullets (see [[https://github.com/sabof/org-bullets][org-bullets]])
+#+begin_src emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :hook org-mode)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
   (eval-after-load 'org
     (lambda ()
       (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))))
