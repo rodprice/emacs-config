@@ -548,6 +548,21 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 
 Note: A setup using only native emacs [[https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html][here]].
 
+Modify completions to include remote files.
+#+begin_src emacs-lisp :tangle no
+  (defun basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+
+  (defun basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+
+  (add-to-list
+   'completion-styles-alist
+   '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
+#+end_src
+
 Settings that apply everywhere.
 #+begin_src emacs-lisp
   (setq completion-styles '(basic substring flex))
@@ -600,40 +615,34 @@ behaviors for =M-x= and the =describe-*= commands, for instance.
   (use-package orderless
     :ensure t
     :init
-    (defun basic-remote-try-completion (string table pred point)
-      (and (vertico--remote-p string)
-           (completion-basic-try-completion string table pred point)))
+    ;; (defun flex-if-twiddle (pattern _index _total)
+    ;;   (when (string-suffix-p "~" pattern)
+    ;;     `(orderless-flex . ,(substring pattern 0 -1))))
 
-    (defun basic-remote-all-completions (string table pred point)
-      (and (vertico--remote-p string)
-           (completion-basic-all-completions string table pred point)))
+    ;; (defun first-initialism (pattern index _total)
+    ;;   (if (= index 0) 'orderless-initialism))
 
-    (defun flex-if-twiddle (pattern _index _total)
-      (when (string-suffix-p "~" pattern)
-        `(orderless-flex . ,(substring pattern 0 -1))))
+    ;; (defun without-if-bang (pattern _index _total)
+    ;;   (cond
+    ;;    ((equal "!" pattern)
+    ;;     '(orderless-literal . ""))
+    ;;    ((string-prefix-p "!" pattern)
+    ;;     `(orderless-without-literal . ,(substring pattern 1)))))
 
-    (defun first-initialism (pattern index _total)
-      (if (= index 0) 'orderless-initialism))
+    ;; (setq orderless-matching-styles '(orderless-regexp)
+    ;;       orderless-style-dispatchers '(first-initialism
+    ;;                                     flex-if-twiddle
+    ;;                                     without-if-bang))
 
-    (defun without-if-bang (pattern _index _total)
-      (cond
-       ((equal "!" pattern)
-        '(orderless-literal . ""))
-       ((string-prefix-p "!" pattern)
-        `(orderless-without-literal . ,(substring pattern 1)))))
-
-    (setq orderless-matching-styles '(orderless-regexp)
-          orderless-style-dispatchers '(first-initialism
-                                        flex-if-twiddle
-                                        without-if-bang))
-
-    (add-to-list
-     'completion-styles-alist
-     '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
-
-    (setq completion-styles '(orderless basic)
-          completion-category-overrides '((file (styles basic-remote partial-completion)))
-          completion-category-defaults nil))
+    (setq completion-styles '(basic orderless))
+    (setq completion-category-defaults nil)
+    (setq completion-category-overrides
+               '((buffer (cycle . 20))
+                 (file (styles basic partial-completion)
+                       (cycle . 20))))
+    (add-to-list 'completion-category-overrides
+                 '(eglot (styles orderless flex)
+                         (cycle . 20))))
 #+end_src
 
 ** Vertico package and friends
@@ -700,7 +709,8 @@ IDO-like directory navigation
 #+begin_src emacs-lisp
   (use-package vertico-directory
     :after vertico
-    :ensure t
+    :load-path "elpa/vertico-1.2"
+    :ensure nil
     :demand
     :bind (:map vertico-map
                 ("RET" . vertico-directory-enter)
