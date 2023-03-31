@@ -9,8 +9,9 @@
 (defun print-path-list (paths)
   "Print the paths in a list of strings like exec-path."
   (dolist (path paths)
-    (prin1 path)
-    (princ "\n")))
+    (when path
+      (prin1 path)
+      (princ "\n"))))
 
 (defun print-path-string (path-str)
   "Print the paths in a string like $PATH."

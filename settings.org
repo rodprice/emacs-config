@@ -494,95 +494,40 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
 
 * Completions
 
-** Vertico package and friends
+** Native emacs completion
 
-Note: [[https://www.reddit.com/r/emacs/comments/ymriwz/can_i_start_executeextendedcommand_with_an/][Can I start "execute-extended-command" with an initial input?]]
-
-Persist history over Emacs restarts. Vertico sorts by history position.
+Settings that apply everywhere.
 #+begin_src emacs-lisp
-  (use-package savehist
-    :ensure t
-    :init
-    (savehist-mode))
+  (setq completion-styles '(basic substring flex))
+  (setq completion-cycle-threshold 20)
+  (setq completion-auto-help 'lazy)
+  (setq completion-ignore-case t)
+  (setq completion-category-overrides '())
 #+end_src
 
-Vertico is vertical interactive completion: [[https://github.com/minad/vertico][README]]. This configuration is
-from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-behave-more-like-ivyido][here]].
+Selecting buffers.
 #+begin_src emacs-lisp
-  (use-package vertico
-    :ensure t
-    :demand
-    :custom
-    (vertico-cycle t)
-    (vertico-preselect 'directory)
-    (completion-cycle-threshold t)
-    :bind (:map vertico-map
-                ("<tab>" . vertico-insert)
-                ("C-M-n" . vertico-next-group)
-                ("C-M-p" . vertico-previous-group)
-                ("?"     . minibuffer-completion-help)
-                ("C-M-i" . minibuffer-complete)
-                ("M-RET" . minibuffer-force-complete-and-exit))
-    :init
-    ;; Prefix the current candidate with "» ". From
-    ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-    ;; (advice-add #'vertico--format-candidate
-    ;;             :around
-    ;;             (lambda (orig cand prefix suffix index _start)
-    ;;               (setq cand (funcall orig cand prefix suffix index _start))
-    ;;               (concat
-    ;;                (if (= vertico--index index)
-    ;;                    (propertize "» " 'face 'vertico-current)
-    ;;                  "  ")
-    ;;                cand)))
-    :config
-    (vertico-mode))
+  (setq read-buffer-completion-ignore-case t)
+  (add-to-list 'completion-category-overrides
+               '(buffer
+                 (styles basic initials flex)
+                 (cycle . 20)))
 #+end_src
 
-Mouse integration into Vertico
+Selecting files.
 #+begin_src emacs-lisp
-  (use-package vertico-mouse
-    :after vertico
-    :ensure nil)
+  (recentf-mode)
+  (setq read-file-name-completion-ignore-case t)
 #+end_src
 
-IDO-like directory navigation
+Tab completion in an ordinary buffer.
 #+begin_src emacs-lisp
-  (use-package vertico-directory
-    :after vertico
-    :ensure t
-    :demand
-    :bind (:map vertico-map
-                ("RET" . vertico-directory-enter)
-                ("DEL" . vertico-directory-delete-char)
-                ("M-DEL" . vertico-directory-delete-word))
-    ;; Tidy shadowed file names
-    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+  (setq tab-always-indent 'complete)
 #+end_src
 
-Configure Vertico per command or completion category: [[https://github.com/minad/vertico#configure-vertico-per-command-or-completion-category][README]]; also [[https://github.com/minad/vertico/wiki#annotate-m-x-commands-with-keybindings-in-flatunobtrusive-mode][here]].
+Use FIDO mode for minibuffer completion UI.
 #+begin_src emacs-lisp
-  (use-package vertico-multiform
-    :after vertico
-    :ensure nil
-    :init
-    ;; Taken from marginalia-annotate-binding
-    (defun +vertico-annotate-binding (command)
-      "Annotate COMMAND with key binding in flat/unobtrusive mode."
-      (if-let* (((or (bound-and-true-p vertico-flat-mode)
-                     (bound-and-true-p vertico-unobtrusive-mode)))
-                (sym (intern-soft command))
-                (key (and (commandp sym) (where-is-internal sym nil 'first-only))))
-          (format #("%s (%s)" 3 7 (face shadow)) command (key-description key))
-        command))
-    (vertico-multiform-mode)
-    (setq vertico-multiform-commands
-          '( ;; ("\\`execute-extended-command" flat +vertico-annotate-binding)
-            (consult-imenu buffer indexed)
-            (describe-variable unobtrusive)
-            (describe-function unobtrusive)))
-    (setq vertico-multiform-categories
-          '((consult-grep buffer))))
+  (fido-mode 1)
 #+end_src
 
 ** Orderless package
@@ -592,7 +537,6 @@ candidates are entered. [[https://github.com/oantolin/orderless#style-dispatcher
 behaviors for =M-x= and the =describe-*= commands, for instance.
 #+begin_src emacs-lisp :tangle no
   (use-package orderless
-    :disabled 
     :ensure t
     :init
     (defun basic-remote-try-completion (string table pred point)
@@ -631,17 +575,109 @@ behaviors for =M-x= and the =describe-*= commands, for instance.
           completion-category-defaults nil))
 #+end_src
 
+** Vertico package and friends
+
+Note: [[https://www.reddit.com/r/emacs/comments/ymriwz/can_i_start_executeextendedcommand_with_an/][Can I start "execute-extended-command" with an initial input?]]
+
+Persist history over Emacs restarts. Vertico sorts by history position.
+#+begin_src emacs-lisp
+  (use-package savehist
+    :ensure t
+    :init
+    (savehist-mode))
+#+end_src
+
+Vertico is vertical interactive completion: [[https://github.com/minad/vertico][README]]. This configuration is
+from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-behave-more-like-ivyido][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package vertico
+    :ensure t
+    :demand
+    :custom
+    (vertico-cycle t)
+    (vertico-preselect 'directory)
+    :bind (:map vertico-map
+                ("<tab>" . vertico-insert)
+                ("C-M-n" . vertico-next-group)
+                ("C-M-p" . vertico-previous-group)
+                ("?"     . minibuffer-completion-help)
+                ("C-M-i" . minibuffer-complete)
+                ("M-RET" . minibuffer-force-complete-and-exit))
+    :init
+    ;; Prefix the current candidate with "» ". From
+    ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
+    ;; (advice-add #'vertico--format-candidate
+    ;;             :around
+    ;;             (lambda (orig cand prefix suffix index _start)
+    ;;               (setq cand (funcall orig cand prefix suffix index _start))
+    ;;               (concat
+    ;;                (if (= vertico--index index)
+    ;;                    (propertize "» " 'face 'vertico-current)
+    ;;                  "  ")
+    ;;                cand)))
+    :config
+    (vertico-mode))
+#+end_src
+
 The [[https://github.com/minad/marginalia][Marginalia]] package adds extra information to minibuffer completions.
 #+begin_src emacs-lisp :tangle no
   (use-package marginalia
     :ensure t
+    :custom
+    (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :config (marginalia-mode))
+#+end_src
+
+Mouse integration into Vertico
+#+begin_src emacs-lisp :tangle no
+  (use-package vertico-mouse
+    :after vertico
+    :ensure nil)
+#+end_src
+
+IDO-like directory navigation
+#+begin_src emacs-lisp :tangle no
+  (use-package vertico-directory
+    :after vertico
+    :ensure t
+    :demand
+    :bind (:map vertico-map
+                ("RET" . vertico-directory-enter)
+                ("DEL" . vertico-directory-delete-char)
+                ("M-DEL" . vertico-directory-delete-word))
+    ;; Tidy shadowed file names
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+#+end_src
+
+Configure Vertico per command or completion category: [[https://github.com/minad/vertico#configure-vertico-per-command-or-completion-category][README]]; also [[https://github.com/minad/vertico/wiki#annotate-m-x-commands-with-keybindings-in-flatunobtrusive-mode][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package vertico-multiform
+    :after vertico
+    :ensure nil
+    :init
+    ;; Taken from marginalia-annotate-binding
+    (defun +vertico-annotate-binding (command)
+      "Annotate COMMAND with key binding in flat/unobtrusive mode."
+      (if-let* (((or (bound-and-true-p vertico-flat-mode)
+                     (bound-and-true-p vertico-unobtrusive-mode)))
+                (sym (intern-soft command))
+                (key (and (commandp sym) (where-is-internal sym nil 'first-only))))
+          (format #("%s (%s)" 3 7 (face shadow)) command (key-description key))
+        command))
+    (vertico-multiform-mode)
+    (setq vertico-multiform-commands
+          '( ;; ("\\`execute-extended-command" flat +vertico-annotate-binding)
+            (consult-imenu buffer indexed)
+            (describe-variable unobtrusive)
+            (describe-function unobtrusive)))
+    (setq vertico-multiform-categories
+          '((consult-grep buffer))))
 #+end_src
 
 ** Consult and friends
 
 These buffers will be ignored by the consult-buffer command (C-x b)
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defvar my-hidden-buffers '("\\`\\*Compile-Log\\*\\'"
                               "\\`\\*Async-native-compile-log\\*\\'"
                               "\\`\\*Flycheck errors\\*\\'"
@@ -653,7 +689,7 @@ These buffers will be ignored by the consult-buffer command (C-x b)
 
 Simplify the =consult-buffer= command: [[https://github.com/minad/consult/wiki#hide-all-sources-except-normal-buffers-in-consult-buffer-by-default][Consult wiki]]
 Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/yy79pn/how_to_hideignore_orgroam_buffersfiles_when_using/][Reddit]]
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package consult
     :ensure t
     :after vertico
@@ -683,7 +719,7 @@ Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/y
 #+end_src
 
 Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-git][README]]
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package consult-ls-git
     :ensure t
     :bind
@@ -700,7 +736,7 @@ Note: [[https://github.com/minad/corfu#completing-in-the-eshell-or-shell][Comple
 [[https://github.com/minad/corfu][Corfu]] is a completion UI that makes use of emacs' native completion functions.
 Here I set it up with [[https://github.com/minad/corfu#tab-and-go-completion][tab-and-go completion]]. It could also be used for completion
 in the [[https://github.com/minad/corfu#completing-in-the-minibuffer][minibuffer]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package corfu
     :ensure t
     ;; Optional customizations
@@ -746,7 +782,7 @@ in the [[https://github.com/minad/corfu#completing-in-the-minibuffer][minibuffer
 #+end_src
 
 [[https://github.com/minad/cape][Cape]] provides =completion-at-point= extensions.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package cape
     :ensure t
     ;; Bind dedicated completion commands
@@ -893,7 +929,9 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
 
 * Org mode
 
-Appearance (see [[https://github.com/minad/org-modern][org-modern]])
+** Appearance
+
+Make various elements of an org-mode document look nicer ([[https://github.com/minad/org-modern][org-modern]]).
 #+begin_src emacs-lisp
 (use-package org-modern
   :ensure t
@@ -905,7 +943,7 @@ Appearance (see [[https://github.com/minad/org-modern][org-modern]])
   (org-agenda-finalize . org-modern-agenda))
 #+end_src
 
-Handle indentation correctly (see [[https://github.com/jdtsmith/org-modern-indent][org-modern-indent]])
+Handle indentation correctly ([[https://github.com/jdtsmith/org-modern-indent][org-modern-indent]]).
 #+begin_src emacs-lisp
   (use-package org-modern-indent
     :ensure nil
@@ -914,23 +952,32 @@ Handle indentation correctly (see [[https://github.com/jdtsmith/org-modern-inden
     (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
 #+end_src
 
-Use Unicode characters for bullets (see [[https://github.com/sabof/org-bullets][org-bullets]])
+Use Unicode characters for bullets ([[https://github.com/sabof/org-bullets][org-bullets]]).
 #+begin_src emacs-lisp
   (use-package org-bullets
     :ensure t
     :hook org-mode)
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
-  (eval-after-load 'org
-    (lambda ()
-      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))))
+** Shortcuts
+
+Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#structure-templates][emacs from scratch]]).
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  ;; This is needed as of Org 9.2
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python")))
 #+end_src
 
-LaTeX
+** LaTeX
+
 #+begin_src emacs-lisp
   ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
 #+end_src
+
+** Exporting
 
 Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
 #+begin_src emacs-lisp
@@ -991,6 +1038,11 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
 #+end_src
 
 * Python modes
+
+** Notes
+
+Here is a [[https://github.com/palantir/python-language-server#develop-against-vs-code][claim]] that the Python language server can be run "against" VS Code.
+Debugger configurations for various languages are [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]].
 
 ** Python mode
 
@@ -1065,3 +1117,9 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
     :config (global-flycheck-eglot-mode 1))
 #+end_src
   
+* Shell modes
+
+** Notes
+
+Installation [[https://github.com/akermu/emacs-libvterm/#requirements][instructions]] for [[https://github.com/akermu/emacs-libvterm][emacs-libvterm]].
+Toggle between a buffer and vterm ([[https://github.com/akermu/emacs-libvterm/#requirements][vterm-toggle]]).
