@@ -39,3 +39,5 @@ projects
 history
 tramp
 NUL
+.emacs.desktop
+.emacs.desktop.lock

@@ -4,6 +4,10 @@
 
 * Defaults
 
+#+begin_src emacs-lisp
+(message "starting defaults")
+#+end_src
+
 ** Preliminaries
 
 All functions below use lexical binding.
@@ -13,18 +17,23 @@ All functions below use lexical binding.
 
 For some reason, the org-element-cache keeps getting messed up.
 #+begin_src emacs-lisp
-    (setq org-element-use-cache nil)
+  (setq org-element-use-cache nil)
 #+end_src
 
 ** Text
 
 Character encodings default to utf-8.
 #+begin_src emacs-lisp
-   (prefer-coding-system 'utf-8)
-   (set-language-environment 'utf-8)
-   (set-default-coding-systems 'utf-8)
-   (set-terminal-coding-system 'utf-8)
-   (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (set-language-environment 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+#+end_src
+
+Sentences end with a single space.
+#+begin_src emacs-lisp
+  (setq sentence-end-double-space nil)
 #+end_src
    
 Always insert spaces, never tab characters.
@@ -81,6 +90,10 @@ Always insert spaces, never tab characters.
 #+end_src
 
 * GUI elements
+
+#+begin_src emacs-lisp
+(message "starting gui elements")
+#+end_src
 
 ** Menu bar, tool bar, scroll bars
 
@@ -154,6 +167,10 @@ Always insert spaces, never tab characters.
 * Fonts
 
 #+begin_src emacs-lisp
+(message "starting fonts")
+#+end_src
+
+#+begin_src emacs-lisp
     (defun my-font-in-family-p (font-family)
       "True iff the current frame's font is in font-family."
       (let ((font-name (cdr (assoc 'font default-frame-alist))))
@@ -191,6 +208,11 @@ Always insert spaces, never tab characters.
 #+end_src
   
 * Themes
+
+#+begin_src emacs-lisp
+(message "starting themes")
+#+end_src
+
 
 #+begin_src emacs-lisp
     (use-package vscode-dark-plus-theme
@@ -259,6 +281,11 @@ Always insert spaces, never tab characters.
 #+end_src
 
 * Geometry
+
+#+begin_src emacs-lisp
+(message "starting geometry")
+#+end_src
+
 
 #+begin_src emacs-lisp
     (require 'saveplace)
@@ -343,6 +370,10 @@ Always insert spaces, never tab characters.
   
 * Editing
 
+#+begin_src emacs-lisp
+(message "starting editing")
+#+end_src
+
 ** Prerequisites
 
 #+begin_src emacs-lisp
@@ -425,7 +456,7 @@ Kill or yank entire lines
            ("M-w" . whole-line-or-region-copy-region-as-kill)))
 #+end_src
 
-Expand or contract the region by sexp
+Expand or contract the region by sexp ([[https://github.com/magnars/expand-region.el][expand-region.el]])
 #+begin_src emacs-lisp
   (use-package expand-region
     :ensure t
@@ -449,6 +480,24 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
 
 * Window management
 
+#+begin_src emacs-lisp
+(message "starting window management")
+#+end_src
+
+** Desktop mode
+
+Note: Doesn't work with emacsclient. See StackExchange [[https://emacs.stackexchange.com/questions/8147/using-desktop-mode-with-emacs-daemon][Using desktop-mode with emacsclient]]
+and the last paragraph of [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Emacs-Sessions.html#Saving-Emacs-Sessions][Saving Emacs Sessions]] in the Emacs manual.
+
+Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.html][Desktop-Save Mode]] and [[https://www.emacswiki.org/emacs/Desktop][Emacs wiki]]).
+#+begin_src emacs-lisp
+  (if (daemonp)
+      (add-hook 'server-after-make-frame-hook #'desktop-read)
+    (add-hook 'window-setup-hook #'desktop-read))
+  (setq desktop-save t)  ;; always save
+  (desktop-save-mode)
+#+end_src
+
 ** Window movement
 
 #+begin_src emacs-lisp
@@ -461,15 +510,12 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
   (global-set-key (kbd "C-x C-o") 'other-frame)
 #+end_src
 
-#+begin_src emacs-lisp
-  (desktop-save-mode 1)
-#+end_src
-
 ** Popper
 
+Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+begin_src emacs-lisp
   (use-package popper
-    :ensure t ; or :straight t
+    :ensure t
     :bind (("C-`"   . popper-toggle-latest)
            ("M-`"   . popper-cycle)
            ("C-M-`" . popper-toggle-type))
@@ -494,7 +540,13 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
 
 * Completions
 
+#+begin_src emacs-lisp
+(message "starting completions")
+#+end_src
+
 ** Native emacs completion
+
+Note: A setup using only native emacs [[https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html][here]].
 
 Settings that apply everywhere.
 #+begin_src emacs-lisp
@@ -510,7 +562,7 @@ Selecting buffers.
   (setq read-buffer-completion-ignore-case t)
   (add-to-list 'completion-category-overrides
                '(buffer
-                 (styles basic initials flex)
+                 (styles basic)
                  (cycle . 20)))
 #+end_src
 
@@ -518,6 +570,10 @@ Selecting files.
 #+begin_src emacs-lisp
   (recentf-mode)
   (setq read-file-name-completion-ignore-case t)
+  (add-to-list 'completion-category-overrides
+               '(file
+                 (styles basic partial-completion)
+                 (cycle . 20)))
 #+end_src
 
 Tab completion in an ordinary buffer.
@@ -525,9 +581,14 @@ Tab completion in an ordinary buffer.
   (setq tab-always-indent 'complete)
 #+end_src
 
+Use icomplete for the completion UI
+#+begin_src emacs-lisp
+  ;; (icomplete-vertical-mode 1)
+#+end_src
+
 Use FIDO mode for minibuffer completion UI.
 #+begin_src emacs-lisp
-  (fido-mode 1)
+  ;; (fido-mode 1)
 #+end_src
 
 ** Orderless package
@@ -589,7 +650,7 @@ Persist history over Emacs restarts. Vertico sorts by history position.
 
 Vertico is vertical interactive completion: [[https://github.com/minad/vertico][README]]. This configuration is
 from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-behave-more-like-ivyido][here]].
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package vertico
     :ensure t
     :demand
@@ -620,7 +681,7 @@ from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-
 #+end_src
 
 The [[https://github.com/minad/marginalia][Marginalia]] package adds extra information to minibuffer completions.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package marginalia
     :ensure t
     :custom
@@ -629,14 +690,14 @@ The [[https://github.com/minad/marginalia][Marginalia]] package adds extra infor
 #+end_src
 
 Mouse integration into Vertico
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package vertico-mouse
     :after vertico
     :ensure nil)
 #+end_src
 
 IDO-like directory navigation
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package vertico-directory
     :after vertico
     :ensure t
@@ -676,8 +737,138 @@ Configure Vertico per command or completion category: [[https://github.com/minad
 
 ** Consult and friends
 
+*** Source for cpp-mode
+
+Consult-buffer source for cpp-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar  cpp-source
+  (list :name     "CPP Buffer"
+        :category 'buffer
+        :narrow   ?c
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (cpp-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'cpp-mode))
+                   (buffer-list))))))
+#+end_src
+
+*** Source for python-mode
+
+Consult-buffer source for python-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar python-source
+  (list :name     "Python Buffer"
+        :category 'buffer
+        :narrow   ?P
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (python-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'python-mode))
+                   (buffer-list))))))
+#+end_src
+
+*** Source for org-mode
+
+Consult-buffer source for org-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar org-source
+  (list :name     "Org Buffer"
+        :category 'buffer
+        :narrow   ?o
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (insert "#+title: " name "\n\n")
+            (org-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'org-mode))
+                   (buffer-list))))))
+#+end_src
+
+*** Source for vterm
+
+Consult-buffer source for vterm, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar  vterm-source
+  (list :name     "Vterm Buffer"
+        :category 'buffer
+        :narrow   ?v
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            ;;(insert "#+title: " name "\n\n")
+            (vterm-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'vterm-mode))
+                   (buffer-list))))))
+#+end_src
+
+*** Source for eshell
+
+Consult-buffer source for eshell, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar  eshell-source
+  (list :name     "Eshell Buffer"
+        :category 'buffer
+        :narrow   ?e
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            ;;(insert "#+title: " name "\n\n")
+            (eshell-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'eshell-mode))
+                   (buffer-list))))))
+#+end_src
+
+*** Consult package
+
 These buffers will be ignored by the consult-buffer command (C-x b)
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defvar my-hidden-buffers '("\\`\\*Compile-Log\\*\\'"
                               "\\`\\*Async-native-compile-log\\*\\'"
                               "\\`\\*Flycheck errors\\*\\'"
@@ -687,9 +878,29 @@ These buffers will be ignored by the consult-buffer command (C-x b)
                               "\\`\\*debug tramp/.*\\*\\'"))
 #+end_src
 
+From the consult wiki, [[https://github.com/minad/consult/wiki#narrowing-which-key-help-without-delay][Narrowing which-key help without delay]].
+#+begin_src emacs-lisp
+(defun immediate-which-key-for-narrow (fun &rest args)
+  (let* ((refresh t)
+         (timer (and consult-narrow-key
+                     (memq :narrow args)
+                     (run-at-time 0.05 0.05
+                                  (lambda ()
+                                    (if (eq last-input-event (elt consult-narrow-key 0))
+                                        (when refresh
+                                          (setq refresh nil)
+                                          (which-key--update))
+                                      (setq refresh t)))))))
+    (unwind-protect
+        (apply fun args)
+      (when timer
+        (cancel-timer timer)))))
+(advice-add #'consult--read :around #'immediate-which-key-for-narrow)
+#+end_src
+
 Simplify the =consult-buffer= command: [[https://github.com/minad/consult/wiki#hide-all-sources-except-normal-buffers-in-consult-buffer-by-default][Consult wiki]]
 Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/yy79pn/how_to_hideignore_orgroam_buffersfiles_when_using/][Reddit]]
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package consult
     :ensure t
     :after vertico
@@ -709,13 +920,47 @@ Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/y
     ;;                    #'consult-completion-in-region
     ;;                  #'completion--in-region)
     ;;                args)))
+    (setq consult-narrow-key "<")
+    (add-to-list 'consult-buffer-sources 'cpp-source 'append)
+    (add-to-list 'consult-buffer-sources 'python-source 'append)
+    (add-to-list 'consult-buffer-sources 'org-source 'append)
+    (add-to-list 'consult-buffer-sources 'eshell-source 'append)
+    (unless (eq system-type 'windows-nt)
+      (add-to-list 'consult-buffer-sources 'vterm-source 'append))
     :bind
     (("M-y" . consult-yank-from-kill-ring)
      ("C-x b" . consult-buffer)))
+  ;; :hook (completion-list-mode . consult-preview-at-point-mode))
+#+end_src
 
-  (recentf-mode)
-  (setq completion-ignore-case t)
-  (setq read-file-name-completion-ignore-case t)
+*** Consult customize
+
+Not sure what this does, so it's turned off for now. From [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+  (consult-customize
+   consult-theme
+   ;; :preview-key '(:debounce 0.2 any)
+   consult-ripgrep
+   consult-git-grep
+   consult-grep
+   consult-bookmark
+   consult-recent-file
+   consult-xref
+   consult--source-recent-file
+   consult--source-project-recent-file
+   consult--source-bookmark
+   :preview-key "C-,"
+   )
+#+end_src
+
+Consult-buffer source for org-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+
+#+end_src
+
+Consult-buffer source for org-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+
 #+end_src
 
 Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-git][README]]
@@ -879,6 +1124,10 @@ Show all buffers currently displayed in windows in all frames
 
 * Remote
 
+#+begin_src emacs-lisp
+(message "starting remote")
+#+end_src
+
 From [[https://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82bhttps://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82b][init-tramp-plink.el]]
 #+begin_src emacs-lisp
   (require 'tramp)
@@ -929,6 +1178,10 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
 
 * Org mode
 
+#+begin_src emacs-lisp
+(message "starting org mode")
+#+end_src
+
 ** Appearance
 
 Make various elements of an org-mode document look nicer ([[https://github.com/minad/org-modern][org-modern]]).
@@ -975,6 +1228,7 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
 
 #+begin_src emacs-lisp
   ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+  (setq org-highlight-latex-and-related '(latex))
 #+end_src
 
 ** Exporting
@@ -990,6 +1244,10 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
 #+end_src
 
 * Code folding
+
+#+begin_src emacs-lisp
+(message "starting code folding")
+#+end_src
 
 Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
 #+begin_src emacs-lisp
@@ -1038,6 +1296,10 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
 #+end_src
 
 * Python modes
+
+#+begin_src emacs-lisp
+(message "starting python modes")
+#+end_src
 
 ** Notes
 
@@ -1119,7 +1381,19 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
   
 * Shell modes
 
+#+begin_src emacs-lisp
+(message "starting shell modes")
+#+end_src
+
 ** Notes
 
-Installation [[https://github.com/akermu/emacs-libvterm/#requirements][instructions]] for [[https://github.com/akermu/emacs-libvterm][emacs-libvterm]].
+Installation [[https://github.com/akermu/emacs-libvterm/#requirements][instructions]] for [[https://github.com/akermu/emacs-libvterm][emacs-libvterm]]. Doesn't work for Windows.
 Toggle between a buffer and vterm ([[https://github.com/akermu/emacs-libvterm/#requirements][vterm-toggle]]).
+
+* Social media
+
+** Mastodon
+
+From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mastodon][here]].
+#+begin_src emacs-lisp
+#+end_src

@@ -16,6 +16,8 @@
   "Save buffers, quit, and shutdown (kill) server."
   (interactive)
   (save-some-buffers)
+  (when (bound-and-true-p desktop-mode)
+    (desktop-kill))
   (kill-emacs))
 (global-set-key (kbd "C-c x") 'server-shutdown)
 
