@@ -15,11 +15,6 @@ All functions below use lexical binding.
   ;; -*- coding: utf-8; lexical-binding: t -*-
 #+end_src
 
-For some reason, the org-element-cache keeps getting messed up.
-#+begin_src emacs-lisp
-  (setq org-element-use-cache nil)
-#+end_src
-
 ** Text
 
 Character encodings default to utf-8.
@@ -280,94 +275,6 @@ Always insert spaces, never tab characters.
                   :weight bold)))))
 #+end_src
 
-* Geometry
-
-#+begin_src emacs-lisp
-(message "starting geometry")
-#+end_src
-
-
-#+begin_src emacs-lisp
-    (require 'saveplace)
-    (setq-default save-place t)
-#+end_src
-
-  Save emacs frames on exit, and restore them on startup
-#+begin_src emacs-lisp
-    ;; These are the same values that a bare-naked emacs uses on initial startup
-    (defvar my-initial-geometry '(nil 80 38 100 100)
-      "The initial frame geometry to use when no geometry file is present.")
-
-    (defvar my-geometry-file
-      (expand-file-name ".geometry" user-emacs-directory)
-      "The file where frame geometry settings are saved.")
-
-    (defun my-load-frame-geometry ()
-      "Load saved frame geometry settings."
-      (if (file-readable-p my-geometry-file)
-          (with-temp-buffer
-            (insert-file-contents my-geometry-file)
-            (read (buffer-string)))
-        my-initial-geometry))
-
-    (defun my-get-geometry ()
-      "Get the current geometry of the active frame."
-      (mapcar
-       (apply-partially 'frame-parameter nil)
-       (list 'fullscreen 'width 'height 'top 'left)))
-
-    (defun my-save-frame-geometry ()
-      "Save current frame geometry settings."
-      (with-temp-file my-geometry-file
-        (print (my-get-geometry) (current-buffer))))
-
-    (defun my-set-geometry ()
-      "Set the default frame geometry using the values loaded from my-geometry-file."
-      (let ((geom (my-load-frame-geometry)))
-        (modify-all-frames-parameters
-         `((fullscreen . ,(nth 0 geom))
-           (width . ,(nth 1 geom))
-           (height . ,(nth 2 geom))
-           (top . ,(nth 3 geom))
-           (left . ,(nth 4 geom))))))
-        ;; (setq default-frame-alist
-        ;;       (append
-        ;;        default-frame-alist
-
-    ;; Returns (top left bottom right) measured in pixels
-    (defun my-get-geometry-pixels ()
-      "Get the current geometry, measured in pixels, of the active frame."
-      (let ((width (frame-pixel-width))
-            (height (frame-pixel-height))
-            (top (eval (frame-parameter nil 'top)))
-            (left (eval (frame-parameter nil 'left))))
-        (list top left (+ top width) (+ left height))))
-
-    (defun my-get-margins-pixels ()
-      "Return the margins remaining on each side of the frame, measured in pixels."
-      (let ((frame-size (my-get-geometry-pixels))
-            (display-size (cdr (assq 'workarea (frame-monitor-attributes)))))
-        (list
-         (- (nth 0 frame-size) (nth 0 display-size))      ; left side of the frame
-         (- (nth 1 frame-size) (nth 1 display-size))      ; top side of the frame
-         (- (nth 2 display-size) (nth 2 frame-size))      ; right side of the frame
-         (- (nth 3 display-size) (nth 3 frame-size)))))   ; bottom side of the frame
-
-    (defun my-geometry-startup-after-init (&optional frame)
-      "Called after loading the init file."
-      (if (display-graphic-p)
-          (with-selected-frame (or frame (selected-frame))
-            (my-set-geometry)
-            (add-hook 'kill-emacs-hook 'my-save-frame-geometry))))
-            ;; (add-to-list 'default-frame-alist '(internal-border-width . 0))
-            ;; (set-fringe-mode '(8 . 0)))
-        ;; Menu bar always off in text mode
-        ;; (menu-bar-mode -1))))
-
-    (add-hook 'after-init-hook 'my-geometry-startup-after-init)
-    (add-hook 'before-make-frame-hook 'my-set-geometry)
-#+end_src
-  
 * Editing
 
 #+begin_src emacs-lisp
@@ -484,6 +391,13 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
 (message "starting window management")
 #+end_src
 
+** Save the cursor position
+
+#+begin_src emacs-lisp
+    (require 'saveplace)
+    (setq-default save-place t)
+#+end_src
+
 ** Desktop mode
 
 Note: Doesn't work with emacsclient. See StackExchange [[https://emacs.stackexchange.com/questions/8147/using-desktop-mode-with-emacs-daemon][Using desktop-mode with emacsclient]]
@@ -538,6 +452,87 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
     (popper-echo-mode +1))                ; For echo area hints
 #+end_src
 
+* Org mode
+
+#+begin_src emacs-lisp
+(message "starting org mode")
+#+end_src
+
+** Appearance
+
+Note: More customization can be found in the blog post [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][Beautifying Org Mode in Emacs]].
+
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure nil)
+#+end_src
+
+Make various elements of an org-mode document look nicer ([[https://github.com/minad/org-modern][org-modern]]).
+#+begin_src emacs-lisp
+(use-package org-modern
+  :ensure t
+  :custom
+  (org-modern-hide-stars nil)		; adds extra indentation
+  (org-modern-table nil)
+  :hook
+  (org-mode . org-modern-mode)
+  (org-agenda-finalize . org-modern-agenda))
+#+end_src
+
+Handle indentation correctly ([[https://github.com/jdtsmith/org-modern-indent][org-modern-indent]]).
+#+begin_src emacs-lisp
+  (use-package org-modern-indent
+    :ensure nil
+    :load-path "lisp"
+    :config ; add late to hook
+    (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+#+end_src
+
+Note: org-mode does not respect =org-bullets-bullet-list=. Don't know why not.
+Use Unicode characters for bullets ([[https://github.com/sabof/org-bullets][org-bullets]]), including bullets in lists.
+#+begin_src emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :after org
+    :init
+    (setq org-bullets-bullet-list '("◉" "○" "●" "‣"))
+    ;; (font-lock-add-keywords 'org-mode
+    ;;                         '(("^ +\\([-*]\\) "
+    ;;                            (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+    :hook org-mode)
+#+end_src
+
+** Shortcuts
+
+Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#structure-templates][emacs from scratch]]).
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  ;; This is needed as of Org 9.2
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python")))
+#+end_src
+
+** LaTeX
+
+#+begin_src emacs-lisp
+  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+  (setq org-highlight-latex-and-related '(latex))
+#+end_src
+
+** Exporting
+
+Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
+#+begin_src emacs-lisp
+  (use-package org-tufte
+    :ensure nil
+    :config
+      (require 'org-tufte)
+      (setq org-tufte-htmlize-code t
+            org-tufte-embed-images nil))
+#+end_src
+
 * Completions
 
 #+begin_src emacs-lisp
@@ -549,7 +544,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 Note: A setup using only native emacs [[https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html][here]].
 
 Modify completions to include remote files.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun basic-remote-try-completion (string table pred point)
     (and (vertico--remote-p string)
          (completion-basic-try-completion string table pred point)))
@@ -564,35 +559,35 @@ Modify completions to include remote files.
 #+end_src
 
 Settings that apply everywhere.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq completion-styles '(basic substring flex))
-  (setq completion-cycle-threshold 20)
+  (setq completion-cycle-threshold 10)
   (setq completion-auto-help 'lazy)
   (setq completion-ignore-case t)
   (setq completion-category-overrides '())
 #+end_src
 
 Selecting buffers.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq read-buffer-completion-ignore-case t)
   (add-to-list 'completion-category-overrides
                '(buffer
                  (styles basic)
-                 (cycle . 20)))
+                 (cycle . 10)))
 #+end_src
 
 Selecting files.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (recentf-mode)
   (setq read-file-name-completion-ignore-case t)
   (add-to-list 'completion-category-overrides
                '(file
                  (styles basic partial-completion)
-                 (cycle . 20)))
+                 (cycle . 10)))
 #+end_src
 
 Tab completion in an ordinary buffer.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq tab-always-indent 'complete)
 #+end_src
 
@@ -611,38 +606,26 @@ Use FIDO mode for minibuffer completion UI.
 The [[https://github.com/oantolin/orderless][Orderless]] package enables completion without regard to the order in which
 candidates are entered. [[https://github.com/oantolin/orderless#style-dispatchers][Style dispatchers]] can be used to customize the completion
 behaviors for =M-x= and the =describe-*= commands, for instance.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package orderless
     :ensure t
     :init
-    ;; (defun flex-if-twiddle (pattern _index _total)
-    ;;   (when (string-suffix-p "~" pattern)
-    ;;     `(orderless-flex . ,(substring pattern 0 -1))))
-
-    ;; (defun first-initialism (pattern index _total)
-    ;;   (if (= index 0) 'orderless-initialism))
-
-    ;; (defun without-if-bang (pattern _index _total)
-    ;;   (cond
-    ;;    ((equal "!" pattern)
-    ;;     '(orderless-literal . ""))
-    ;;    ((string-prefix-p "!" pattern)
-    ;;     `(orderless-without-literal . ,(substring pattern 1)))))
-
-    ;; (setq orderless-matching-styles '(orderless-regexp)
-    ;;       orderless-style-dispatchers '(first-initialism
-    ;;                                     flex-if-twiddle
-    ;;                                     without-if-bang))
-
+    (recentf-mode)
+    (setq completion-cycle-threshold 10)
+    (setq completion-auto-help 'lazy)
+    (setq completion-ignore-case t)
+    (setq read-buffer-completion-ignore-case t)
+    (setq read-file-name-completion-ignore-case t)
     (setq completion-styles '(basic orderless))
     (setq completion-category-defaults nil)
     (setq completion-category-overrides
-               '((buffer (cycle . 20))
+               '((buffer (cycle . 10))
                  (file (styles basic partial-completion)
-                       (cycle . 20))))
+                       (cycle . 10))))
+    ;; See https://github.com/minad/corfu/issues/136
     (add-to-list 'completion-category-overrides
                  '(eglot (styles orderless flex)
-                         (cycle . 20))))
+                         (cycle . 10))))
 #+end_src
 
 ** Vertico package and friends
@@ -946,7 +929,7 @@ Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/y
 *** Consult customize
 
 Not sure what this does, so it's turned off for now. From [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (consult-customize
    consult-theme
    ;; :preview-key '(:debounce 0.2 any)
@@ -991,53 +974,54 @@ Note: [[https://github.com/minad/corfu#completing-in-the-eshell-or-shell][Comple
 [[https://github.com/minad/corfu][Corfu]] is a completion UI that makes use of emacs' native completion functions.
 Here I set it up with [[https://github.com/minad/corfu#tab-and-go-completion][tab-and-go completion]]. It could also be used for completion
 in the [[https://github.com/minad/corfu#completing-in-the-minibuffer][minibuffer]].
-#+begin_src emacs-lisp :tangle no
-  (use-package corfu
-    :ensure t
-    ;; Optional customizations
-    :custom
-    (corfu-cycle t)
-    (corfu-preselect 'prompt)
+#+begin_src emacs-lisp
+    (use-package corfu
+      :ensure t
+      ;; Optional customizations
+      :custom
+      (corfu-cycle t)
+      (corfu-preselect 'prompt)
 
-    ;; Optionally use TAB for cycling, default is `corfu-complete'.
-    :bind (:map corfu-map
-                ("M-SPC"      . corfu-insert-separator)
-                ("TAB"        . corfu-next)
-                ([tab]        . corfu-next)
-                ("S-TAB"      . corfu-previous)
-                ([backtab]    . corfu-previous)
-                ("C-<return>" . corfu-insert)
-                ("RET"        . nil))
+      ;; Optionally use TAB for cycling, default is `corfu-complete'.
+      :bind (:map corfu-map
+                  ("M-SPC"      . corfu-insert-separator)
+                  ("TAB"        . corfu-next)
+                  ([tab]        . corfu-next)
+                  ("S-TAB"      . corfu-previous)
+                  ([backtab]    . corfu-previous)
+                  ("C-<return>" . corfu-insert)
+                  ("RET"        . nil))
 
-    :init
-    (defun corfu-enable-in-eshell ()
-      "Enable completion with corfu in the eshell buffer."
-      (setq-local corfu-quit-at-boundary t
-                  corfu-quit-no-match t
-                  corfu-auto nil)
-      (corfu-mode 1))
+      :init
+      (defun corfu-enable-in-eshell ()
+        "Enable completion with corfu in the eshell buffer."
+        (setq-local corfu-quit-at-boundary t
+                    corfu-quit-no-match t
+                    corfu-auto nil)
+        (corfu-mode 1))
 
-    (defun corfu-send-shell (&rest _)
-      "Send completion candidate when inside comint/eshell."
-      (cond
-       ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
-        (eshell-send-input))
-       ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
-        (comint-send-input))))
+      (defun corfu-send-shell (&rest _)
+        "Send completion candidate when inside comint/eshell."
+        (cond
+         ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
+          (eshell-send-input))
+         ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
+          (comint-send-input))))
 
-    (advice-add #'corfu-insert :after #'corfu-send-shell)
+      (advice-add #'corfu-insert :after #'corfu-send-shell)
 
-    (global-corfu-mode)
-    ;;(corfu-history-mode)
+      ;; (global-corfu-mode)
+      (corfu-history-mode)
 
-    :config
-    (setq tab-always-indent 'complete)
-    :hook
-    (eshell-mode . corfu-enable-in-eshell))
+      :config
+      (setq tab-always-indent 'complete)
+      :hook
+      ((prog-mode . corfu-mode)
+             (eshell-mode . corfu-enable-in-eshell)))
 #+end_src
 
 [[https://github.com/minad/cape][Cape]] provides =completion-at-point= extensions.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package cape
     :ensure t
     ;; Bind dedicated completion commands
@@ -1186,73 +1170,6 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
     ;;     (add-to-list 'exec-path my-putty-directory)))
 #+end_src
 
-* Org mode
-
-#+begin_src emacs-lisp
-(message "starting org mode")
-#+end_src
-
-** Appearance
-
-Make various elements of an org-mode document look nicer ([[https://github.com/minad/org-modern][org-modern]]).
-#+begin_src emacs-lisp
-(use-package org-modern
-  :ensure t
-  :custom
-  (org-modern-hide-stars nil)		; adds extra indentation
-  (org-modern-table nil)
-  :hook
-  (org-mode . org-modern-mode)
-  (org-agenda-finalize . org-modern-agenda))
-#+end_src
-
-Handle indentation correctly ([[https://github.com/jdtsmith/org-modern-indent][org-modern-indent]]).
-#+begin_src emacs-lisp
-  (use-package org-modern-indent
-    :ensure nil
-    :load-path "lisp"
-    :config ; add late to hook
-    (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
-#+end_src
-
-Use Unicode characters for bullets ([[https://github.com/sabof/org-bullets][org-bullets]]).
-#+begin_src emacs-lisp
-  (use-package org-bullets
-    :ensure t
-    :hook org-mode)
-#+end_src
-
-** Shortcuts
-
-Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#structure-templates][emacs from scratch]]).
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  ;; This is needed as of Org 9.2
-  (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python")))
-#+end_src
-
-** LaTeX
-
-#+begin_src emacs-lisp
-  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
-  (setq org-highlight-latex-and-related '(latex))
-#+end_src
-
-** Exporting
-
-Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
-#+begin_src emacs-lisp
-  (use-package org-tufte
-    :ensure nil
-    :config
-      (require 'org-tufte)
-      (setq org-tufte-htmlize-code t
-            org-tufte-embed-images nil))
-#+end_src
-
 * Code folding
 
 #+begin_src emacs-lisp
@@ -1327,7 +1244,7 @@ Remove "guess indent" python message
 
 ** Environment variables
 
-The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consisten set of environment variables depending on
+The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consistent set of environment variables depending on
 which project the current buffer is in.
 #+begin_src emacs-lisp
   (use-package direnv
@@ -1347,9 +1264,10 @@ which project the current buffer is in.
      :ensure nil
      :after pythonic
      :load-path "lisp"
-     :init
-       (setq conda-anaconda-home my-anaconda-dir)
-       (setq conda-env-home-directory my-anaconda-dir)
+     :custom
+       (conda-anaconda-home my-anaconda-dir)
+       (conda-env-home-directory my-anaconda-dir)
+       (conda-message-on-environment-switch nil)
      :config
        (conda-env-initialize-interactive-shells)
        (conda-env-initialize-eshell)
@@ -1388,7 +1306,41 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
     :after (flycheck eglot)
     :config (global-flycheck-eglot-mode 1))
 #+end_src
-  
+
+** Testing
+
+My own modified version of the pytest package. The original doesn't work well
+on Windows.
+#+begin_src emacs-lisp
+  (use-package pytest
+    :ensure nil
+    :load-path "lisp"
+    :init
+    (defun my-pytest-all (&optional flags)
+      (interactive)
+      (pytest-run nil flags)
+      (other-window 1))
+    (defun my-pytest-directory (&optional flags)
+      (interactive)
+      (pytest-run (file-name-directory buffer-file-name) flags)
+      (other-window 1))
+    (defun my-pytest-module (&optional flags)
+      (interactive)
+      (pytest-run buffer-file-name flags)
+      (other-window 1))
+    (defun my-pytest-one (&optional flags)
+      (interactive)
+      (pytest-run (format "%s" (pytest-py-testable)) flags)
+      (other-window 1)))
+#+end_src
+
+A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-python-pytest][python-pytest]]).
+#+begin_src emacs-lisp
+  (use-package python-pytest
+    :disabled
+    :ensure t)
+#+end_src
+
 * Shell modes
 
 #+begin_src emacs-lisp

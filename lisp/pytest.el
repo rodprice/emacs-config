@@ -255,10 +255,17 @@ Optional argument FLAGS py.test command line flags."
   (pytest-find-test-runner-in-dir-named
    (file-name-directory buffer-file-name) runner))
 
+(defun pytest-top-level-p (dirname)
+  "Returns t if `dirname' is a root directory."
+  (let* ((name (directory-file-name dirname))
+         (upname (file-name-directory name)))
+    (string-equal name upname)))
+
 (defun pytest-find-test-runner-in-dir-named (dn runner)
   (let ((fn (expand-file-name runner dn)))
     (cond ((file-regular-p fn) fn)
-      ((equal dn "/") nil)
+      ;; ((equal dn "/") nil)
+      ((pytest-top-level-p dn) nil)
       (t (pytest-find-test-runner-in-dir-named
           (file-name-directory (directory-file-name dn))
           runner)))))

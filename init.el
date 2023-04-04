@@ -43,6 +43,9 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+;; Org's cache gets messed up during initialization, so don't use it
+(require 'org)
+(setq org-element-use-cache nil)
 ;; Load the various settings files
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
