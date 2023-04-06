@@ -120,17 +120,36 @@ Optional argument FLAGS py.test command line flags."
   (pytest-start-command (pytest-get-command tests flags)))
 
 (defun pytest-get-command (tests flags)
+  "Return the command to execute the tests.
+Optional argument TESTS Tests to run.
+Optional argument FLAGS py.test command line flags."
   (let* ((pytest (pytest-find-test-runner))
          (where (if tests
-                    (let ((testpath (if (listp tests) (car tests) tests)))
-                      (pytest-find-project-root (file-name-directory testpath)))
+                    (let* ((testpath (if (listp tests) (car tests) tests))
+                           (root (pytest-find-project-root (file-name-directory testpath))))
+                      (if root root (file-name-directory testpath)))
                   (pytest-find-project-root)))
          (tests (cond ((not tests) (list "."))
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
          (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags)))
+    (message (format "tests = %s" tests))
     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
+
+;; (defun pytest-get-command (tests flags)
+;;   (let* ((pytest (pytest-find-test-runner))
+;;          (where (if tests
+;;                     (let ((testpath (if (listp tests) (car tests) tests)))
+;;                       (pytest-find-project-root (file-name-directory testpath)))
+;;                   (pytest-find-project-root)))
+;;          (tests (cond ((not tests) (list "."))
+;;                       ((listp tests) tests)
+;;                       ((stringp tests) (split-string tests))))
+;;          (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
+;;          (cmd-flags (if flags flags pytest-cmd-flags)))
+;;     (message (format "tests = %s" tests))
+;;     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
 (defun pytest-start-command(command)
   (let ((use-comint (s-contains? "--pdb" command))
@@ -139,8 +158,8 @@ Optional argument FLAGS py.test command line flags."
     (compilation-start command use-comint
                        (lambda (mode) (pytest-get-temp-buffer-name)))
     (if use-comint
-	      (with-current-buffer (get-buffer temp-buffer-name)
-	        (inferior-python-mode)))))
+	(with-current-buffer (get-buffer temp-buffer-name)
+	  (inferior-python-mode)))))
 
 (defun pytest-again(&optional edit-command)
   "Run the same tests again with the last command.
@@ -256,7 +275,7 @@ Optional argument FLAGS py.test command line flags."
    (file-name-directory buffer-file-name) runner))
 
 (defun pytest-top-level-p (dirname)
-  "Returns t if `dirname' is a root directory."
+  "Return t if DIRNAME is a root directory."
   (let* ((name (directory-file-name dirname))
          (upname (file-name-directory name)))
     (string-equal name upname)))
@@ -310,7 +329,8 @@ case.  This requires pytest >= 1.2."
              dirname
            (file-name-directory buffer-file-name))))
     (cond ((funcall pytest-project-root-test dn) (expand-file-name dn))
-          ((equal (expand-file-name dn) "/") nil)
+          ((pytest-top-level-p (expand-file-name dn)) nil)
+          ;; ((equal (expand-file-name dn) "/") nil)
         (t (pytest-find-project-root
              (file-name-directory (directory-file-name dn)))))))
 

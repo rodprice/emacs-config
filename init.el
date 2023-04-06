@@ -46,7 +46,19 @@
 ;; Org's cache gets messed up during initialization, so don't use it
 (require 'org)
 (setq org-element-use-cache nil)
+;; (org-babel-do-load-languages
+;;  'org-babel-load-languages
+;;  '((emacs-lisp . t)
+;;    ;;(R . t)
+;;    (python . t)
+;;    ;;(ipython . t)
+;;    (latex . t)
+;;    (ditaa . t)
+;;    (shell . t)
+;;    (jupyter . t)))
+
 ;; Load the various settings files
+;; (org-babel-jupyter-override-src-block 'python)
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-theme.org"))

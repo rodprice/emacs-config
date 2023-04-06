@@ -516,12 +516,13 @@ the buffer is already dead, kill the buffer."
 
 ;; When popping the mark, continue popping until the cursor actually moves
 ;; http://endlessparentheses.com/faster-pop-to-mark-command.html
-(defadvice pop-to-mark-command
-    (around ensure-new-position activate)
+(defun modi/multi-pop-to-mark (orig-fun &rest args)
+  "Call ORIG-FUN until the cursor moves.
+Try the repeated popping up to 10 times."
   (let ((p (point)))
     (dotimes (i 10)
       (when (= p (point))
-        ad-do-it))))
+        (apply orig-fun args)))))
 
 ;; http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
 (defun narrow-or-widen-dwim (p)
@@ -549,6 +550,106 @@ is already narrowed."
         ((derived-mode-p 'latex-mode)
          (LaTeX-narrow-to-environment))
         (t (narrow-to-defun))))
+
+
+;; Split the windows sensibly.
+;; https://gitlab.com/jabranham/emacs/blob/master/init.el#L2537
+(defun my/split-below-last-buffer (prefix)
+    "Split the window above/below and display the previous buffer.
+If prefix arg is provided, show current buffer twice."
+    (interactive "p")
+    (split-window-below)
+    (other-window 1 nil)
+    (if (= prefix 1)
+        (switch-to-next-buffer)))
+
+(defun my/split-right-last-buffer (prefix)
+  "Split the window left/right and display the previous buffer
+If prefix arg is provided, show current buffer twice."
+  (interactive "p")
+  (split-window-right)
+  (other-window 1 nil)
+  (if (= prefix 1) (switch-to-next-buffer)))
+
+(global-set-key (kbd "C-x 2")  'my/split-below-last-buffer)
+(global-set-key (kbd "C-x 3")  'my/split-right-last-buffer)
+(setq switch-to-prev-buffer-skip 'this)
+
+
+;; Always open compilation buffers in the same window.
+;; (add-to-list 'display-buffer-alist
+;;              (cons (lambda (buffer alist)
+;;                      (with-current-buffer buffer
+;;                        (eq major-mode 'compilation-mode)))
+;;                    (cons 'display-buffer-reuse-major-mode-window
+;;                          '((inhibit-same-window . nil)
+;;                            (reusable-frames . visible)
+;;                            (inhibit-switch-frame . nil)))))
+
+;; From https://emacs.stackexchange.com/questions/31761/how-to-use-a-separate-window-for-compilation-output
+(defun display-buffer-reuse-major-mode-window (buffer alist)
+  "Return a window displaying a buffer in BUFFER's major mode.
+Return nil if no usable window is found.
+
+If ALIST has a non-nil `inhibit-same-window' entry, the selected
+window is not eligible for reuse.
+
+If ALIST contains a `reusable-frames' entry, its value determines
+which frames to search for a reusable window:
+  nil -- the selected frame (actually the last non-minibuffer frame)
+  A frame   -- just that frame
+  `visible' -- all visible frames
+  0   -- all frames on the current terminal
+  t   -- all frames.
+
+If ALIST contains no `reusable-frames' entry, search just the
+selected frame if `display-buffer-reuse-frames' and
+`pop-up-frames' are both nil; search all frames on the current
+terminal if either of those variables is non-nil.
+
+If ALIST has a non-nil `inhibit-switch-frame' entry, then in the
+event that a window on another frame is chosen, avoid raising
+that frame."
+  (let* ((alist-entry (assq 'reusable-frames alist))
+         (frames (cond (alist-entry (cdr alist-entry))
+                       ((if (eq pop-up-frames 'graphic-only)
+                            (display-graphic-p)
+                          pop-up-frames)
+                        0)
+                       (display-buffer-reuse-frames 0)
+                       (t (last-nonminibuffer-frame))))
+         (window (let ((mode (with-current-buffer buffer major-mode)))
+                   (if (and (eq mode (with-current-buffer (window-buffer)
+                                       major-mode))
+                            (not (cdr (assq 'inhibit-same-window alist))))
+                       (selected-window)
+                     (catch 'window
+                       (walk-windows
+                        (lambda (w)
+                          (and (window-live-p w)
+                               (eq mode (with-current-buffer (window-buffer w)
+                                          major-mode))
+                               (not (eq w (selected-window)))
+                               (throw 'window w)))
+                        'nomini frames))))))
+    (when (window-live-p window)
+      (prog1 (window--display-buffer buffer window 'reuse alist)
+        (unless (cdr (assq 'inhibit-switch-frame alist))
+          (window--maybe-raise-frame (window-frame window)))))))
+
+
+;; (defun make-new-frame (frame-name)
+;;   (make-frame `((name . ,frame-name) (width . 80) (height . 20) (fullscreen . nil)))
+;;   (select-frame-by-name frame-name))
+
+;; (defun switch-to-frame ()
+;;   (interactive)
+;;   (let ((frame-name "pytest")
+;;         (frames (frame-list)))
+;;     (catch 'break
+;;       (dolist (frame frames (make-new-frame frame-name))
+;;         (if (equal (frame-parameter frame 'name) frame-name)
+;;             (throw 'break (select-frame-set-input-focus frame)))))))
 
 
 ;; (define-key ctl-x-map "\C-i"
@@ -594,6 +695,325 @@ is already narrowed."
 
 ;; (setq save-abbrevs 'silently)
 ;; (setq-default abbrev-mode t)
+
+
+(defvar regexp-frame-names "^\\(?:MAIN\\|SYSTEM\\|ORG\\|MISCELLANEOUS\\|COMPILATION\\)$"
+    "Regexp matching frames with specific names.")
+
+(defvar zweibaranov-buffer-regexp nil
+  "Regexp of file / buffer names displayed in frame `COMPILATION`.")
+(setq zweibaranov-buffer-regexp '("\\*compilation\\*"))
+
+(defun zweibaranov-display-buffer-pop-up-frame (buffer alist)
+  (cond
+   ((regexp-match-p zweibaranov-buffer-regexp (buffer-name buffer))
+    (if (get-frame "COMPILATION")
+        (switch-to-frame "COMPILATION")
+      ;; If unnamed frame exists, then take control of it.
+      (catch 'break (dolist (frame (frame-list))
+                      (if (not (string-match regexp-frame-names (frame-parameter frame 'name)))
+                          (throw 'break (progn
+                                          (switch-to-frame (frame-parameter frame 'name))
+                                          (set-frame-name "COMPILATION"))))))
+      ;; If dolist found no unnamed frame, then create / name it.
+      (if (not (get-frame "COMPILATION"))
+          (progn
+            (make-frame)
+            (set-frame-name "COMPILATION"))) )
+    (set-window-buffer (selected-window) (buffer-name buffer))
+    (set-buffer (buffer-name buffer)) )
+   (t nil) ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; REGEXP FUNCTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun regexp-match-p (regexps string)
+;;   "Before the lisp function, define the variable like this:\n
+;; (defvar example-regexp nil
+;;   \"Regexps matching `buffer-name buffer` for frame name `SYSTEM`.\")
+;;     (setq example-regexp '(\"\\(\\*foo\\*\\|\\*bar\\*\\)\"))
+;; \nWithin the lisp function, use something like this:\n
+;; (regexp-match-p example-regexp (buffer-name buffer))
+;; \nOr, this:\n
+;; (regexp-match-p example-regexp buffer-filename)"
+  ;; (setq case-fold-search nil) ;; take case into consideration
+  (catch 'matched
+    (dolist (regexp regexps)
+      (if (string-match regexp string)
+        (throw 'matched t)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FRAME UTILITIES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; http://www.emacswiki.org/emacs/frame-fns.el
+(defun get-frame-name (&optional frame)
+  "Return the string that names FRAME (a frame).  Default is selected frame."
+  (unless frame (setq frame (selected-frame)))
+  (if (framep frame)
+      (cdr (assq 'name (frame-parameters frame)))
+    (error "Function `get-frame-name': Argument not a frame: `%s'" frame)))
+
+;; http://www.emacswiki.org/emacs/frame-fns.el
+(defun get-frame (frame)
+  "Return a frame, if any, named FRAME (a frame or a string).
+  If none, return nil.
+  If FRAME is a frame, it is returned."
+  (cond ((framep frame) frame)
+        ((stringp frame)
+         (catch 'get-a-frame-found
+           (dolist (fr (frame-list))
+             (when (string= frame (get-frame-name fr))
+               (throw 'get-a-frame-found fr)))
+           nil))
+        (t
+         (error
+          "Function `get-frame-name': Arg neither a string nor a frame: `%s'"
+          frame))))
+
+;; https://stackoverflow.com/questions/17823448/if-frame-named-xyz-exists-then-switch-to-that-frame
+(defun switch-to-frame (frame-name)
+  (let ((frames (frame-list)))
+    (catch 'break
+      (while frames
+        (let ((frame (car frames)))
+          (if (equal (frame-parameter frame 'name) frame-name)
+              (throw 'break (select-frame-set-input-focus frame))
+            (setq frames (cdr frames))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'compile)
+
+;; (defalias 'compilation-start 'lawlist-compilation-start)
+
+(defun lawlist-compilation-start (command &optional mode name-function highlight-regexp)
+  "Run compilation command COMMAND (low level interface).
+If COMMAND starts with a cd command, that becomes the `default-directory'.
+The rest of the arguments are optional; for them, nil means use the default.
+
+MODE is the major mode to set in the compilation buffer.  Mode
+may also be t meaning use `compilation-shell-minor-mode' under `comint-mode'.
+
+If NAME-FUNCTION is non-nil, call it with one argument (the mode name)
+to determine the buffer name.  Otherwise, the default is to
+reuses the current buffer if it has the proper major mode,
+else use or create a buffer with name based on the major mode.
+
+If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
+the matching section of the visited source line; the default is to use the
+global value of `compilation-highlight-regexp'.
+
+Returns the compilation buffer created."
+  (or mode (setq mode 'compilation-mode))
+  (let* ((name-of-mode
+          (if (eq mode t)
+              "compilation"
+            (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
+         (thisdir default-directory)
+         (thisenv compilation-environment)
+         outwin outbuf)
+    (with-current-buffer
+        (setq outbuf
+              (display-buffer (get-buffer-create
+                               (compilation-buffer-name name-of-mode mode name-function))
+                              '(zweibaranov-display-buffer-pop-up-frame)))
+      (let ((comp-proc (get-buffer-process (current-buffer))))
+        (if comp-proc
+            (if (or (not (eq (process-status comp-proc) 'run))
+                    (eq (process-query-on-exit-flag comp-proc) nil)
+                    (yes-or-no-p
+                     (format "A %s process is running; kill it? " name-of-mode)))
+                (condition-case ()
+                    (progn
+                      (interrupt-process comp-proc)
+                      (sit-for 1)
+                      (delete-process comp-proc))
+                  (error nil))
+              (error "Cannot have two processes in `%s' at once" (buffer-name)))))
+      ;; first transfer directory from where M-x compile was called
+      (setq default-directory thisdir)
+      ;; Make compilation buffer read-only.  The filter can still write it.
+      ;; Clear out the compilation buffer.
+      (let ((inhibit-read-only t)
+            (default-directory thisdir))
+        ;; Then evaluate a cd command if any, but don't perform it yet, else
+        ;; start-command would do it again through the shell: (cd "..") AND
+        ;; sh -c "cd ..; make"
+        (cd (cond
+             ((not (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\|'[^']*'\\|\"\\(?:[^\"`$\\]\\|\\\\.\\)*\"\\)\\)?\\s *[;&\n]"
+                                 command))
+              default-directory)
+             ((not (match-end 1)) "~")
+             ((eq (aref command (match-beginning 1)) ?\')
+              (substring command (1+ (match-beginning 1)) (1- (match-end 1))))
+             ((eq (aref command (match-beginning 1)) ?\")
+              (replace-regexp-in-string "\\\\\\(.\\)" "\\1"
+                                        (substring command (1+ (match-beginning 1))
+                                                   (1- (match-end 1)))))
+             ;; Try globbing as well (bug#15417).
+             (t (let* ((substituted-dir
+                        (substitute-env-vars (match-string 1 command)))
+                       ;; FIXME: This also tries to expand `*' that were
+                       ;; introduced by the envvar expansion!
+                       (expanded-dir
+                        (file-expand-wildcards substituted-dir)))
+                  (if (= (length expanded-dir) 1)
+                      (car expanded-dir)
+                    substituted-dir)))))
+        (erase-buffer)
+        ;; Select the desired mode.
+        (if (not (eq mode t))
+            (progn
+              (buffer-disable-undo)
+              (funcall mode))
+          (setq buffer-read-only nil)
+          (with-no-warnings (comint-mode))
+          (compilation-shell-minor-mode))
+        ;; Remember the original dir, so we can use it when we recompile.
+        ;; default-directory' can't be used reliably for that because it may be
+        ;; affected by the special handling of "cd ...;".
+        ;; NB: must be done after (funcall mode) as that resets local variables
+        (set (make-local-variable 'compilation-directory) thisdir)
+        (set (make-local-variable 'compilation-environment) thisenv)
+        (if highlight-regexp
+            (set (make-local-variable 'compilation-highlight-regexp)
+                 highlight-regexp))
+        (if (or compilation-auto-jump-to-first-error
+                (eq compilation-scroll-output 'first-error))
+            (set (make-local-variable 'compilation-auto-jump-to-next) t))
+        ;; Output a mode setter, for saving and later reloading this buffer.
+        (insert "-*- mode: " name-of-mode
+                "; default-directory: "
+                (prin1-to-string (abbreviate-file-name default-directory))
+                " -*-\n"
+                (format "%s started at %s\n\n" mode-name
+                        (substring (current-time-string) 0 19))
+                ;; The command could be split into several lines, see
+                ;; `rgrep' for example.  We want to display it as one
+                ;; line.
+                (apply 'concat (split-string command (regexp-quote "\\\n") t))
+                "\n")
+        (setq thisdir default-directory))
+      (set-buffer-modified-p nil))
+    ;; Pop up the compilation buffer.
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01638.html
+    (setq outwin (display-buffer outbuf))
+    (with-current-buffer outbuf
+      (let ((process-environment
+             (append compilation-environment
+                     (if (if (boundp 'system-uses-terminfo) ;`If' for compiler warning.
+                             system-uses-terminfo)
+                         (list "TERM=dumb" "TERMCAP="
+                               (format "COLUMNS=%d" (window-width)))
+                       (list "TERM=emacs"
+                             (format "TERMCAP=emacs:co#%d:tc=unknown:" (window-width))))
+                     ;; Set the EMACS variable, but
+                     ;; don't override users' setting of $EMACS.
+                     (unless (getenv "EMACS") (list "EMACS=t"))
+                     (list "INSIDE_EMACS=t")
+                     (copy-sequence process-environment))))
+        (set (make-local-variable 'compilation-arguments)
+             (list command mode name-function highlight-regexp))
+        (set (make-local-variable 'revert-buffer-function)
+             'compilation-revert-buffer)
+        (set-window-start outwin (point-min))
+
+        ;; Position point as the user will see it.
+        (let ((desired-visible-point
+               ;; Put it at the end if `compilation-scroll-output' is set.
+               (if compilation-scroll-output
+                   (point-max)
+                 ;; Normally put it at the top.
+                 (point-min))))
+          (if (eq outwin (selected-window))
+              (goto-char desired-visible-point)
+            (set-window-point outwin desired-visible-point)))
+
+        ;; The setup function is called before compilation-set-window-height
+        ;; so it can set the compilation-window-height buffer locally.
+        (if compilation-process-setup-function
+            (funcall compilation-process-setup-function))
+        (compilation-set-window-height outwin)
+        ;; Start the compilation.
+        (if (fboundp 'start-process)
+            (let ((proc
+                   (if (eq mode t)
+                       ;; comint uses `start-file-process'.
+                       (get-buffer-process
+                        (with-no-warnings
+                          (comint-exec
+                           outbuf (downcase mode-name)
+                           (if (file-remote-p default-directory)
+                               "/bin/sh"
+                             shell-file-name)
+                           nil `("-c" ,command))))
+                     (start-file-process-shell-command (downcase mode-name)
+                                                       outbuf command))))
+              ;; Make the buffer's mode line show process state.
+              (setq mode-line-process
+                    '(:propertize ":%s" face compilation-mode-line-run))
+
+              ;; Set the process as killable without query by default.
+              ;; This allows us to start a new compilation without
+              ;; getting prompted.
+              (when compilation-always-kill
+                (set-process-query-on-exit-flag proc nil))
+
+              (set-process-sentinel proc 'compilation-sentinel)
+              (unless (eq mode t)
+                ;; Keep the comint filter, since it's needed for proper
+                ;; handling of the prompts.
+                (set-process-filter proc 'compilation-filter))
+              ;; Use (point-max) here so that output comes in
+              ;; after the initial text,
+              ;; regardless of where the user sees point.
+              (set-marker (process-mark proc) (point-max) outbuf)
+              (when compilation-disable-input
+                (condition-case nil
+                    (process-send-eof proc)
+                  ;; The process may have exited already.
+                  (error nil)))
+              (run-hook-with-args 'compilation-start-hook proc)
+              (setq compilation-in-progress (cons proc compilation-in-progress)))
+          ;; No asynchronous processes available.
+          (message "Executing `%s'..." command)
+          ;; Fake mode line display as if `start-process' were run.
+          (setq mode-line-process
+                '(:propertize ":run" face compilation-mode-line-run))
+          (force-mode-line-update)
+          (sit-for 0)           ; Force redisplay
+          (save-excursion
+            ;; Insert the output at the end, after the initial text,
+            ;; regardless of where the user sees point.
+            (goto-char (point-max))
+            (let* ((inhibit-read-only t) ; call-process needs to modify outbuf
+                   (compilation-filter-start (point))
+                   (status (call-process shell-file-name nil outbuf nil "-c"
+                                         command)))
+              (run-hooks 'compilation-filter-hook)
+              (cond ((numberp status)
+                     (compilation-handle-exit
+                      'exit status
+                      (if (zerop status)
+                          "finished\n"
+                        (format "exited abnormally with code %d\n" status))))
+                    ((stringp status)
+                     (compilation-handle-exit 'signal status
+                                              (concat status "\n")))
+                    (t
+                     (compilation-handle-exit 'bizarre status status)))))
+          (set-buffer-modified-p nil)
+          (message "Executing `%s'...done" command)))
+      ;; Now finally cd to where the shell started make/grep/...
+      (setq default-directory thisdir)
+      ;; The following form selected outwin ever since revision 1.183,
+      ;; so possibly messing up point in some other window (bug#1073).
+      ;; Moved into the scope of with-current-buffer, though still with
+      ;; complete disregard for the case when compilation-scroll-output
+      ;; equals 'first-error (martin 2008-10-04).
+      (when compilation-scroll-output
+        (goto-char (point-max))))
+
+    ;; Make it so the next C-x ` will use this buffer.
+    (setq next-error-last-buffer outbuf)))
 
 
 (provide 'my-functions)

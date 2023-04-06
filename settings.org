@@ -165,6 +165,8 @@ Always insert spaces, never tab characters.
 (message "starting fonts")
 #+end_src
 
+** Set the default font
+
 #+begin_src emacs-lisp
     (defun my-font-in-family-p (font-family)
       "True iff the current frame's font is in font-family."
@@ -179,6 +181,8 @@ Always insert spaces, never tab characters.
     (add-to-list 'default-frame-alist `(font . ,my-default-font))
     (set-face-font 'default my-default-font)
 #+end_src
+
+** Use ligatures if available
 
 #+begin_src emacs-lisp
     (use-package ligature
@@ -202,6 +206,14 @@ Always insert spaces, never tab characters.
       (global-ligature-mode t))
 #+end_src
   
+** Insert Greek letters, etc
+
+=prettify-symbols-mode= can render Greek letters, etc. Doing [[http://endlessparentheses.com/new-in-emacs-25-1-have-prettify-symbols-mode-reveal-the-symbol-at-point.html][this]]
+allows you to see the original text. See also [[http://endlessparentheses.com/using-prettify-symbols-in-clojure-and-elisp-without-breaking-indentation.html][here]] and [[http://endlessparentheses.com/improving-latex-equations-with-font-lock.html][here]].
+#+begin_src emacs-lisp
+(setq prettify-symbols-unprettify-at-point 'right-edge)
+#+end_src
+
 * Themes
 
 #+begin_src emacs-lisp
@@ -342,8 +354,28 @@ Always insert spaces, never tab characters.
   (global-set-key (kbd "M-<down>") 'scroll-row-down)
 #+end_src
 
+Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-mark-command.html][Faster pop-to-mark command]]). See also
+[[https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-mode][Fixing the mark commands in transient-mark-mode]].
+#+begin_src emacs-lisp
+  (advice-add 'pop-to-mark-command :around #'modi/multi-pop-to-mark)
+#+end_src
+
 ** Spelling
 
+Tweaks from Mastering Emacs, [[https://www.masteringemacs.org/article/wordsmithing-in-emacs][Wordsmithing in Emacs]].
+#+begin_src emacs-lisp
+  (use-package ispell
+    :ensure nil
+    :bind ("M-#" . dictionary-lookup-definition)
+    :init
+    (setq switch-to-buffer-obey-display-actions t)
+    (add-to-list 'display-buffer-alist
+                 '("^\\*Dictionary\\*" display-buffer-in-side-window
+                   (side . bottom)
+                   (window-height . 30))))
+#+end_src
+
+Find the spelling program, if installed.
 #+begin_src emacs-lisp
   (let ((aspell-exe (if (eq system-type 'windows-nt)
                         (executable-find "aspell.exe")
@@ -420,16 +452,31 @@ Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.
   
 ** Window and frame selection
 
+See [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying emacs' window manager]].
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-x C-o") 'other-frame)
+  (unless (< emacs-major-version 27)
+    (setq switch-to-buffer-obey-display-actions t))
 #+end_src
 
-** Popper
+** Popup windows
+
+Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]])
+#+begin_src emacs-lisp :tangle no
+  (use-package shackle
+    :ensure t
+    :init
+    (setq shackle-rules '((compilation-mode :frame t))
+          shackle-default-rule '(:select t))
+    :config
+    (shackle-mode 1))
+#+end_src
 
 Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+begin_src emacs-lisp
   (use-package popper
-    :ensure t
+    :ensure nil
+    :load-path "lisp"
     :bind (("C-`"   . popper-toggle-latest)
            ("M-`"   . popper-cycle)
            ("C-M-`" . popper-toggle-type))
@@ -443,13 +490,18 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*Completions\\*"
             "\\*Flycheck errors\\*"
             "^\\*Shortdoc"
-            "\\*grep\\*"
             "\\*Apropos\\*"
+            "\\*Buffer List\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
+    :config
+    (setq popper-display-control
+          (or
+           (not (boundp 'shackle-mode))
+           (not shackle-mode)))
     (popper-mode +1)
-    (popper-echo-mode +1))                ; For echo area hints
+    (popper-echo-mode +1))
 #+end_src
 
 * Org mode
@@ -1222,7 +1274,7 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
     :hook (prog-mode . hs-minor-mode))
 #+end_src
 
-* Python modes
+* Python programming
 
 #+begin_src emacs-lisp
 (message "starting python modes")
@@ -1309,29 +1361,62 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 
 ** Testing
 
+From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
+#+begin_src emacs-lisp
+  (defun push-buffer-to-frame ()
+    "push current window buffer to own frame and revert current window to previous frame."
+    (interactive)
+    (let ((current (current-buffer))
+          (selected (selected-window)))
+      (if (display-buffer-other-frame current)
+          (quit-restore-window selected))))
+#+end_src
+
 My own modified version of the pytest package. The original doesn't work well
 on Windows.
 #+begin_src emacs-lisp
-  (use-package pytest
-    :ensure nil
-    :load-path "lisp"
-    :init
-    (defun my-pytest-all (&optional flags)
-      (interactive)
-      (pytest-run nil flags)
-      (other-window 1))
-    (defun my-pytest-directory (&optional flags)
-      (interactive)
-      (pytest-run (file-name-directory buffer-file-name) flags)
-      (other-window 1))
-    (defun my-pytest-module (&optional flags)
-      (interactive)
-      (pytest-run buffer-file-name flags)
-      (other-window 1))
-    (defun my-pytest-one (&optional flags)
-      (interactive)
-      (pytest-run (format "%s" (pytest-py-testable)) flags)
-      (other-window 1)))
+    (use-package pytest
+      :ensure nil
+      :load-path "lisp"
+      :custom
+      (pytest-global-name "pytest")
+      (pytest-cmd-flags "-x -s --disable-warnings")
+      :bind (:map compilation-mode-map
+                  ("Q" . push-buffer-to-frame))
+      :init
+      (defun my-pytest-all (&optional flags)
+        (interactive)
+        (pytest-run nil flags)
+        (other-window 1))
+      (defun my-pytest-directory (&optional flags)
+        (interactive)
+        (pytest-run (file-name-directory buffer-file-name) flags)
+        (other-window 1))
+      (defun my-pytest-module (&optional flags)
+        (interactive)
+        (pytest-run buffer-file-name flags)
+        (other-window 1))
+      (defun my-pytest-one (&optional flags)
+        (interactive)
+        (pytest-run (format "%s" (pytest-py-testable)) flags)
+        (other-window 1)))
+#+end_src
+
+From [[https://emacs.stackexchange.com/questions/60558/controlling-behaviour-of-compilation-window-creation][Controlling behavior of compilation window creation]].
+#+begin_src emacs-lisp :tangle no
+(setq display-buffer-alist
+      `((,(rx bos
+              (| (literal "*compilation")
+                 (literal "*shell")
+                 (literal "*eshell")
+                 (literal "*Compile-Log")))
+         display-buffer-in-direction
+         (window .                      ;reference window
+                 t) ;either `t' (selected window), `main', `root', or an arbitrary valid window
+         (direction .
+                    below)              ;`below' (window) or `bottom' (of frame)
+         (window-height . 0.33)          ;absolute (10) or relative (0.3)
+         )))
 #+end_src
 
 A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-python-pytest][python-pytest]]).
@@ -1341,10 +1426,44 @@ A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-pyth
     :ensure t)
 #+end_src
 
+** Jupyter
+
+#+begin_src emacs-lisp
+  (use-package jupyter
+    :after (ob-jupyter ob-python)
+    :config
+    (setq jupyter-api-authentication-method 'password)
+    (setq jupyter-eval-use-overlays nil)
+    (setq org-babel-default-header-args:jupyter-python '((:session . "/jpy:localhost#8888:py")
+                                                         (:kernel . "conda-env-edge-py")
+                                                         (:async . "yes")
+                                                         (:pandoc t)))
+    (add-to-list 'savehist-additional-variables 'jupyter-server-kernel-names)
+    (setq ob-async-no-async-languages-alist '("jupyter-python"))
+    (add-to-list 'org-structure-template-alist '("j" . "src jupyter-python")))
+#+end_src
+
+* Julia programming
+
+[[https://discourse.julialang.org/t/jupyter-integration-with-emacs/21496/5][Instructions]] from the Julia mailing list for installing Jupyter.
+#+begin_src emacs-lisp :tangle no
+  (use-package jupyter
+    :ensure t)
+#+end_src
+
 * Shell modes
 
 #+begin_src emacs-lisp
 (message "starting shell modes")
+#+end_src
+
+Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].
+#+begin_src emacs-lisp :tangle no
+(add-to-list 'display-buffer-alist
+     '("\\*vterm\\*" display-buffer-reuse-mode-window
+       ;; change to `t' to not reuse same window
+       (inhibit-same-window . nil)
+       (mode vterm-mode vterm-copy-mode)))
 #+end_src
 
 ** Notes
