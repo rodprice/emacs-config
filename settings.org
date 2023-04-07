@@ -1457,45 +1457,99 @@ on Windows.
       (other-window 1)))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
-  (defun my-find-frame-in-display (frame-regexp &optional alist)
-    (let* ((frames (cdr (assq 'frames alist)))
-           (params (frame-parameters frame))
-           (names (mapcar (lambda (frame) (assq 'name params)) frames)))
-      (seq-filter (apply-partially #'string-match-p frame-regexp) ???)
+*** Find monitor and frame attributes
+
+Returns a modified version of an association list.
+#+begin_src emacs-lisp
+  (defun alist-modify (alist key value)
+    "If KEY is found in ALIST, replace the old value for KEY with
+  VALUE. If KEY is not found in ALIST, add KEY,VALUE to the result."
+    (if (assq key alist)
+        (mapcar
+         (lambda (pair)
+           (if (not (eq key (car pair))) pair (cons key value)))
+         alist)
+      (cons (cons key value) alist)))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
-  (defun my-find-pytest-frame (frame-regexp)
-    (let ((displays (display-monitor-attributes-list)))
-      (mapcar
-       (lambda (display) 
+Predicates for matching frame and monitor names.
+#+begin_src emacs-lisp
+  (defun my-pytest-frame-p (name-regexp &optional frame)
+    "Test whether FRAME has name matching NAME-REGEXP."
+    (let ((params (frame-parameters frame)))
+      (string-match-p name-regexp (alist-get 'name params))))
+
+  (defun my-pytest-monitor-p (name-regexp monitor-attrs)
+    "Test whether MONITOR-ATTRS has name matching NAME-REGEXP."
+    (string-match-p name-regexp (alist-get 'name monitor-attrs)))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
-(defun my-popper-select-popup-at-bottom (buffer &optional alist)
-  "Display and switch to popup-buffer BUFFER at the bottom of the screen,
-unless BUFFER is named '*pytest*'."
-  (if (string-match-p "\\*pytest\\*" (buffer-name buffer))
-      (let ((displays (display-monitor-attributes-list))
-            (frames 
-        (message "--- found a *pytest* buffer")
-        (display-buffer-pop-up-frame buffer alist)
-      )
-    (popper-select-popup-at-bottom buffer alist)))
-
-(setq popper-display-function #'my-popper-select-popup-at-bottom)
+Finds matching monitor attributes alists.
+#+begin_src emacs-lisp
+  (defun my-find-monitor-attributes-by-name (name-regexp)
+    "Return the first set of monitor attributes found with name
+  matching NAME-REGEXP. If NAME-REGEXP is blank or nil, return nil."
+    (if (or (not name-regexp) (string-blank-p name-regexp))
+        nil
+      (car (seq-filter
+            (apply-partially #'my-pytest-monitor-p name-regexp)
+            (display-monitor-attributes-list)))))
 #+end_src
 
-  From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
-  ,#+begin_src emacs-lisp
-      (defun push-buffer-to-frame ()
-        "push current window buffer to own frame and revert current window to previous frame."
-        (interactive)
-        (let ((current (current-buffer))
-              (selected (selected-window)))
-          (if (display-buffer-other-frame current)
-              (quit-restore-window selected))))
+Removes non-matching frames from a monitor attributes alist.
+#+begin_src emacs-lisp
+  (defun my-filter-frames-by-name (frame-name-regexp monitor-attrs)
+    "Returns a modified monitor attributes alist with frames having
+  names matching FRAME-NAME-REGEXP. All other frames are removed
+  from `frames' list. MONITOR-ATTRS is the original monitor
+  attributes alist."
+    (let ((filtered-frames
+           (seq-filter
+            (apply-partially #'my-pytest-frame-p frame-name-regexp)
+            (alist-get 'frames monitor-attrs))))
+      (alist-modify monitor-attrs 'frames filtered-frames)))
+#+end_src
+
+Removes non-matching frames from all monitor attributes alists.
+#+begin_src emacs-lisp
+  (defun my-filter-all-frames-by-name (frame-name-regexp)
+    "Return a list of monitor attribute alists with all frames having
+  names not matching FRAME-NAME-REGEXP removed."
+    (mapcar
+     (apply-partially #'my-filter-frames-by-name frame-name-regexp)
+     (display-monitor-attributes-list)))
+#+end_src
+
+*** Modify =popper='s display function
+
+Keep =popper= from displaying *pytest* buffers.
+#+begin_src emacs-lisp :tangle no
+  (defun my-popper-select-popup-at-bottom (buffer &optional alist)
+    "Display and switch to popup-buffer BUFFER at the bottom of the screen,
+  unless BUFFER is named '*pytest*'."
+    (if (string-match-p "\\*pytest\\*" (buffer-name buffer))
+        (progn
+          (message "--- found a *pytest* buffer")
+          (display-buffer-in-child-frame buffer alist))
+      (popper-select-popup-at-bottom buffer alist)))
+#+end_src
+
+Set the =popper= display function.
+#+begin_src emacs-lisp
+  (popper-mode -1)
+  (setq popper-display-function #'my-popper-select-popup-at-bottom)
+  (popper-mode +1)
+#+end_src
+
+From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
+#+begin_src emacs-lisp
+  (defun push-buffer-to-frame ()
+    "push current window buffer to own frame and revert current window to previous frame."
+    (interactive)
+    (let ((current (current-buffer))
+          (selected (selected-window)))
+      (if (display-buffer-other-frame current)
+          (quit-restore-window selected))))
 #+end_src
 
 From [[https://emacs.stackexchange.com/questions/60558/controlling-behaviour-of-compilation-window-creation][Controlling behavior of compilation window creation]].
