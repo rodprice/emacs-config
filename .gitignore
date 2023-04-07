@@ -41,3 +41,4 @@ tramp
 NUL
 .emacs.desktop
 .emacs.desktop.lock
+*.html

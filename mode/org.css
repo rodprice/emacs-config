@@ -1,0 +1,664 @@
+
+$monospace: et-book-ligatures, monospace;
+$code-size: 80%;
+$smaller: 90%;
+$max-width: 710px;
+
+/*
+/* katex stuff
+/* https://github.com/KaTeX/KaTeX/issues/327
+ */
+
+
+.katex-display > .katex {
+    max-width: 100%;
+}
+
+/* works for inline math */
+.katex-display > .katex > .katex-html {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+
+/* this fixes math equation */
+p + span {
+    width: 55%;
+    display: block;
+    margin-top: 1.4rem;
+    margin-bottom: 1.4rem;
+    padding-right: 0;
+    vertical-align: baseline;
+}
+
+/*
+/* org stuff
+ */
+
+
+section > .csl-bib-body {
+    width: 80%;
+}
+
+/* table */
+
+table {
+    border-collapse: collapse;
+    text-align: center;
+    -webkit-border-vertical-spacing: 0px;
+    -webkit-border-horizontal-spacing: 0px;
+}
+
+thead {
+    border-bottom: 2px solid;
+}
+
+table td + td, table th + th {
+    border-left: 1px solid gray;
+}
+
+table tr {
+    border-top: 1px solid lightgray;
+}
+
+td,th {
+    padding: 0.3em 0.6em;
+    vertical-align: middle;
+}
+
+caption.t-above {
+    caption-side: top;
+}
+
+caption.t-bottom {
+    caption-side: bottom;
+}
+
+caption {
+    margin-bottom: 0.3em;
+}
+
+figcaption {
+    margin-top: 0.3em;
+}
+
+th.org-right {
+    text-align: center;
+}
+
+th.org-left {
+    text-align: center;
+}
+
+th.org-center {
+    text-align: center;
+}
+
+td.org-right {
+    text-align: right;
+}
+
+td.org-left {
+    text-align: left;
+}
+
+td.org-center {
+    text-align: center;
+}
+
+.todo {
+    background-color: red;
+    color: white;
+    padding: .1em 0.3em;
+    border-radius: 3px;
+    background-clip: padding-box;
+    font-size: $code-size;
+    font-family: $monospace;
+    line-height: 1;
+}
+
+.done {
+    background-color: green;
+    color: white;
+    padding: .1em 0.3em;
+    border-radius: 3px;
+    background-clip: padding-box;
+    font-size: $code-size;
+    font-family: $monospace;
+    line-height: 1;
+}
+
+.priority {
+    color: orange;
+    font-family: $monospace;
+}
+
+
+:not(pre) > code {
+    padding: 2px 5px;
+    margin: auto 1px;
+    border: 1px solid #DDD;
+    border-radius: 3px;
+    background-clip: padding-box;
+    color: #333;
+    font-size: $code-size;
+}
+
+code {
+    border: 1px solid #ccc;
+    font-family: $monospace;
+    font-size: $code-size;
+    margin: 1em auto;
+    padding: 0.1em 0.5em;
+    position: relative;
+}
+
+pre>code {
+    overflow: auto;
+}
+
+pre>code:before {
+    display: block;
+    position: absolute;
+    background-color: #b3b3b3;
+    top: 0;
+    right: 0;
+    padding: 0 0.5em;
+    border-bottom-left-radius: 8px;
+    border: 0;
+    color: white;
+    font-size: $code-size;
+}
+
+/* from http://demo.thi.ng/org-spec/ */
+
+.org-src-container>pre.src-sh:before {
+    content: 'sh';
+}
+.org-src-container>pre.src-bash:before {
+    content: 'bash';
+}
+.org-src-container>pre.src-emacs-lisp:before {
+    content: 'Emacs Lisp';
+}
+.org-src-container>pre.src-R:before {
+    content: 'R';
+}
+.org-src-container>pre.src-org:before {
+    content: 'Org';
+}
+.org-src-container>pre.src-cpp:before {
+    content: 'C++';
+}
+.org-src-container>pre.src-c:before {
+    content: 'C';
+}
+.org-src-container>pre.src-html:before {
+    content: 'HTML'
+}
+.org-src-container>pre.src-js:before {
+    content: 'Javascript'
+}
+.org-src-container>pre.src-javascript:before {
+    content: 'Javascript'
+}
+
+// More languages from http://orgmode.org/worg/org-contrib/babel/languages.html
+
+.org-src-container>pre.src-abc:before {
+    content: 'ABC';
+}
+.org-src-container>pre.src-asymptote:before {
+    content: 'Asymptote';
+}
+.org-src-container>pre.src-awk:before {
+    content: 'Awk';
+}
+.org-src-container>pre.src-C:before {
+    content: 'C';
+}
+.org-src-container>pre.src-calc:before {
+    content: 'Calc';
+}
+.org-src-container>pre.src-clojure:before {
+    content: 'Clojure';
+}
+.org-src-container>pre.src-comint:before {
+    content: 'comint';
+}
+.org-src-container>pre.src-css:before {
+    content: 'CSS';
+}
+.org-src-container>pre.src-D:before {
+    content: 'D';
+}
+.org-src-container>pre.src-ditaa:before {
+    content: 'Ditaa';
+}
+.org-src-container>pre.src-dot:before {
+    content: 'Dot';
+}
+.org-src-container>pre.src-ebnf:before {
+    content: 'ebnf';
+}
+.org-src-container>pre.src-forth:before {
+    content: 'Forth';
+}
+.org-src-container>pre.src-F90:before {
+    content: 'Fortran';
+}
+.org-src-container>pre.src-gnuplot:before {
+    content: 'Gnuplot';
+}
+.org-src-container>pre.src-haskell:before {
+    content: 'Haskell';
+}
+.org-src-container>pre.src-io:before {
+    content: 'Io';
+}
+.org-src-container>pre.src-java:before {
+    content: 'Java';
+}
+.org-src-container>pre.src-julia:before {
+    content: 'Julia';
+}
+.org-src-container>pre.src-jupyter-julia:before {
+    content: 'Julia';
+}
+.org-src-container>pre.src-jupyter-python:before {
+    content: 'Python';
+}
+.org-src-container>pre.src-latex:before {
+    content: 'LaTeX';
+}
+.org-src-container>pre.src-ledger:before {
+    content: 'Ledger';
+}
+.org-src-container>pre.src-ly:before {
+    content: 'Lilypond';
+}
+.org-src-container>pre.src-lisp:before {
+    content: 'Lisp';
+}
+.org-src-container>pre.src-makefile:before {
+    content: 'Make';
+}
+.org-src-container>pre.src-matlab:before {
+    content: 'Matlab';
+}
+.org-src-container>pre.src-max:before {
+    content: 'Maxima';
+}
+.org-src-container>pre.src-mscgen:before {
+    content: 'Mscgen';
+}
+.org-src-container>pre.src-Caml:before {
+    content: 'Objective';
+}
+.org-src-container>pre.src-octave:before {
+    content: 'Octave';
+}
+.org-src-container>pre.src-org:before {
+    content: 'Org';
+}
+.org-src-container>pre.src-perl:before {
+    content: 'Perl';
+}
+.org-src-container>pre.src-picolisp:before {
+    content: 'Picolisp';
+}
+.org-src-container>pre.src-plantuml:before {
+    content: 'PlantUML';
+}
+.org-src-container>pre.src-python:before {
+    content: 'Python';
+}
+.org-src-container>pre.src-ruby:before {
+    content: 'Ruby';
+}
+.org-src-container>pre.src-sass:before {
+    content: 'Sass';
+}
+.org-src-container>pre.src-scala:before {
+    content: 'Scala';
+}
+.org-src-container>pre.src-scheme:before {
+    content: 'Scheme';
+}
+.org-src-container>pre.src-screen:before {
+    content: 'Screen';
+}
+.org-src-container>pre.src-sed:before {
+    content: 'Sed';
+}
+.org-src-container>pre.src-shell:before {
+    content: 'shell';
+}
+.org-src-container>pre.src-shen:before {
+    content: 'Shen';
+}
+.org-src-container>pre.src-sql:before {
+    content: 'SQL';
+}
+.org-src-container>pre.src-sqlite:before {
+    content: 'SQLite';
+}
+.org-src-container>pre.src-stan:before {
+    content: 'Stan';
+}
+.org-src-container>pre.src-vala:before {
+    content: 'Vala';
+}
+.org-src-container>pre.src-axiom:before {
+    content: 'Axiom';
+}
+.org-src-container>pre.src-browser:before {
+    content: 'HTML';
+}
+.org-src-container>pre.src-cypher:before {
+    content: 'Neo4j';
+}
+.org-src-container>pre.src-elixir:before {
+    content: 'Elixir';
+}
+.org-src-container>pre.src-request:before {
+    content: 'http';
+}
+.org-src-container>pre.src-ipython:before {
+    content: 'iPython';
+}
+.org-src-container>pre.src-kotlin:before {
+    content: 'Kotlin';
+}
+.org-src-container>pre.src-Flavored Erlang  lfe:before {
+    content: 'Lisp';
+}
+.org-src-container>pre.src-mongo:before {
+    content: 'MongoDB';
+}
+.org-src-container>pre.src-prolog:before {
+    content: 'Prolog';
+}
+.org-src-container>pre.src-rec:before {
+    content: 'rec';
+}
+.org-src-container>pre.src-ML  sml:before {
+    content: 'Standard';
+}
+.org-src-container>pre.src-Translate  translate:before {
+    content: 'Google';
+}
+.org-src-container>pre.src-typescript:before {
+    content: 'Typescript';
+}
+.org-src-container>pre.src-rust:before {
+    content: 'Rust';
+}
+
+.inlinetask {
+    background: #ffffcc;
+    border: 2px solid gray;
+    margin: 10px;
+    padding: 10px;
+}
+
+#org-div-home-and-up {
+    font-size: 70%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.linenr {
+    font-size: $smaller;
+}
+
+.code-highlighted {
+    background-color: #ffff00;
+}
+
+#bibliography {
+    font-size: $smaller;
+}
+
+#bibliography table {
+    width: 100%;
+}
+
+.creator {
+    display: block;
+}
+
+@media screen and (min-width: 600px) {
+    .creator {
+        display: inline;
+        float: right;
+    }
+}
+
+/*
+This below keeps the regular scrollbar for scrolling the page, if
+present, because that one makes sense to be there.
+*/
+
+html::-webkit-scrollbar {
+    display: inherit;
+}
+
+html {
+    -ms-overflow-style: inherit;
+    scrollbar-width: inherit;
+}
+
+/*
+Italicise blockquotes and fix some overzealous spacing.
+ */
+
+blockquote {
+    font-style: italic;
+}
+
+div.epigraph {
+    margin: 0 !important;
+}
+
+div.epigraph > blockquote {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/*
+This fixes the line height for various elements that are taller than
+the regular line height and thus introduce inconsistent line spacing.
+*/
+
+/* Super- and subscripts */
+/* Courtesy of https://css-tricks.com/snippets/css/prevent-superscripts-and-subscripts-from-affecting-line-height/ */
+sup, sub {
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+}
+
+sub {
+  top: 0.4em;
+}
+
+/*
+Figures & captions come out as div.figure & p.caption respectively,
+which is not what tufte-css anticipates.
+
+Because CSS doesn't allow for automatic style inheritance, I just
+copy-paste over the relevant styles. The structure is slightly fudged,
+because org-mode conversion applies custom HTML attributes on the
+image rather than the container, so the container is always full-width
+and the image is scaled down in this version.
+
+To include a full-width figure in this system, use the following
+org-mode annotation:
+
+#+attr_html: :class fullwidth
+*/
+
+div.figure {
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    width: 100%;
+    -webkit-margin-start: 0;
+    -webkit-margin-end: 0;
+    margin: 0 0 3em 0;
+}
+
+div.figure > p > video {
+    max-width: 55%;
+}
+
+div.figure > p > video.fullwidth {
+    max-width: 90%;
+}
+
+div.figure > p.caption {
+    float: right;
+    clear: right;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    vertical-align: baseline;
+    position: relative;
+    width: calc(55% / 2);
+    margin-right: 12%;
+}
+
+/* fix the above figure caption */
+div.figure > p:nth-child(2) {
+    float: right;
+    clear: right;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    vertical-align: baseline;
+    position: relative;
+    max-width: 80%;
+}
+
+.figure-number {
+    display: none;
+}
+a:link {
+    text-decoration: underline;
+    background: none;
+    text-shadow: none;
+}
+
+/* the lightswitch itself */
+input#lightswitch {
+    display: none;
+}
+
+label#lightswitch-label {
+    cursor: pointer;
+}
+
+/* use a body div for theming */
+body {
+    margin: 0;
+    max-width: 100%;
+    padding: 0;
+    width: 100%;
+}
+
+div#body {
+    min-height: calc(100vh - 4em);
+    padding-bottom: 2em;
+    padding-top: 2em;
+    overflow-y: auto;
+}
+
+div#container {
+     margin-left: auto;
+     margin-right: auto;
+     max-width: 1400px;
+     padding-left: 12.5%;
+     width: 87.5%;
+}
+
+article {
+    padding-top: 0;
+}
+
+@media (max-width: 760px) {
+    body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    div#body {
+        width: 92%;
+        padding-right: 8%;
+    }
+}
+
+/* override tufte */
+
+/* :root { */
+/*     --dark-bg: #002b36; */
+/*     --dark-color: #eee8d5; */
+/*     --dark-code: #93a1a1; */
+/*     --light-bg: #fffff8; */
+/*     --light-color: #111; */
+/*     --light-code: #657b83; */
+/* } */
+
+@media (prefers-color-scheme: dark) {
+    div#body {
+        background-color: var(--dark-bg);
+        color: var(--dark-color);
+    }
+    input#lightswitch:checked + div#body {
+        background-color: var(--light-bg);
+        color: var(--light-color);
+    }
+    pre code {
+        color: var(--dark-code);
+    }
+    input#lightswitch:checked ~ pre code {
+        color: var(--light-code);
+    }
+    table {
+        border-color: var(--dark-fg);
+    }
+    input#lightswitch:checked ~ table {
+        border-color: var(--light-code);
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    div#body {
+        background-color: var(--light-bg);
+        color: var(--light-color);
+    }
+    input#lightswitch:checked + div#body {
+        background-color: var(--dark-bg);
+        color: var(--dark-color);
+    }
+    pre code {
+        color: var(--light-code);
+    }
+    input#lightswitch:checked ~ pre code {
+        color: var(--dark-code);
+    }
+    table {
+        border-color: var(--light-fg);
+    }
+    input#lightswitch:checked ~ table {
+        border-color: var(--dark-code);
+    }
+}
+

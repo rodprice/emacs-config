@@ -43,19 +43,23 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-;; Org's cache gets messed up during initialization, so don't use it
-(require 'org)
-(setq org-element-use-cache nil)
-;; (org-babel-do-load-languages
-;;  'org-babel-load-languages
-;;  '((emacs-lisp . t)
-;;    ;;(R . t)
-;;    (python . t)
-;;    ;;(ipython . t)
-;;    (latex . t)
-;;    (ditaa . t)
-;;    (shell . t)
-;;    (jupyter . t)))
+(use-package org
+  :ensure t
+  :pin manual
+  :custom
+  ;; (org-fold-catch-invisible-edits t)
+  (org-element-use-cache nil) ;; org's cache get messed up easily, so don't use it
+)
+  ;; (org-babel-do-load-languages
+  ;;  'org-babel-load-languages
+  ;;  '((emacs-lisp . t)
+  ;;    ;;(R . t)
+  ;;    (python . t)
+  ;;    ;;(ipython . t)
+  ;;    (latex . t)
+  ;;    (ditaa . t)
+  ;;    (shell . t)
+  ;;    (jupyter . t)))
 
 ;; Load the various settings files
 ;; (org-babel-jupyter-override-src-block 'python)
