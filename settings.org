@@ -43,15 +43,20 @@ Always insert spaces, never tab characters.
    (setq-default indent-tabs-mode nil)
 #+end_src
 
-  Truncate long lines everywhere.
+Truncate long lines everywhere.
 #+begin_src emacs-lisp
-    (global-visual-line-mode 0)
-    (setq-default truncate-lines t)
+  (global-visual-line-mode 0)
+  (setq-default truncate-lines t)
 #+end_src
-    
-  Highlight current line.
+
+Delete trailing whitespace before save.
 #+begin_src emacs-lisp
-    (global-hl-line-mode t)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+end_src
+
+Highlight current line.
+#+begin_src emacs-lisp
+  (global-hl-line-mode t)
 #+end_src
 
 ** Clipboard
@@ -66,29 +71,33 @@ Always insert spaces, never tab characters.
    
 ** File locations
    
-   Make emacs open files in a reasonable directory by default.
+Make emacs open files in a reasonable directory by default.
 #+begin_src emacs-lisp
-     (setq default-directory (getenv "HOME"))
+  (setq default-directory (getenv "HOME"))
 #+end_src
    
-   [[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
+[[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
 #+begin_src emacs-lisp
-     (setq delete-old-versions t
-           kept-new-versions 2
-           kept-old-versions 2
-           version-control t)
+  (setq delete-old-versions t
+        kept-new-versions 2
+        kept-old-versions 2
+        version-control t)
 #+end_src
    
-   File locations for custom settings.
+File locations for custom settings.
 #+begin_src emacs-lisp
-     (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-     (unless (file-exists-p custom-file)
-       (custom-save-all))                   ; Create new, empty custom file
-     (load custom-file)
-     (require 'saveplace)
-     (setq save-place-file (concat user-emacs-directory "places")
-           backup-directory-alist `(("." . ,(concat user-emacs-directory
-                                                    "backups"))))
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+  (unless (file-exists-p custom-file)
+    (custom-save-all))                   ; Create new, empty custom file
+  (load custom-file)
+#+end_src
+
+File location for saving cursor state.
+#+begin_src emacs-lisp
+  (require 'saveplace)
+  (setq save-place-file (concat user-emacs-directory "places")
+        backup-directory-alist `(("." . ,(concat user-emacs-directory
+                                                 "backups"))))
 #+end_src
 
 * GUI elements
@@ -1523,7 +1532,7 @@ Removes non-matching frames from all monitor attributes alists.
 *** Modify =popper='s display function
 
 Keep =popper= from displaying *pytest* buffers.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun my-popper-select-popup-at-bottom (buffer &optional alist)
     "Display and switch to popup-buffer BUFFER at the bottom of the screen,
   unless BUFFER is named '*pytest*'."
