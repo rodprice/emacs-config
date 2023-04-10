@@ -37,7 +37,7 @@ Sentences end with a single space.
 #+begin_src emacs-lisp
   (setq sentence-end-double-space nil)
 #+end_src
-   
+
 Always insert spaces, never tab characters.
 #+begin_src emacs-lisp
    (setq-default indent-tabs-mode nil)
@@ -60,7 +60,7 @@ Highlight current line.
 #+end_src
 
 ** Clipboard
-   
+
    Use the system clipboard.
 #+begin_src emacs-lisp
      (setq select-enable-clipboard t
@@ -68,14 +68,14 @@ Highlight current line.
            save-interprogram-paste-before-kill t
            mouse-yank-at-point t)
 #+end_src
-   
+
 ** File locations
-   
+
 Make emacs open files in a reasonable directory by default.
 #+begin_src emacs-lisp
   (setq default-directory (getenv "HOME"))
 #+end_src
-   
+
 [[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
 #+begin_src emacs-lisp
   (setq delete-old-versions t
@@ -83,7 +83,7 @@ Make emacs open files in a reasonable directory by default.
         kept-old-versions 2
         version-control t)
 #+end_src
-   
+
 File locations for custom settings.
 #+begin_src emacs-lisp
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -165,16 +165,16 @@ File location for saving cursor state.
              (:eval (my-conda-env-current-name))
              (:eval (my-git-branch-name))))
 #+end_src
-   
+
 ** Mode line
-   
+
 #+begin_src emacs-lisp
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
      ;; Display the column number in the mode line
      (setq column-number-mode t)
 #+end_src
-  
+
 * Fonts
 
 #+begin_src emacs-lisp
@@ -216,12 +216,12 @@ File location for saving cursor state.
             (require 'fira-code-mode)
             (ligature-set-ligatures 'prog-mode fira-code-mode--ligatures)
             (ligature-set-ligatures 'org-mode fira-code-mode--ligatures)))
-            
+
       ;; Enables ligature checks globally in all buffers. You can also do it
       ;; per mode with `ligature-mode'.
       (global-ligature-mode t))
 #+end_src
-  
+
 ** Insert Greek letters, etc
 
 =prettify-symbols-mode= can render Greek letters, etc. Doing [[http://endlessparentheses.com/new-in-emacs-25-1-have-prettify-symbols-mode-reveal-the-symbol-at-point.html][this]]
@@ -324,7 +324,7 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
   (global-set-key (kbd "C-M-r") 'isearch-backward)
   (global-set-key (kbd "C-c r") 'rgrep)
 #+end_src
-  
+
 ** Line wrapping
 
 #+begin_src emacs-lisp
@@ -341,7 +341,7 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
   (global-set-key (kbd "C-t") 'transpose-next-line)
   (global-set-key (kbd "M-t") 'transpose-previous-line)
 #+end_src
-  
+
 ** Camel case
 
 #+begin_src emacs-lisp
@@ -358,7 +358,7 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
      ("C-e" . mwim-end-of-line-or-code))
     :pin melpa)
 #+end_src
-  
+
 #+begin_src emacs-lisp
   (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
   (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
@@ -402,7 +402,7 @@ Find the spelling program, if installed.
 #+end_src
 
 ** Regions
-  
+
 Kill or yank entire lines
 #+begin_src emacs-lisp
   (use-package whole-line-or-region
@@ -465,7 +465,7 @@ Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.
 #+begin_src emacs-lisp
   ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
 #+end_src
-  
+
 ** Window and frame selection
 
 See [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying emacs' window manager]].
@@ -573,6 +573,10 @@ Make various elements of an org-mode document look nicer ([[https://github.com/m
     (org-agenda-finalize . org-modern-agenda))
 #+end_src
 
+** Refile
+
+See [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes with Refile]].
+
 ** Shortcuts
 
 Note: =org= motion commands are [[https://orgmode.org/org.html#Motion][here]].
@@ -585,17 +589,6 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
     (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("py" . "src python")))
-#+end_src
-
-Github code is [[https://github.com/tj64/outline-magic][here]], but there's no documentation there. Requires more
-configuration; right now it steals TAB and behaves badly.
-#+begin_src emacs-lisp :tangle no
-  (use-package outline-magic
-    :ensure t
-    :demand
-    :after outline
-    :bind (:map outline-minor-mode-map
-                ("C-<tab>" . outline-cycle)))
 #+end_src
 
 ** LaTeX
@@ -625,7 +618,11 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
 
 ** Junkyard
 
-Note: org-mode does not respect =org-bullets-bullet-list=. Don't know why not.
+Note: [[https://github.com/rksm/org-ai][org-ai]] is yet another emacs interface to ChatGPT, etc.
+
+Note: org-mode does not respect =org-bullets-bullet-list=. +Don't know why not.+
+The ~org-modern~ package steals this functionality.
+
 Use Unicode characters for bullets ([[https://github.com/sabof/org-bullets][org-bullets]]), including bullets in lists.
 #+begin_src emacs-lisp :tangle no
   (use-package org-bullets
@@ -657,7 +654,16 @@ Handle indentation correctly ([[https://github.com/jdtsmith/org-modern-indent][o
     (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
 #+end_src
 
-Note: [[https://github.com/rksm/org-ai][org-ai]] is yet another emacs interface to ChatGPT, etc.
+Github code is [[https://github.com/tj64/outline-magic][here]], but there's no documentation there. Requires more
+configuration; right now it steals TAB and behaves badly.
+#+begin_src emacs-lisp :tangle no
+  (use-package outline-magic
+    :ensure t
+    :demand
+    :after outline
+    :bind (:map outline-minor-mode-map
+                ("C-<tab>" . outline-cycle)))
+#+end_src
 
 * Completions
 
@@ -1339,12 +1345,12 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
         ('hs-global-cycle
          (save-excursion (hs-show-all))
          (setq this-command 'hs-global-show))
-        (_ (hs-hide-all))))    
+        (_ (hs-hide-all))))
 
     :bind (:map prog-mode-map
                 (("C-<tab>" . hs-cycle)
                  ("S-C-<tab>" . hs-global-cycle)))
-    
+
     :hook (prog-mode . hs-minor-mode))
 #+end_src
 
@@ -1481,7 +1487,33 @@ Returns a modified version of an association list.
       (cons (cons key value) alist)))
 #+end_src
 
-Predicates for matching frame and monitor names.
+#+begin_src emacs-lisp
+  (defun alist-remove (alist key)
+    "Return ALIST with KEY removed."
+    (seq-filter
+     (lambda (pair) (not (eq key (car pair))))
+     alist))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (defmacro alist-pop (alist key)
+    `(prog1
+         (cdr (assq ,key ,alist))
+       (setq alist (alist-remove ,alist ,key))))
+#+end_src
+
+  Pops the value indexed by key off the alist. Doesn't work; see the
+  documentation for ~pop~ [[https://www.gnu.org/software/emacs/manual/html_node/elisp/List-Elements.html#index-pop][here]].
+#+begin_src emacs-lisp :tangle no
+  (defun alist-pop (alist-var key)
+    "Return the value indexed by KEY in ALIST-VAR, removing KEY from
+  the alist."
+    (prog1
+        (alist-get key (symbol-value alist-var))
+      (setq alist-var (alist-remove (symbol-value alist-var) key))))
+#+end_src
+
+  Predicates for matching frame and monitor names.
 #+begin_src emacs-lisp
   (defun my-pytest-frame-p (name-regexp &optional frame)
     "Test whether FRAME has name matching NAME-REGEXP."
@@ -1491,6 +1523,11 @@ Predicates for matching frame and monitor names.
   (defun my-pytest-monitor-p (name-regexp monitor-attrs)
     "Test whether MONITOR-ATTRS has name matching NAME-REGEXP."
     (string-match-p name-regexp (alist-get 'name monitor-attrs)))
+
+  (defun names= (alist1 alist2)
+    "Test whether the `name' attribute of ALIST1 is the same as the
+  `name' attribute of ALIST2."
+    (string= (alist-get 'name alist1) (alist-get 'name alist2)))
 #+end_src
 
 Finds matching monitor attributes alists.
@@ -1529,6 +1566,22 @@ Removes non-matching frames from all monitor attributes alists.
      (display-monitor-attributes-list)))
 #+end_src
 
+#+begin_src emacs-lisp
+  (defun my-other-monitor-attributes ()
+    "Return the attributes of a monitor other than the one displaying
+  the selected frame. If there is only one monitor, return that
+  monitor's attributes."
+    (let ((attrs
+           (car (seq-filter
+                 (lambda (attrs) (not (names= (frame-monitor-attributes) attrs)))
+                 (display-monitor-attributes-list)))))
+      (or attrs (frame-monitor-attributes))))
+
+  (defun my-other-monitor-attribute (key)
+    "Return monitor atttribute indexed by KEY on the other monitor."
+    (alist-get key (my-other-monitor-attributes)))
+#+end_src
+
 *** Modify =popper='s display function
 
 Keep =popper= from displaying *pytest* buffers.
@@ -1537,15 +1590,27 @@ Keep =popper= from displaying *pytest* buffers.
     "Display and switch to popup-buffer BUFFER at the bottom of the screen,
   unless BUFFER is named '*pytest*'."
     (if (string-match-p "\\*pytest\\*" (buffer-name buffer))
-        (progn
+        (let* ((monitor (my-other-monitor-attribute 'name))
+               (my-alist '((inhibit-same-window . nil)))
+               (frame (make-frame-on-monitor monitor)))
           (message "--- found a *pytest* buffer")
-          (display-buffer-in-child-frame buffer alist))
+          (message (format "--- this monitor is %s" (frame-monitor-attribute 'name)))
+          (message (format "--- other monitor is %s" monitor))
+          (message (format "--- `my-alist' is %s" my-alist))
+          (display-buffer-use-some-frame buffer my-alist))
       (popper-select-popup-at-bottom buffer alist)))
 #+end_src
 
-Set the =popper= display function.
 #+begin_src emacs-lisp
+  (defun my-pop-up-frame-function ()
+    "Make a pop-up frame on the other monitor."
+    (make-frame-on-monitor (my-other-monitor-attribute 'name)))
+#+end_src
+
+Set the =popper= display function.
+#+begin_src emacs-lisp :tangle no
   (popper-mode -1)
+  (setq pop-up-frame-function #'my-pop-up-frame-function)
   (setq popper-display-function #'my-popper-select-popup-at-bottom)
   (popper-mode +1)
 #+end_src
