@@ -37,6 +37,8 @@
 (add-to-list 'package-archives
              '("org" . "http://orgmode.org/elpa/"))
 (package-initialize)
+(when (not package-archive-contents)
+  (package-refresh-contents))
 
 ;; Bootstrap `use-package'
 (unless (package-installed-p 'use-package)
