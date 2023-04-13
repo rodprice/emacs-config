@@ -93,6 +93,14 @@
 (defvar pytest-last-commands (make-hash-table :test 'equal)
   "Last pytest commands by pytest buffer name")
 
+(defvar-local pytest-buffer-status nil
+  "If non-nil, identifies a buffer containing pytest results.")
+
+(defun pytest-buffer-p (buffer)
+  "Test whether BUFFER is a pytest buffer."
+  (buffer-local-value 'my-pytest-buffer-status buffer))
+
+
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
   "Create the string used for running the py.test command.
 FORMAT-STRING is a template string used by (format) to compose
@@ -152,16 +160,30 @@ Optional argument FLAGS py.test command line flags."
 ;;     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
 (defun pytest-start-command(command)
-  (let ((use-comint (s-contains? "--pdb" command))
-        (temp-buffer-name (pytest-get-temp-buffer-name)))
+  (let* ((use-comint (s-contains? "--pdb" command))
+         (temp-buffer-name (pytest-get-temp-buffer-name))
+         (buffer (compilation-start command
+                                    use-comint
+                                    (lambda (mode) (pytest-get-temp-buffer-name)))))
     (puthash temp-buffer-name command pytest-last-commands)
-    (compilation-start command use-comint
-                       (lambda (mode) (pytest-get-temp-buffer-name)))
-    (if use-comint
-	(with-current-buffer (get-buffer temp-buffer-name)
-	  (inferior-python-mode)))))
+    (with-current-buffer buffer
+      (if use-comint
+          (progn
+            (setq pytest-buffer-status 'pdb)
+	    (inferior-python-mode))
+        (setq pytest-buffer-status t)))))
 
-(defun pytest-again(&optional edit-command)
+;; (defun pytest-start-command(command)
+;;   (let ((use-comint (s-contains? "--pdb" command))
+;;         (temp-buffer-name (pytest-get-temp-buffer-name)))
+;;     (puthash temp-buffer-name command pytest-last-commands)
+;;     (compilation-start command use-comint
+;;                        (lambda (mode) (pytest-get-temp-buffer-name)))
+;;     (if use-comint
+;; 	(with-current-buffer (get-buffer temp-buffer-name)
+;; 	  (inferior-python-mode)))))
+
+(defun pytest-again (&optional edit-command)
   "Run the same tests again with the last command.
 
    If EDIT-COMMAND is non-nil, the command can be edited."
