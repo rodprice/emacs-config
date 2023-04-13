@@ -1472,7 +1472,7 @@ on Windows.
       (other-window 1)))
 #+end_src
 
-*** Find monitor and frame attributes
+*** Functions to manipulate alists
 
 Returns a modified version of an association list.
 #+begin_src emacs-lisp
@@ -1487,6 +1487,7 @@ Returns a modified version of an association list.
       (cons (cons key value) alist)))
 #+end_src
 
+Returns a new alist with matching keys removed.
 #+begin_src emacs-lisp
   (defun alist-remove (alist key)
     "Return ALIST with KEY removed."
@@ -1495,77 +1496,25 @@ Returns a modified version of an association list.
      alist))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
+Pop the value matching key, then remove key from alist.
+#+begin_src emacs-lisp
   (defmacro alist-pop (alist key)
+    "Pop the value matching KEY, then remove KEY from ALIST."
     `(prog1
          (cdr (assq ,key ,alist))
-       (setq alist (alist-remove ,alist ,key))))
+       (setq ,alist (alist-remove ,alist ,key))))
 #+end_src
 
-  Pops the value indexed by key off the alist. Doesn't work; see the
-  documentation for ~pop~ [[https://www.gnu.org/software/emacs/manual/html_node/elisp/List-Elements.html#index-pop][here]].
-#+begin_src emacs-lisp :tangle no
-  (defun alist-pop (alist-var key)
-    "Return the value indexed by KEY in ALIST-VAR, removing KEY from
-  the alist."
-    (prog1
-        (alist-get key (symbol-value alist-var))
-      (setq alist-var (alist-remove (symbol-value alist-var) key))))
-#+end_src
+*** Find monitor and frame attributes
 
-  Predicates for matching frame and monitor names.
 #+begin_src emacs-lisp
-  (defun my-pytest-frame-p (name-regexp &optional frame)
-    "Test whether FRAME has name matching NAME-REGEXP."
-    (let ((params (frame-parameters frame)))
-      (string-match-p name-regexp (alist-get 'name params))))
-
-  (defun my-pytest-monitor-p (name-regexp monitor-attrs)
-    "Test whether MONITOR-ATTRS has name matching NAME-REGEXP."
-    (string-match-p name-regexp (alist-get 'name monitor-attrs)))
-
   (defun names= (alist1 alist2)
     "Test whether the `name' attribute of ALIST1 is the same as the
   `name' attribute of ALIST2."
     (string= (alist-get 'name alist1) (alist-get 'name alist2)))
 #+end_src
 
-Finds matching monitor attributes alists.
-#+begin_src emacs-lisp
-  (defun my-find-monitor-attributes-by-name (name-regexp)
-    "Return the first set of monitor attributes found with name
-  matching NAME-REGEXP. If NAME-REGEXP is blank or nil, return nil."
-    (if (or (not name-regexp) (string-blank-p name-regexp))
-        nil
-      (car (seq-filter
-            (apply-partially #'my-pytest-monitor-p name-regexp)
-            (display-monitor-attributes-list)))))
-#+end_src
-
-Removes non-matching frames from a monitor attributes alist.
-#+begin_src emacs-lisp
-  (defun my-filter-frames-by-name (frame-name-regexp monitor-attrs)
-    "Returns a modified monitor attributes alist with frames having
-  names matching FRAME-NAME-REGEXP. All other frames are removed
-  from `frames' list. MONITOR-ATTRS is the original monitor
-  attributes alist."
-    (let ((filtered-frames
-           (seq-filter
-            (apply-partially #'my-pytest-frame-p frame-name-regexp)
-            (alist-get 'frames monitor-attrs))))
-      (alist-modify monitor-attrs 'frames filtered-frames)))
-#+end_src
-
-Removes non-matching frames from all monitor attributes alists.
-#+begin_src emacs-lisp
-  (defun my-filter-all-frames-by-name (frame-name-regexp)
-    "Return a list of monitor attribute alists with all frames having
-  names not matching FRAME-NAME-REGEXP removed."
-    (mapcar
-     (apply-partially #'my-filter-frames-by-name frame-name-regexp)
-     (display-monitor-attributes-list)))
-#+end_src
-
+Find the attributes of a second monitor, if it exists.
 #+begin_src emacs-lisp
   (defun my-other-monitor-attributes ()
     "Return the attributes of a monitor other than the one displaying
@@ -1582,7 +1531,86 @@ Removes non-matching frames from all monitor attributes alists.
     (alist-get key (my-other-monitor-attributes)))
 #+end_src
 
+Frame predicate for ~display-buffer-use-some-frame~. Returns `t' iff the
+frame contains one or more buffers with name matching a regexp.
+#+begin_src emacs-lisp
+  (defun my-pytest-frame-p (frame &optional name-rx)
+    "Test whether FRAME has a buffer with name matching NAME-RX,
+  whether or not that buffer is visible or buried. If NAME-RX is
+  not specified or nil, use '\\*pytest'."
+    (let ((regexp (or name-rx "\\*pytest"))
+          (visible-names (mapcar #'buffer-name (frame-parameter frame 'buffer-list)))
+          (buried-names (mapcar #'buffer-name (frame-parameter frame 'buried-buffer-list))))
+      (cl-some
+       (apply-partially #'string-match-p regexp)
+       (append visible-names buried-names))))
+#+end_src
+
+Filter all frames in a particular monitor.
+#+begin_src emacs-lisp
+  (defun my-pytest-filter-frames (monitor-attrs &optional name-rx)
+    "Filter the `frames' attribute of MONITOR-ATTRS using the
+  predicate `my-pytest-frame-p'. Returns a copy of MONITOR-ATTRS
+  with a new `frames' attribute."
+    (let ((filter-fn))
+      (if name-rx
+          (setf filter-fn (lambda (frame) (my-pytest-frame-p frame name-rx)))
+        (setf filter-fn #'my-pytest-frame-p))
+      (let ((filtered-frames
+             (seq-filter
+              filter-fn
+              (alist-get 'frames monitor-attrs))))
+        (alist-modify monitor-attrs 'frames filtered-frames))))
+#+end_src
+
+Return the first frame found on a monitor that contains a buffer with
+matching name.
+#+begin_src emacs-lisp
+  (defun my-pytest-get-frame (&optional monitor-attrs name-rx)
+    "Return the first frame in MONITOR-ATTRS found that contains a
+  buffer matching NAME-RX. If MONITOR-ATTRS is nil, use the monitor
+  attributes of the monitor other than the one currently in use."
+    (let* ((attrs (or monitor-attrs (my-other-monitor-attributes)))
+           (matches (my-pytest-filter-frames attrs name-rx)))
+      (car (alist-get 'frames matches))))
+#+end_src
+
 *** Modify =popper='s display function
+
+#+begin_src emacs-lisp
+  (defun my-pytest-popper-display-frame (buffer &optional alist)
+    ""
+    (let* ((pytest-frame (or
+                          (my-pytest-get-frame (my-other-monitor-attributes))
+                          (car (my-other-monitor-attribute 'frames))
+                          ;; (my-pytest-get-frame (frame-monitor-attributes))
+                          (make-frame-on-monitor
+                           (my-other-monitor-attribute 'name)
+                           nil
+                           '((user-position . t)
+                             (top . 157)
+                             (left . 1089)
+                             (width . 111)
+                             (height . 69)))))
+           (my-alist '((inhibit-same-window . nil)
+                       (inhibit-switch-frame . nil)
+                       (reusable-frames . pytest-frame)
+                       )))
+          (message "--- found a *pytest* buffer")
+          (message (format "--- this monitor is %s" (frame-monitor-attribute 'name)))
+          (message (format "--- other monitor is %s" (my-other-monitor-attribute 'name)))
+          (message (format "--- `my-alist' is %s" my-alist))
+          (message (format "--- pytest-frame is %s" pytest-frame))
+          (message (format "--- visibility is %s" (frame-parameter pytest-frame 'visibility)))
+
+          ;; (add-hook 'quit-window-hook
+          ;;           (lambda ()
+          ;;             (when (string-match-p "\\*pytest\\*"
+          ;;                                   (buffer-name (window-buffer (selected-window))))
+          ;;               (popper-close-latest))))
+
+          (display-buffer-use-some-frame buffer my-alist)))
+#+end_src
 
 Keep =popper= from displaying *pytest* buffers.
 #+begin_src emacs-lisp
@@ -1590,14 +1618,7 @@ Keep =popper= from displaying *pytest* buffers.
     "Display and switch to popup-buffer BUFFER at the bottom of the screen,
   unless BUFFER is named '*pytest*'."
     (if (string-match-p "\\*pytest\\*" (buffer-name buffer))
-        (let* ((monitor (my-other-monitor-attribute 'name))
-               (my-alist '((inhibit-same-window . nil)))
-               (frame (make-frame-on-monitor monitor)))
-          (message "--- found a *pytest* buffer")
-          (message (format "--- this monitor is %s" (frame-monitor-attribute 'name)))
-          (message (format "--- other monitor is %s" monitor))
-          (message (format "--- `my-alist' is %s" my-alist))
-          (display-buffer-use-some-frame buffer my-alist))
+        (my-pytest-popper-display-frame buffer alist)
       (popper-select-popup-at-bottom buffer alist)))
 #+end_src
 
@@ -1610,13 +1631,15 @@ Keep =popper= from displaying *pytest* buffers.
 Set the =popper= display function.
 #+begin_src emacs-lisp :tangle no
   (popper-mode -1)
-  (setq pop-up-frame-function #'my-pop-up-frame-function)
+  ;; (setq pop-up-frame-function #'my-pop-up-frame-function)
   (setq popper-display-function #'my-popper-select-popup-at-bottom)
   (popper-mode +1)
 #+end_src
 
+*** Junkyard
+
 From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun push-buffer-to-frame ()
     "push current window buffer to own frame and revert current window to previous frame."
     (interactive)
@@ -1643,8 +1666,56 @@ From [[https://emacs.stackexchange.com/questions/60558/controlling-behaviour-of-
          )))
 #+end_src
 
+Predicates for matching frame and monitor names.
+#+begin_src emacs-lisp :tangle no
+  (defun my-pytest-frame-p (name-regexp &optional frame)
+    "Test whether FRAME has name matching NAME-REGEXP."
+    (let ((params (frame-parameters frame)))
+      (string-match-p name-regexp (alist-get 'name params))))
+
+  (defun my-pytest-monitor-p (name-regexp monitor-attrs)
+    "Test whether MONITOR-ATTRS has name matching NAME-REGEXP."
+    (string-match-p name-regexp (alist-get 'name monitor-attrs)))
+#+end_src
+
+Finds matching monitor attributes alists.
+#+begin_src emacs-lisp :tangle no
+  (defun my-find-monitor-attributes-by-name (name-regexp)
+    "Return the first set of monitor attributes found with name
+  matching NAME-REGEXP. If NAME-REGEXP is blank or nil, return nil."
+    (if (or (not name-regexp) (string-blank-p name-regexp))
+        nil
+      (car (seq-filter
+            (apply-partially #'my-pytest-monitor-p name-regexp)
+            (display-monitor-attributes-list)))))
+#+end_src
+
+Removes non-matching frames from a monitor attributes alist.
+#+begin_src emacs-lisp :tangle no
+  (defun my-filter-frames-by-name (monitor-attrs frame-name-regexp)
+    "Returns a modified monitor attributes alist with frames having
+  names matching FRAME-NAME-REGEXP. All other frames are removed
+  from `frames' list. MONITOR-ATTRS is the original monitor
+  attributes alist."
+    (let ((filtered-frames
+           (seq-filter
+            (apply-partially #'my-pytest-frame-p frame-name-regexp)
+            (alist-get 'frames monitor-attrs))))
+      (alist-modify monitor-attrs 'frames filtered-frames)))
+#+end_src
+
+Removes non-matching frames from all monitor attributes alists.
+#+begin_src emacs-lisp :tangle no
+  (defun my-filter-all-frames-by-name (frame-name-regexp)
+    "Return a list of monitor attribute alists with all frames having
+  names not matching FRAME-NAME-REGEXP removed."
+    (mapcar
+     (apply-partially #'my-filter-frames-by-name frame-name-regexp)
+     (display-monitor-attributes-list)))
+#+end_src
+
 A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-python-pytest][python-pytest]]).
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package python-pytest
     :disabled
     :ensure t)
