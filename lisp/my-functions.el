@@ -238,7 +238,7 @@ Version 2016-06-15"
 ;; Change CamelCase to camel_case and vice versa
 ;; https://stackoverflow.com/questions/9288181/converting-from-camelcase-to-in-emacs
 
- 
+
 (defun toggle-camelcase-underscores ()
   "Toggle between camelcase and underscore notation for the symbol at point."
   (interactive)
@@ -289,8 +289,8 @@ entering `ch' is equivalent to `*.[ch]'.
 With \\[universal-argument] prefix, you can edit the constructed shell command line
 before it is executed.
 
-Collect output in a buffer.  While either 'grep' or 'git grep' runs 
-asynchronously, you can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] in the grep 
+Collect output in a buffer.  While either 'grep' or 'git grep' runs
+asynchronously, you can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] in the grep
 output buffer, to go to the lines where grep found matches.
 
 This command shares argument histories with \\[rgrep] and \\[grep]."
@@ -424,7 +424,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 ;; Adapted from http://whattheemacsd.com
 (defun my-join-lines ()
-  "Join the following line onto the current line."  
+  "Join the following line onto the current line."
   (interactive)
   (join-line -1))
 
@@ -571,8 +571,8 @@ If prefix arg is provided, show current buffer twice."
   (other-window 1 nil)
   (if (= prefix 1) (switch-to-next-buffer)))
 
-(global-set-key (kbd "C-x 2")  'my/split-below-last-buffer)
-(global-set-key (kbd "C-x 3")  'my/split-right-last-buffer)
+;; (global-set-key (kbd "C-x 2")  'my/split-below-last-buffer)
+;; (global-set-key (kbd "C-x 3")  'my/split-right-last-buffer)
 (setq switch-to-prev-buffer-skip 'this)
 
 

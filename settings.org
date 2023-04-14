@@ -1589,32 +1589,6 @@ matching name.
 *** Modify =popper='s display function
 
 #+begin_src emacs-lisp
-  (defvar-local my-pytest-buffer-status nil
-    "Identifies a buffer containing pytest results.")
-
-  (defun my-pytest-buffer-mark (buffer)
-    "Mark a buffer as a pytest buffer."
-    (with-current-buffer buffer
-      (setq my-pytest-buffer-status t)))
-
-  (defun my-pytest-buffer-p (buffer)
-    "Tests whether a buffer is a pytest buffer."
-    (buffer-local-value 'my-pytest-buffer-status buffer))
-
-  (defun pytest-filter-popups (popups)
-    "Return alist of popup window-buffer cons cells that contain
-  pytest buffers, given the alist in POPUPS."
-    (seq-filter
-     (lambda (pair) (pytest-buffer-p (cdr pair)))
-     popups))
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (add-hook 'comint-mode-hook
-            (lambda () (my-pytest-compilation-mode 1)))
-#+end_src
-
-#+begin_src emacs-lisp
   (defvar my-pytest-compilation-mode-map
     (let ((map (make-sparse-keymap)))
       ;; (set-keymap-parent map compilation-mode-map)
@@ -1628,29 +1602,53 @@ matching name.
     "Mode to make buffer-local keymap."
     :init nil
     :keymap my-pytest-compilation-mode-map)
-    ;; :keymap '(([q] . my-pytest-quit-window)))
 #+end_src
 
 #+begin_src emacs-lisp
-  (defun my-pytest-quit-window ()
-    ""
-    (interactive)
-    (if (bound-and-true-p popper-mode)
-        (progn
-          (message (format "\n--- in my-pytest-quit-window"))
-          (message (format "--- popper-mode is %s" popper-mode))
-          (message (format "--- my-pytest-compilation-mode is %s" my-pytest-compilation-mode))
-          (message (format "--- (current-buffer) is %s" (current-buffer)))
-          (message (format "--- (pytest-buffer-p (current-buffer)) is %s"
-                           (pytest-buffer-p (current-buffer))))
-          (message (format "--- popper-open-popup-alist is %s" popper-open-popup-alist))
-          (message (format "--- (popper--update-popups) returns %s" (popper--update-popups)))
-          (message (format "--- popper-open-popup-alist is %s" popper-open-popup-alist))
-          (message (format "--- (pytest-filter-popups popper-open-popup-alist) is %s"
-                           (pytest-filter-popups popper-open-popup-alist)))
-          (quit-window))
-      (quit-window)))
+  (add-hook 'compilation-start-hook
+            (lambda (proc)
+              (message "\n--- running compilation-start hooks")
+              (message (format "--- proc is %s" proc))
+              (message (format "--- (process-name proc) is %s" (process-name proc)))
+              (message (format "--- (process-command proc) is %s" (process-command proc)))
+              (message (format "--- (process-status (process-name proc)) is %s"
+                               (process-status (process-name proc))))
+              (message (format "--- (process-live-p proc) is %s" (process-live-p proc)))
+              (message (format "--- (process-buffer proc) is %s" (process-buffer proc)))
+              (message (format "--- (current-buffer) is %s" (current-buffer)))
+              (let ((buffer (get-buffer (process-buffer proc))))
+                (with-current-buffer buffer
+                  (my-pytest-compilation-mode 1)
+                  ))
+              ))
 #+end_src
+
+#+begin_src emacs-lisp
+    (defun my-pytest-quit-window ()
+      ""
+      (interactive)
+      (if (bound-and-true-p popper-mode)
+          (progn
+            (message (format "\n--- in my-pytest-quit-window"))
+            (message (format "--- popper-mode is %s" popper-mode))
+            (message (format "--- my-pytest-compilation-mode is %s" my-pytest-compilation-mode))
+            (message (format "--- (current-buffer) is %s" (current-buffer)))
+            (message (format "--- (pytest-buffer-p (current-buffer)) is %s"
+                             (pytest-buffer-p (current-buffer))))
+            (message (format "--- popper-open-popup-alist is %s" popper-open-popup-alist))
+            (message (format "--- (popper--update-popups) returns %s" (popper--update-popups)))
+            (message (format "--- popper-open-popup-alist is %s" popper-open-popup-alist))
+            (message (format "--- (pytest-filter-popups popper-open-popup-alist) is %s"
+                             (pytest-filter-popups popper-open-popup-alist)))
+            (let ((origin-window pytest-window-origin))
+              (message (format "--- origin-window is %s" origin-window))
+              (quit-window)
+              (select-frame-set-input-focus (window-frame origin-window))
+              (select-window origin-window)
+              ))
+        (quit-window)))
+#+end_src
+
 
 #+begin_src emacs-lisp
   (defun my-pytest-popper-display-frame (buffer &optional alist)
@@ -1669,30 +1667,23 @@ matching name.
                              (height . 69)))))
            (my-alist '((inhibit-same-window . nil)
                        (inhibit-switch-frame . nil)
-                       (reusable-frames . pytest-frame)
-                       ))
+                       (reusable-frames . pytest-frame)))
+           (origin-window (selected-window))
            (pytest-window (display-buffer-use-some-frame buffer my-alist)))
       (message "\n--- found a *pytest* buffer")
       (message (format "--- this monitor is %s" (frame-monitor-attribute 'name)))
       (message (format "--- other monitor is %s" (my-other-monitor-attribute 'name)))
-      (message (format "--- `my-alist' is %s" my-alist))
       (message (format "--- pytest-frame is %s" pytest-frame))
       (message (format "--- visibility is %s" (frame-parameter pytest-frame 'visibility)))
+      (message (format "--- origin-window is %s" origin-window))
       (message (format "--- pytest-window is %s" pytest-window))
       (message (format "--- popper-mode is %s" popper-mode))
       (message (format "--- popper-open-popup-alist is %s" popper-open-popup-alist))
       (message (format "--- (popper--update-popups) returns %s" (popper--update-popups)))
       (message (format "--- popper-open-popup-alist is %s" popper-open-popup-alist))
-      (message (format "--- overriding-local-map is %s" overriding-local-map))
-      ;; (setq overriding-local-map my-pytest-compilation-mode-map)
 
       ))
 #+end_src
-      ;; (add-hook 'quit-window-hook
-      ;;           (lambda ()
-      ;;             (when (string-match-p "\\*pytest\\*"
-      ;;                                   (buffer-name (window-buffer (selected-window))))
-      ;;               (popper-close-latest))))
 
 Keep =popper= from displaying *pytest* buffers.
 #+begin_src emacs-lisp

@@ -93,13 +93,13 @@
 (defvar pytest-last-commands (make-hash-table :test 'equal)
   "Last pytest commands by pytest buffer name")
 
-(defvar-local pytest-buffer-status nil
-  "If non-nil, identifies a buffer containing pytest results.")
+(defvar-local pytest-window-origin nil
+  "If non-nil, identifies the window from which pytest-run was invoked.")
 
 (defun pytest-buffer-p (buffer)
   "Test whether BUFFER is a pytest buffer."
-  (buffer-local-value 'my-pytest-buffer-status buffer))
-
+  (with-current-buffer buffer
+    pytest-window-origin))
 
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
   "Create the string used for running the py.test command.
@@ -162,16 +162,15 @@ Optional argument FLAGS py.test command line flags."
 (defun pytest-start-command(command)
   (let* ((use-comint (s-contains? "--pdb" command))
          (temp-buffer-name (pytest-get-temp-buffer-name))
+         (origin-window (selected-window))
          (buffer (compilation-start command
                                     use-comint
                                     (lambda (mode) (pytest-get-temp-buffer-name)))))
     (puthash temp-buffer-name command pytest-last-commands)
     (with-current-buffer buffer
-      (if use-comint
-          (progn
-            (setq pytest-buffer-status 'pdb)
-	    (inferior-python-mode))
-        (setq pytest-buffer-status t)))))
+      (setq pytest-window-origin origin-window)
+      (when use-comint
+	(inferior-python-mode)))))
 
 ;; (defun pytest-start-command(command)
 ;;   (let ((use-comint (s-contains? "--pdb" command))
