@@ -65,6 +65,7 @@
 ;;; Code:
 (require 's)
 (require 'cl)
+(require 'compile)
 (require 'python)
 
 (defgroup pytest nil
@@ -90,6 +91,9 @@
 (defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the py.test command.")
 
+(defcustom pytest-enable-minor-mode nil
+  "If non-nil, automatically enable the pytest minor mode.")
+
 (defvar pytest-last-commands (make-hash-table :test 'equal)
   "Last pytest commands by pytest buffer name.")
 
@@ -112,9 +116,24 @@ window, select that window."
         (select-window origin-window))
     (quit-window)))
 
+;; See https://emacs.stackexchange.com/questions/33857/open-search-result-in-the-same-window/
+(defun pytest-goto-error (&optional event)
+  "Move point to the location of the error, even if in another frame."
+  (interactive (list last-input-event))
+  (if pytest-window-origin
+      (let* ((origin-frame (window-frame pytest-window-origin))
+             (display-buffer-overriding-action
+              '((display-buffer-use-some-frame)
+                (inhibit-same-window . nil)
+                (inhibit-switch-frame . nil)
+                (reusable-frames . origin-frame))))
+        (call-interactively #'compile-goto-error))
+    (call-interactively #'compile-goto-error)))
+
 (defvar pytest-compilation-mode-map
   (let ((map (make-sparse-keymap)))
     (keymap-set map "q" 'pytest-quit-window)
+    (keymap-set map "<return>" 'pytest-goto-error)
     map)
   "Keymap for the pytest window.")
 
@@ -190,7 +209,7 @@ Optional argument FLAGS py.test command line flags."
                                     (lambda (mode) temp-buffer-name))))
     (puthash temp-buffer-name command pytest-last-commands)
     (with-current-buffer buffer
-      (pytest-compilation-mode 1)
+      (pytest-compilation-mode (if pytest-enable-minor-mode 1 -1))
       (setq pytest-window-origin origin-window)
       (when use-comint
 	(inferior-python-mode)))))

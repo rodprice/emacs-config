@@ -1462,6 +1462,7 @@ on Windows.
     :custom
     (pytest-global-name "pytest")
     (pytest-cmd-flags "-x -s --disable-warnings")
+    (pytest-enable-minor-mode t)
     :bind (:map compilation-mode-map
                 ("Q" . push-buffer-to-frame))
     :init
