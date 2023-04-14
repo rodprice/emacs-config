@@ -91,7 +91,7 @@
   "Format string used to run the py.test command.")
 
 (defvar pytest-last-commands (make-hash-table :test 'equal)
-  "Last pytest commands by pytest buffer name")
+  "Last pytest commands by pytest buffer name.")
 
 (defvar-local pytest-window-origin nil
   "If non-nil, identifies the window from which pytest-run was invoked.")
@@ -100,6 +100,28 @@
   "Test whether BUFFER is a pytest buffer."
   (with-current-buffer buffer
     pytest-window-origin))
+
+(defun pytest-quit-window ()
+  "Quit selected window, and if the current buffer points to another
+window, select that window."
+  (interactive)
+  (if pytest-window-origin
+      (let ((origin-window pytest-window-origin))
+        (quit-window)
+        (select-frame-set-input-focus (window-frame origin-window))
+        (select-window origin-window))
+    (quit-window)))
+
+(defvar pytest-compilation-mode-map
+  (let ((map (make-sparse-keymap)))
+    (keymap-set map "q" 'pytest-quit-window)
+    map)
+  "Keymap for the pytest window.")
+
+(define-minor-mode pytest-compilation-mode
+  "Mode to make buffer-local pytest keymap available."
+  :init nil
+  :keymap pytest-compilation-mode-map)
 
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
   "Create the string used for running the py.test command.
@@ -165,9 +187,10 @@ Optional argument FLAGS py.test command line flags."
          (origin-window (selected-window))
          (buffer (compilation-start command
                                     use-comint
-                                    (lambda (mode) (pytest-get-temp-buffer-name)))))
+                                    (lambda (mode) temp-buffer-name))))
     (puthash temp-buffer-name command pytest-last-commands)
     (with-current-buffer buffer
+      (pytest-compilation-mode 1)
       (setq pytest-window-origin origin-window)
       (when use-comint
 	(inferior-python-mode)))))
