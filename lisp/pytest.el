@@ -123,17 +123,20 @@ window, select that window."
   (if pytest-window-origin
       (let* ((origin-frame (window-frame pytest-window-origin))
              (display-buffer-overriding-action
-              '((display-buffer-use-some-frame)
+              '((display-buffer-in-previous-window)
                 (inhibit-same-window . nil)
                 (inhibit-switch-frame . nil)
-                (reusable-frames . origin-frame))))
+                (reusable-frames . origin-frame)
+                (previous-window . pytest-window-origin)))
         (call-interactively #'compile-goto-error))
-    (call-interactively #'compile-goto-error)))
+    (call-interactively #'compile-goto-error))))
 
 (defvar pytest-compilation-mode-map
   (let ((map (make-sparse-keymap)))
     (keymap-set map "q" 'pytest-quit-window)
     (keymap-set map "<return>" 'pytest-goto-error)
+    (keymap-set map "n" 'compilation-next-error)
+    (keymap-set map "p" 'compilation-previous-error)
     map)
   "Keymap for the pytest window.")
 

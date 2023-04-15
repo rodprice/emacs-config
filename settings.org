@@ -1463,25 +1463,32 @@ on Windows.
     (pytest-global-name "pytest")
     (pytest-cmd-flags "-x -s --disable-warnings")
     (pytest-enable-minor-mode t)
-    :bind (:map compilation-mode-map
-                ("Q" . push-buffer-to-frame))
+    :bind (:map python-mode-map
+                ("C-c a" . pytest-all)
+                ("C-c m" . pytest-module)
+                ("C-c d" . pytest-directory)
+                ("C-c o" . pytest-one))
     :init
-    (defun my-pytest-all (&optional flags)
-      (interactive)
-      (pytest-run nil flags)
-      (other-window 1))
-    (defun my-pytest-directory (&optional flags)
-      (interactive)
-      (pytest-run (file-name-directory buffer-file-name) flags)
-      (other-window 1))
-    (defun my-pytest-module (&optional flags)
-      (interactive)
-      (pytest-run buffer-file-name flags)
-      (other-window 1))
-    (defun my-pytest-one (&optional flags)
-      (interactive)
-      (pytest-run (format "%s" (pytest-py-testable)) flags)
-      (other-window 1)))
+    (defun my-pytest-all (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-all)
+        (call-interactively #'pytest-all)))
+    (defun my-pytest-directory (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-directory)
+        (call-interactively #'pytest-directory)))
+    (defun my-pytest-module (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-module)
+        (call-interactively #'pytest-module)))
+    (defun my-pytest-one (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-one)
+        (call-interactively #'pytest-one))))
 #+end_src
 
 *** Functions to manipulate alists
@@ -1591,24 +1598,25 @@ matching name.
 
 
 #+begin_src emacs-lisp
-  (defun my-pytest-popper-display-frame (buffer &optional alist)
-    ""
-    (let* ((pytest-frame (or
-                          (my-pytest-get-frame (my-other-monitor-attributes))
-                          (car (my-other-monitor-attribute 'frames))
-                          ;; (my-pytest-get-frame (frame-monitor-attributes))
-                          (make-frame-on-monitor
-                           (my-other-monitor-attribute 'name)
-                           nil
-                           '((user-position . t)
-                             (top . 157)
-                             (left . 1089)
-                             (width . 111)
-                             (height . 69)))))
-           (my-alist '((inhibit-same-window . nil)
-                       (inhibit-switch-frame . nil)
-                       (reusable-frames . pytest-frame))))
-      (display-buffer-use-some-frame buffer my-alist)))
+    (defun my-pytest-popper-display-frame (buffer &optional alist)
+      ""
+      (let* ((pytest-frame (or
+                            (my-pytest-get-frame (my-other-monitor-attributes))
+                            (car (my-other-monitor-attribute 'frames))
+                            ;; (my-pytest-get-frame (frame-monitor-attributes))
+                            (make-frame-on-monitor
+                             (my-other-monitor-attribute 'name)
+                             nil
+                             '((user-position . t)
+                               (top . 157)
+                               (left . 1089)
+                               (width . 111)
+                               (height . 69)))))
+             (my-alist '((inhibit-same-window . nil)
+                         (inhibit-switch-frame . nil)
+                         (reusable-frames . pytest-frame))))
+        (display-buffer-use-some-frame buffer my-alist)
+        (select-window (get-buffer-window buffer pytest-frame))))
 #+end_src
 
 Make =popper= display *pytest* buffers using my own display function.
