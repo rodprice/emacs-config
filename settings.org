@@ -33,6 +33,13 @@ Character encodings default to utf-8.
   (set-selection-coding-system 'utf-8)
 #+end_src
 
+See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
+#+begin_src emacs-lisp
+  (setenv "LANG" "en_US.UTF-8")
+  (setenv "LC_ALL" "en_US.UTF-8")
+  (setenv "LC_CTYPE" "en_US.UTF-8")
+#+end_src
+
 Sentences end with a single space.
 #+begin_src emacs-lisp
   (setq sentence-end-double-space nil)
@@ -744,6 +751,11 @@ Use FIDO mode for minibuffer completion UI.
   ;; (fido-mode 1)
 #+end_src
 
+See [[https://www.masteringemacs.org/article/correcting-typos-misspellings-abbrev][Correcting Typos and Misspellings with Abbrev]].
+#+begin_src emacs-lisp
+  (setq-default abbrev-mode t)
+#+end_src
+
 ** Orderless package
 
 The [[https://github.com/oantolin/orderless][Orderless]] package enables completion without regard to the order in which
@@ -1386,6 +1398,11 @@ Remove "guess indent" python message
 #+end_src
 
 ** Environment variables
+
+See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
+#+begin_src emacs-lisp
+  (setenv "PYTHONIOENCODING" "utf-8")
+#+end_src
 
 The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consistent set of environment variables depending on
 which project the current buffer is in.
