@@ -27,6 +27,85 @@
         (print-path-list paths)
       (princ "Argument `paths` is not a string or list of strings"))))
 
+(defun pprint-stringify (obj &optional show-paths)
+  "Convert OBJ into a list of strings suitable for printing. If
+SHOW-PATHS is non-nil, expand path strings into lists."
+  (cond
+   ((null obj)
+    "nil")
+   ((stringp obj)
+    (if (not show-paths)
+        (format "\"%s\"" obj)
+      (let* ((separator (if (memq window-system '(mac ns x)) ":" ";"))
+             (paths (split-string obj separator)))
+        (if (length> paths 1)
+            (append
+             (list "PATH[")
+             (mapcar (lambda (path) (format "\"%s\"" path)) paths)
+             (list "]PATH"))
+          (format "\"%s\"" obj)))))
+   ((and (listp obj) (null (cdr (last obj)))) ; proper list only
+    (append
+     (list "(")
+     (mapcar (lambda (elem) (pprint-stringify elem show-paths)) obj)
+     (list ")")))
+   ((listp obj)                         ; this must be a cons cell
+    (list
+     "("
+     (pprint-stringify (car obj) show-paths)
+     "."
+     (pprint-stringify (cdr obj) show-paths)
+     ")"))
+   (t (format "%s" obj))))
+
+(defun pprint-stringify-car (objs)
+  ""
+  (cond
+   ((listp objs)
+    (let ((fst (car objs))              ; should always be open paren
+          (snd (cadr objs))
+          (rem (cddr objs)))
+      (cons
+       (string-join (list fst (if (listp snd) (car snd) snd)) " ")
+       rem)))
+   (t
+    objs)))
+
+(defun pprint-strings (objs &optional pfx)
+  "Pretty print OBJS, using PFX as an indent."
+  (let ((indent (concat "  " pfx))
+        (delimiters '("(" ")" "PATH[" "]PATH")))
+    (cond
+     ((listp objs)
+      ;; Base case
+      (if (cl-every #'stringp objs)                  ; no sublists
+          (let ((linestr (string-join objs " ")))
+            (if (length< linestr (- fill-column (length pfx)))
+                (princ (concat pfx linestr "\n"))    ; print list horizontally
+              (dolist (obj objs)                     ; print list vertically
+                (if (member obj delimiters)
+                    (princ (concat pfx obj "\n"))
+                  (princ (concat indent obj "\n"))))))
+        ;; Recursive case
+        (dolist (obj objs)                           ; print list vertically
+          (if (member obj delimiters)
+              (pprint-strings obj pfx)
+            (pprint-strings obj indent)))))
+     ((stringp objs)
+      (if (member objs delimiters)
+          (princ (concat pfx objs "\n"))
+        (princ (concat pfx objs "\n"))))
+   (t
+    (user-error "OBJS is neither a string or a list")))))
+
+(defun pprint (objs &optional show-paths)
+  "Pretty print OBJS, which is usually a list. If SHOW-PATHS is
+non-nil, split a string containing paths into lists for display."
+  (if (listp objs) (princ "'"))
+  (pprint-strings (pprint-stringify objs show-paths))
+  nil)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement of cursor
 
