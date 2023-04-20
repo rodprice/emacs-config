@@ -58,19 +58,6 @@ SHOW-PATHS is non-nil, expand path strings into lists."
      ")"))
    (t (format "%s" obj))))
 
-(defun pprint-stringify-car (objs)
-  ""
-  (cond
-   ((listp objs)
-    (let ((fst (car objs))              ; should always be open paren
-          (snd (cadr objs))
-          (rem (cddr objs)))
-      (cons
-       (string-join (list fst (if (listp snd) (car snd) snd)) " ")
-       rem)))
-   (t
-    objs)))
-
 (defun pprint-strings (objs &optional pfx)
   "Pretty print OBJS, using PFX as an indent."
   (let ((indent (concat "  " pfx))
@@ -92,9 +79,7 @@ SHOW-PATHS is non-nil, expand path strings into lists."
               (pprint-strings obj pfx)
             (pprint-strings obj indent)))))
      ((stringp objs)
-      (if (member objs delimiters)
-          (princ (concat pfx objs "\n"))
-        (princ (concat pfx objs "\n"))))
+      (princ (concat pfx objs "\n")))
    (t
     (user-error "OBJS is neither a string or a list")))))
 
