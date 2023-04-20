@@ -27,7 +27,7 @@
         (print-path-list paths)
       (princ "Argument `paths` is not a string or list of strings"))))
 
-(defun pprint-stringify (obj &optional show-paths)
+(defun pprint--stringify (obj &optional show-paths)
   "Convert OBJ into a list of strings suitable for printing. If
 SHOW-PATHS is non-nil, expand path strings into lists."
   (cond
@@ -47,18 +47,18 @@ SHOW-PATHS is non-nil, expand path strings into lists."
    ((and (listp obj) (null (cdr (last obj)))) ; proper list only
     (append
      (list "(")
-     (mapcar (lambda (elem) (pprint-stringify elem show-paths)) obj)
+     (mapcar (lambda (elem) (pprint--stringify elem show-paths)) obj)
      (list ")")))
    ((listp obj)                         ; this must be a cons cell
     (list
      "("
-     (pprint-stringify (car obj) show-paths)
+     (pprint--stringify (car obj) show-paths)
      "."
-     (pprint-stringify (cdr obj) show-paths)
+     (pprint--stringify (cdr obj) show-paths)
      ")"))
    (t (format "%s" obj))))
 
-(defun pprint-strings (objs &optional pfx)
+(defun pprint--strings (objs &optional pfx)
   "Pretty print OBJS, using PFX as an indent."
   (let ((indent (concat "  " pfx))
         (delimiters '("(" ")" "PATH[" "]PATH")))
@@ -76,8 +76,8 @@ SHOW-PATHS is non-nil, expand path strings into lists."
         ;; Recursive case
         (dolist (obj objs)                           ; print list vertically
           (if (member obj delimiters)
-              (pprint-strings obj pfx)
-            (pprint-strings obj indent)))))
+              (pprint--strings obj pfx)
+            (pprint--strings obj indent)))))
      ((stringp objs)
       (princ (concat pfx objs "\n")))
    (t
@@ -87,7 +87,7 @@ SHOW-PATHS is non-nil, expand path strings into lists."
   "Pretty print OBJS, which is usually a list. If SHOW-PATHS is
 non-nil, split a string containing paths into lists for display."
   (if (listp objs) (princ "'"))
-  (pprint-strings (pprint-stringify objs show-paths))
+  (pprint--strings (pprint--stringify objs show-paths))
   nil)
 
 
