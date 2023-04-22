@@ -1481,9 +1481,36 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
 
 ** Projects
 
+** Man pages
+
+#+begin_src emacs-lisp :tangle no
+    (use-package man
+      :disabled
+      :custom
+      (Man-header-file-path "C:\\Users\\rdprice\\Apps\\msys64\\usr\\include\\")
+      (manual-program "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\man.exe")
+      (Man-untabify-command "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\pr.exe")
+      (Man-sed-command "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\sed.exe")
+      (Man-awk-command "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\awk.exe")
+    )
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+    (use-package man
+      :custom
+      (Man-header-file-path '("c:/Users/rdprice/Apps/msys64/usr/include/"
+                              "c:/Users/rdprice/Apps/msys64/usr/local/include/"))
+      (manual-program "c:/Users/rdprice/Apps/msys64/usr/bin/man.exe")
+      (Man-untabify-command "c:/Users/rdprice/Apps/msys64/usr/bin/pr.exe")
+      (Man-sed-command "c:/Users/rdprice/Apps/msys64/usr/bin/sed.exe")
+      (Man-awk-command "c:/Users/rdprice/Apps/msys64/usr/bin/awk.exe")
+    )
+#+end_src
+
 ** Documentation
 
-From [[https://www.masteringemacs.org/article/seamlessly-merge-multiple-documentation-sources-eldoc][Seamlessly Merge Documentation Sources with Eldoc]].
+Make flycheck play nice with eldoc. From
+[[https://www.masteringemacs.org/article/seamlessly-merge-multiple-documentation-sources-eldoc][Seamlessly Merge Documentation Sources with Eldoc]].
 #+begin_src emacs-lisp
   (defun mp-flycheck-eldoc (callback &rest _ignored)
      "Print flycheck messages at point by calling CALLBACK."

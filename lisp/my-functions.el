@@ -4,6 +4,38 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Monkey around with exec=path and env variable PATH
+
+(defun my-filter-paths (regex paths)
+  "Given a list of strings PATHS, return a list of all those
+matching REGEX, in the order they were found."
+  (cond
+   ((null paths)
+    paths)
+   ((string-match-p regex (car paths))
+    (cons (car paths) (my-filter-paths regex (cdr paths))))
+   (t
+    (my-filter-paths regex (cdr paths)))))
+
+(defun my-remove-paths (regex paths)
+  "Given a list of strings PATHS, return a list of all those
+that do not match REGEX, in the order they were found."
+  (let* ((stdpaths (mapcar #'expand-file-name paths))
+         (rempaths (my-filter-paths regex stdpaths)))
+    (cl-set-difference stdpaths rempaths :test #'string=)))
+
+(defun my-sort-paths (paths)
+  "Given a list of strings PATHS representing directories, sort them
+such that all directories in \\Apps come first."
+  (let* ((dots (my-filter-paths "^\\." paths))
+         (nodots (cl-set-difference paths dots :test #'string=))
+         (stdpaths (mapcar #'expand-file-name nodots))
+         (apps (my-filter-paths "/Apps" stdpaths))
+         (others (cl-set-difference stdpaths apps :test #'string=)))
+    (append apps others dots)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions to print lists in readable form
 
 (defun print-path-list (paths)

@@ -5,13 +5,19 @@
 # to native line endings on checkout.
 *.c            text
 *.cc           text
+*.cpp          text
 *.h            text
 *.el           text
 *.org          text
 *.md           text
 *.py           text
+*.css          text
+*.html         text
+*.js           text
+*.json         text
 .gitignore     text
 .gitattributes text
+abbrev_defs    text
 
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
