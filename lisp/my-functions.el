@@ -67,15 +67,15 @@ SHOW-PATHS is non-nil, expand path strings into lists."
     "nil")
    ((stringp obj)
     (if (not show-paths)
-        (format "\"%s\"" obj)
+        (format "%S" obj)
       (let* ((separator (if (memq window-system '(mac ns x)) ":" ";"))
              (paths (split-string obj separator)))
         (if (length> paths 1)
             (append
              (list "PATH[")
-             (mapcar (lambda (path) (format "\"%s\"" path)) paths)
+             (mapcar (lambda (path) (format "%S" path)) paths)
              (list "]PATH"))
-          (format "\"%s\"" obj)))))
+          (format "%S" obj)))))
    ((and (listp obj) (null (cdr (last obj)))) ; proper list only
     (append
      (list "(")
@@ -88,7 +88,7 @@ SHOW-PATHS is non-nil, expand path strings into lists."
      "."
      (pprint--stringify (cdr obj) show-paths)
      ")"))
-   (t (format "%s" obj))))
+   (t (format "%S" obj))))
 
 (defun pprint--strings (objs &optional pfx)
   "Pretty print OBJS, using PFX as an indent."

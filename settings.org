@@ -1216,58 +1216,64 @@ Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-
 
 ** Corfu and friends
 
+*** Notes
+
 Note: [[https://github.com/minad/corfu/issues/136][How to make corfu + orderless work well with eglot + clangd]]
 Note: [[https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot][Configuring corfu for eglot]]
 Note: [[https://github.com/minad/corfu#completing-in-the-eshell-or-shell][Completing in eshell or shell]]
+
+*** Corfu package
 
 [[https://github.com/minad/corfu][Corfu]] is a completion UI that makes use of emacs' native completion functions.
 Here I set it up with [[https://github.com/minad/corfu#tab-and-go-completion][tab-and-go completion]]. It could also be used for completion
 in the [[https://github.com/minad/corfu#completing-in-the-minibuffer][minibuffer]].
 #+begin_src emacs-lisp
-    (use-package corfu
-      :ensure t
-      ;; Optional customizations
-      :custom
-      (corfu-cycle t)
-      (corfu-preselect 'prompt)
+  (use-package corfu
+    :ensure t
+    ;; Optional customizations
+    :custom
+    (corfu-cycle t)
+    (corfu-preselect 'prompt)
 
-      ;; Optionally use TAB for cycling, default is `corfu-complete'.
-      :bind (:map corfu-map
-                  ("M-SPC"      . corfu-insert-separator)
-                  ("TAB"        . corfu-next)
-                  ([tab]        . corfu-next)
-                  ("S-TAB"      . corfu-previous)
-                  ([backtab]    . corfu-previous)
-                  ("C-<return>" . corfu-insert)
-                  ("RET"        . nil))
+    ;; Optionally use TAB for cycling, default is `corfu-complete'.
+    :bind (:map corfu-map
+                ("M-SPC"      . corfu-insert-separator)
+                ("TAB"        . corfu-next)
+                ([tab]        . corfu-next)
+                ("S-TAB"      . corfu-previous)
+                ([backtab]    . corfu-previous)
+                ("C-<return>" . corfu-insert)
+                ("RET"        . nil))
 
-      :init
-      (defun corfu-enable-in-eshell ()
-        "Enable completion with corfu in the eshell buffer."
-        (setq-local corfu-quit-at-boundary t
-                    corfu-quit-no-match t
-                    corfu-auto nil)
-        (corfu-mode 1))
+    :init
+    (defun corfu-enable-in-eshell ()
+      "Enable completion with corfu in the eshell buffer."
+      (setq-local corfu-quit-at-boundary t
+                  corfu-quit-no-match t
+                  corfu-auto nil)
+      (corfu-mode 1))
 
-      (defun corfu-send-shell (&rest _)
-        "Send completion candidate when inside comint/eshell."
-        (cond
-         ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
-          (eshell-send-input))
-         ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
-          (comint-send-input))))
+    (defun corfu-send-shell (&rest _)
+      "Send completion candidate when inside comint/eshell."
+      (cond
+       ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
+        (eshell-send-input))
+       ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
+        (comint-send-input))))
 
-      (advice-add #'corfu-insert :after #'corfu-send-shell)
+    (advice-add #'corfu-insert :after #'corfu-send-shell)
 
-      ;; (global-corfu-mode)
-      (corfu-history-mode)
+    ;; (global-corfu-mode)
+    (corfu-history-mode)
 
-      :config
-      (setq tab-always-indent 'complete)
-      :hook
-      ((prog-mode . corfu-mode)
-             (eshell-mode . corfu-enable-in-eshell)))
+    :config
+    (setq tab-always-indent 'complete)
+    :hook
+    ((prog-mode . corfu-mode)
+     (eshell-mode . corfu-enable-in-eshell)))
 #+end_src
+
+*** Cape package
 
 [[https://github.com/minad/cape][Cape]] provides =completion-at-point= extensions.
 #+begin_src emacs-lisp
@@ -1471,6 +1477,59 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
     :hook (prog-mode . hs-minor-mode))
 #+end_src
 
+* Version control
+
+** Magit package
+
+Note: An example =magit= configuration can be found [[https://gist.github.com/soonhokong/235ae79cb0639b15f8b1][here]].
+
+In spite of all the rave reviews, I'm not sure this package is worth
+having.
+#+begin_src emacs-lisp :tangle no
+  (use-package magit
+    :ensure t
+    :pin nongnu
+    :init
+    (setq magit-git-executable my-git-executable))
+#+end_src
+
+** Status display
+
+Note: The author of =git-gutter= insists on hard-coding the value of the
+=git= executable, so using this with Git for Windows and MSYS2 won't
+work without extensive changes to =git-gutter.el=.
+
+#+begin_src emacs-lisp :tangle no
+  (when (eq system-type 'windows-nt)
+    (use-package git-gutter
+      :ensure nil
+      :load-path "lisp"
+      :hook (prog-mode . git-gutter-mode)
+      :custom
+      (git-gutter:update-interval 0.02)
+      (git-gutter:git-program my-git-executable)))
+#+end_src
+
+Make the gutter show added/deleted/modified code blocks ([[https://ianyepan.github.io/posts/emacs-git-gutter/][Ian Y.E. Pan]] blog).
+#+begin_src emacs-lisp :tangle no
+  (unless (eq system-type 'windows-nt)
+    (use-package git-gutter
+      :ensure nil
+      :load-path "lisp"
+      :hook (prog-mode . git-gutter-mode)
+      :custom
+      (git-gutter:update-interval 0.02)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package git-gutter-fringe
+    :ensure t
+    :config
+    (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+#+end_src
+
 * Programming
 
 #+begin_src emacs-lisp
@@ -1481,30 +1540,25 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
 
 ** Projects
 
-** Man pages
-
 #+begin_src emacs-lisp :tangle no
-    (use-package man
-      :disabled
-      :custom
-      (Man-header-file-path "C:\\Users\\rdprice\\Apps\\msys64\\usr\\include\\")
-      (manual-program "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\man.exe")
-      (Man-untabify-command "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\pr.exe")
-      (Man-sed-command "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\sed.exe")
-      (Man-awk-command "C:\\Users\\rdprice\\Apps\\msys64\\usr\\bin\\awk.exe")
-    )
+  (projectile-global-mode t)
+  (setq projectile-indexing-method 'git)
+  (setq projectile-enable-caching t)
 #+end_src
 
+** Man pages
+
+Broken on Windows, due to MSYS2 issues.
 #+begin_src emacs-lisp :tangle no
-    (use-package man
-      :custom
-      (Man-header-file-path '("c:/Users/rdprice/Apps/msys64/usr/include/"
-                              "c:/Users/rdprice/Apps/msys64/usr/local/include/"))
-      (manual-program "c:/Users/rdprice/Apps/msys64/usr/bin/man.exe")
-      (Man-untabify-command "c:/Users/rdprice/Apps/msys64/usr/bin/pr.exe")
-      (Man-sed-command "c:/Users/rdprice/Apps/msys64/usr/bin/sed.exe")
-      (Man-awk-command "c:/Users/rdprice/Apps/msys64/usr/bin/awk.exe")
-    )
+  (use-package man
+    :custom
+    (Man-header-file-path '("c:/Users/rdprice/Apps/msys64/usr/include/"
+                            "c:/Users/rdprice/Apps/msys64/usr/local/include/"))
+    (manual-program "c:/Users/rdprice/Apps/msys64/usr/bin/man.exe")
+    (Man-untabify-command "c:/Users/rdprice/Apps/msys64/usr/bin/pr.exe")
+    (Man-sed-command "c:/Users/rdprice/Apps/msys64/usr/bin/sed.exe")
+    (Man-awk-command "c:/Users/rdprice/Apps/msys64/usr/bin/awk.exe")
+  )
 #+end_src
 
 ** Documentation
@@ -1618,8 +1672,9 @@ See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executi
   (setenv "PYTHONIOENCODING" "utf-8")
 #+end_src
 
-The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consistent set of environment variables depending on
-which project the current buffer is in.
+The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consistent set of environment variables
+depending on which project the current buffer is in. There appears to
+be no Windows-compatible version.
 #+begin_src emacs-lisp
   (use-package direnv
     :disabled
