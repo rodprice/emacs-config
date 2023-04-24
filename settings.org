@@ -1136,7 +1136,7 @@ Key bindings for consult package.
     :bind (;; C-c bindings in `mode-specific-map'
            ("C-c h" . consult-history)
            ("C-c k" . consult-kmacro)
-           ("C-c m" . consult-man)                   ;; broken
+           ("C-c m" . consult-man)                   ;; broken on Windows
            ("C-c i" . consult-info)
            ([remap Info-search] . consult-info)
            ;; C-x bindings in `ctl-x-map'
@@ -1150,11 +1150,11 @@ Key bindings for consult package.
            ("M-g i" . consult-imenu)
            ("M-g I" . consult-imenu-multi)
            ;; M-s bindings in `search-map'
-           ("M-s d" . consult-find)                  ;; broken
-           ("M-s D" . consult-locate)                ;; broken
-           ("M-s G" . consult-grep)                  ;; broken
+           ("M-s d" . consult-find)                  ;; broken on Windows
+           ("M-s D" . consult-locate)                ;; broken on Windows
+           ("M-s G" . consult-grep)                  ;; broken on Windows
            ("M-s g" . consult-git-grep)
-           ("M-s l" . consult-line)                  ;; broken
+           ("M-s l" . consult-line)                  ;; broken on Windows
            ("M-s L" . consult-line-multi)
            ("M-s k" . consult-keep-lines)
            ("M-s u" . consult-focus-lines)
