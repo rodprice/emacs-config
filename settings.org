@@ -1561,7 +1561,24 @@ Broken on Windows, due to MSYS2 issues.
   )
 #+end_src
 
-** Documentation
+** Linting
+
+Documentation for flycheck [[https://www.flycheck.org][here]].
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :preface
+    (defun mp-flycheck-prefer-eldoc ()
+      (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
+      (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+      (setq flycheck-display-errors-function nil)
+      (setq flycheck-help-echo-function nil))
+    :init (global-flycheck-mode)
+    :bind (("M-n" . flycheck-next-error)
+           ("M-p" . flycheck-previous-error)
+           ("M-l" . flycheck-list-errors))
+    :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)))
+#+end_src
 
 Make flycheck play nice with eldoc. From
 [[https://www.masteringemacs.org/article/seamlessly-merge-multiple-documentation-sources-eldoc][Seamlessly Merge Documentation Sources with Eldoc]].
@@ -1587,11 +1604,6 @@ Make flycheck play nice with eldoc. From
 #+end_src
 
 #+begin_src emacs-lisp
-  (defun mp-flycheck-prefer-eldoc ()
-    (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
-    (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-    (setq flycheck-display-errors-function nil)
-    (setq flycheck-help-echo-function nil))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1606,10 +1618,10 @@ Make flycheck play nice with eldoc. From
      (eldoc-add-command-completions "combobulate-"))
 #+end_src
 
-** Linting
+** Eglot package (disabled)
 
 Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package eglot
     :ensure t
     :after conda
@@ -1624,23 +1636,88 @@ Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language serv
            (python-mode . eglot-ensure)))
 #+end_src
 
-Documentation for flycheck [[https://www.flycheck.org][here]].
-#+begin_src emacs-lisp
-  (use-package flycheck
-    :ensure t
-    :init (global-flycheck-mode)
-    :bind (("M-n" . flycheck-next-error)
-           ("M-p" . flycheck-previous-error)
-           ("M-l" . flycheck-list-errors))
-    :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)))
-#+end_src
-
 Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package flycheck-eglot
     :ensure t
     :after (flycheck eglot)
     :config (global-flycheck-eglot-mode 1))
+#+end_src
+
+** LSP mode
+
+Note: The configuration below is from [[https://ianyepan.github.io/posts/emacs-ide/][Building an Intelligent Emacs]]
+and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]].
+#+begin_src emacs-lisp
+     (use-package lsp-mode
+       :ensure t
+       :commands lsp
+       :init
+       (defun my-lsp-mode-setup-completion ()
+         (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+               '(orderless))) ;; Configure orderless
+       :config
+       (setq lsp-completion-provider :none)
+       (setq lsp-auto-guess-root t)
+       (setq lsp-log-io nil)
+       (setq lsp-restart 'auto-restart)
+       (setq lsp-enable-symbol-highlighting nil)
+       (setq lsp-enable-on-type-formatting nil)
+       (setq lsp-signature-auto-activate nil)
+       (setq lsp-signature-render-documentation nil)
+       (setq lsp-eldoc-hook nil)
+       (setq lsp-modeline-code-actions-enable nil)
+       (setq lsp-modeline-diagnostics-enable nil)
+       (setq lsp-headerline-breadcrumb-enable nil)
+       (setq lsp-semantic-tokens-enable nil)
+       (setq lsp-enable-folding nil)
+       (setq lsp-enable-imenu nil)
+       (setq lsp-enable-snippet nil)
+       (setq read-process-output-max (* 1024 1024)) ;; 1MB
+       (setq lsp-idle-delay 0.5)
+       (setq lsp-log-io t)                   ;; DEBUG
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]doc\\'")
+       :hook
+       (((c-mode          ; clangd
+          c++-mode        ; clangd
+          c-or-c++-mode   ; clangd
+          java-mode       ; eclipse-jdtls
+          js-mode         ; ts-ls (tsserver wrapper)
+          js-jsx-mode     ; ts-ls (tsserver wrapper)
+          typescript-mode ; ts-ls (tsserver wrapper)
+          python-mode     ; pyright
+          web-mode        ; ts-ls/HTML/CSS
+          haskell-mode    ; haskell-language-server
+          ) . lsp-deferred)
+        (lsp-completion-mode . my-lsp-mode-setup-completion)))
+#+end_src
+
+Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
+#+begin_src emacs-lisp
+  (use-package lsp-pyright
+    :ensure t
+    :hook ((python-mode . (lambda () (require 'lsp-pyright)))
+           (python-mode . lsp-deferred))
+    :config
+    ;; these hooks can't go in the :hook section since
+    ;; lsp-restart-workspace is not available if lsp isn't active
+    (add-hook 'conda-postactivate-hook (lambda () (lsp-restart-workspace)))
+    (add-hook 'conda-postdeactivate-hook (lambda () (lsp-restart-workspace))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package lsp-ui
+    :ensure t
+    :commands lsp-ui-mode
+    :config
+    (setq lsp-ui-doc-enable nil)
+    (setq lsp-ui-doc-header t)
+    (setq lsp-ui-doc-include-signature t)
+    (setq lsp-ui-doc-border (face-foreground 'default))
+    (setq lsp-ui-sideline-show-code-actions t)
+    (setq lsp-ui-sideline-delay 0.05))
 #+end_src
 
 * Python programming
