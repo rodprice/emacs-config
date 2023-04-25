@@ -1678,7 +1678,7 @@ and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-o
        (setq lsp-log-io t)                   ;; DEBUG
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]doc\\'")
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]docs\\'")
        :hook
        (((c-mode          ; clangd
           c++-mode        ; clangd
