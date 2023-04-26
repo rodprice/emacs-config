@@ -368,18 +368,19 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
 
 ** Cursor movement
 
+Documentation is [[https://github.com/alezost/mwim.el][here]].
 #+begin_src emacs-lisp
   (use-package mwim
     :ensure t
     :bind
-    (("C-a" . mwim-beginning-of-line-or-code)
-     ("C-e" . mwim-end-of-line-or-code))
+    (("C-a" . mwim-beginning-of-code-or-line)
+     ("<home>" . mwim-beginning-of-code-or-line)
+     ("C-e" . mwim-end-of-code-or-line)
+     ("<end>" . mwim-end-of-code-or-line))
     :pin melpa)
 #+end_src
 
 #+begin_src emacs-lisp
-  (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
-  (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
   (global-set-key (kbd "M-<") 'scroll-row-up)
   (global-set-key (kbd "M->") 'scroll-row-down)
   (global-set-key (kbd "C-<") 'xah-backward-block)
@@ -393,6 +394,8 @@ Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-ma
 #+begin_src emacs-lisp
   (advice-add 'pop-to-mark-command :around #'modi/multi-pop-to-mark)
 #+end_src
+
+** Mark ring
 
 Move through the mark ring with =C-u C-SPC C-SPC= etc.
 #+begin_src emacs-lisp
@@ -1540,7 +1543,24 @@ Make the gutter show added/deleted/modified code blocks ([[https://ianyepan.gith
 
 ** Projects
 
+Maintain projects in emacs. Color me skeptical. Documentation for
+=projectile= is [[https://docs.projectile.mx/projectile/index.html][here]]. There's a =consult= package, [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]].
+David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/watch?v=INTu30BHZGk&list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ&index=4&t=130s][video]].
 #+begin_src emacs-lisp :tangle no
+  (use-package projectile
+    :ensure t
+    :diminish projectile-mode
+    :custom ((projectile-completion-system 'ivy))
+    :bind-keymap
+    ("C-c p" . projectile-command-map)  ;; conflicts with cape
+    :init
+    (when (file-directory-p "~/working")
+      (setq projectile-project-search-path '("~/working")))
+    (setq projectile-switch-project-action #'projectile-dired)
+    :config (projectile-mode))
+#+end_src
+
+#+begin_src emacs-lisp
   (projectile-global-mode t)
   (setq projectile-indexing-method 'git)
   (setq projectile-enable-caching t)
@@ -1647,51 +1667,52 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 ** LSP mode
 
 Note: The configuration below is from [[https://ianyepan.github.io/posts/emacs-ide/][Building an Intelligent Emacs]]
-and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]].
+and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]]. Documentation is at the =lsp-mode= [[https://emacs-lsp.github.io/lsp-mode/][site]]. Main
+features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][here]].
 #+begin_src emacs-lisp
-     (use-package lsp-mode
-       :ensure t
-       :commands lsp
-       :init
-       (defun my-lsp-mode-setup-completion ()
-         (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-               '(orderless))) ;; Configure orderless
-       :config
-       (setq lsp-completion-provider :none)
-       (setq lsp-auto-guess-root t)
-       (setq lsp-log-io nil)
-       (setq lsp-restart 'auto-restart)
-       (setq lsp-enable-symbol-highlighting nil)
-       (setq lsp-enable-on-type-formatting nil)
-       (setq lsp-signature-auto-activate nil)
-       (setq lsp-signature-render-documentation nil)
-       (setq lsp-eldoc-hook nil)
-       (setq lsp-modeline-code-actions-enable nil)
-       (setq lsp-modeline-diagnostics-enable nil)
-       (setq lsp-headerline-breadcrumb-enable nil)
-       (setq lsp-semantic-tokens-enable nil)
-       (setq lsp-enable-folding nil)
-       (setq lsp-enable-imenu nil)
-       (setq lsp-enable-snippet nil)
-       (setq read-process-output-max (* 1024 1024)) ;; 1MB
-       (setq lsp-idle-delay 0.5)
-       (setq lsp-log-io t)                   ;; DEBUG
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]docs\\'")
-       :hook
-       (((c-mode          ; clangd
-          c++-mode        ; clangd
-          c-or-c++-mode   ; clangd
-          java-mode       ; eclipse-jdtls
-          js-mode         ; ts-ls (tsserver wrapper)
-          js-jsx-mode     ; ts-ls (tsserver wrapper)
-          typescript-mode ; ts-ls (tsserver wrapper)
-          python-mode     ; pyright
-          web-mode        ; ts-ls/HTML/CSS
-          haskell-mode    ; haskell-language-server
-          ) . lsp-deferred)
-        (lsp-completion-mode . my-lsp-mode-setup-completion)))
+  (use-package lsp-mode
+    :ensure t
+    :commands lsp
+    :init
+    (defun my-lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless))) ;; Configure orderless
+    :config
+    (setq lsp-completion-provider :none)
+    (setq lsp-auto-guess-root t)
+    (setq lsp-log-io nil)
+    (setq lsp-restart 'auto-restart)
+    (setq lsp-enable-symbol-highlighting nil)
+    (setq lsp-enable-on-type-formatting nil)
+    (setq lsp-signature-auto-activate nil)
+    (setq lsp-signature-render-documentation nil)
+    (setq lsp-eldoc-hook nil)
+    (setq lsp-modeline-code-actions-enable nil)
+    (setq lsp-modeline-diagnostics-enable nil)
+    (setq lsp-headerline-breadcrumb-enable nil)
+    (setq lsp-semantic-tokens-enable nil)
+    (setq lsp-enable-folding nil)
+    (setq lsp-enable-imenu nil)
+    (setq lsp-enable-snippet nil)
+    (setq read-process-output-max (* 1024 1024)) ;; 1MB
+    (setq lsp-idle-delay 0.5)
+    (setq lsp-log-io t)                   ;; DEBUG
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]docs\\'")
+    :hook
+    (((c-mode          ; clangd
+       c++-mode        ; clangd
+       c-or-c++-mode   ; clangd
+       java-mode       ; eclipse-jdtls
+       js-mode         ; ts-ls (tsserver wrapper)
+       js-jsx-mode     ; ts-ls (tsserver wrapper)
+       typescript-mode ; ts-ls (tsserver wrapper)
+       python-mode     ; pyright
+       web-mode        ; ts-ls/HTML/CSS
+       haskell-mode    ; haskell-language-server
+       ) . lsp-deferred)
+     (lsp-completion-mode . my-lsp-mode-setup-completion)))
 #+end_src
 
 Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
@@ -1720,6 +1741,11 @@ Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_p
     (setq lsp-ui-sideline-delay 0.05))
 #+end_src
 
+** DAP mode
+
+Documentation for DAP is [[https://emacs-lsp.github.io/dap-mode/][here]]. Python configuration for DAP is [[https://emacs-lsp.github.io/dap-mode/page/configuration/#python][here]].
+Overall configuration is [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]].
+
 * Python programming
 
 #+begin_src emacs-lisp
@@ -1731,6 +1757,11 @@ Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_p
 Here is a [[https://github.com/palantir/python-language-server#develop-against-vs-code][claim]] that the Python language server can be run "against" VS Code.
 Debugger configurations for various languages are [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]].
 
+I should probably read through the Python page of [[https://wikemacs.org/wiki/Python][WikEmacs]].
+
+A "minimalistic" Python IDE for Emacs, [[https://github.com/abo-abo/lpy][lpy-mode]]. See also [[https://github.com/abo-abo/lispy][lispy]] by the
+same author.
+
 ** Python mode
 
 Remove "guess indent" python message
@@ -1739,7 +1770,8 @@ Remove "guess indent" python message
     :config
     (setq python-indent-guess-indent-offset-verbose nil)
     :hook
-    ((python-mode . imenu-add-menubar-index)))
+    ((python-mode . imenu-add-menubar-index)
+     (python-mode . eldoc-mode)))
 #+end_src
 
 ** Environment variables
@@ -1761,6 +1793,10 @@ be no Windows-compatible version.
 #+end_src
 
 ** Virtual environments
+
+Note: Another possibly interesting approach is [[https://github.com/10sr/with-venv-el][with-venv.el]], which
+sets up a macro =(with-venv BODY)= that ensures that =BODY= runs in the
+correct virtual environment.
 
 This uses a modified conda.el package that works on Windows machines.
 #+begin_src emacs-lisp
