@@ -577,7 +577,7 @@ Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][h
     :custom
     (markdown-enable-math t)
     :init
-    (setq markdown-command "multimarkdown"))
+    (setq markdown-command "pandoc"))
 #+end_src
 
 [[https://github.com/Fanael/edit-indirect/][Edit code blocks]] in a new buffer, like =org-mode=.
