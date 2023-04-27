@@ -1560,7 +1560,7 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
     :config (projectile-mode))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (projectile-global-mode t)
   (setq projectile-indexing-method 'git)
   (setq projectile-enable-caching t)
