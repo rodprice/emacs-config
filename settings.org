@@ -568,6 +568,8 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 (message "starting markdown mode")
 #+end_src
 
+Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]].
+
 Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]].
 #+begin_src emacs-lisp
   (use-package markdown-mode
@@ -594,18 +596,107 @@ Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][h
 (message "starting org mode")
 #+end_src
 
-** Appearance
+** Key bindings
 
-Note: More customization can be found in the blog post [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][Beautifying Org Mode in Emacs]].
-Note: =org-modern= ignores =org-bullets= and friends, substituting its own bullets.
+Note: [[https://www.reddit.com/r/orgmode/comments/ded3g8/orgmode_without_arrow_keysany_actual_better/][Org speed keys]] work only when point is at the beginning of a
+header line. Press '?' there to find out what they are. Another
+package for moving around org-mode headers is [[http://oremacs.com/worf/README.html][worf]], if you like
+vi-like commands.
 
 #+begin_src emacs-lisp
   (use-package org
     :ensure nil
-    :custom
-    (org-hide-emphasis-markers t)
-    (org-use-speed-commands t))
+    :init
+    ;; Make speed commands work when point is on any '*' in header
+    (setq org-use-speed-commands
+          (lambda () (and (looking-at org-outline-regexp)
+                          (looking-back "^\**"))))
+    :config
+    (unbind-key "M-<up>" org-mode-map)
+    (unbind-key "M-<down>" org-mode-map)
+    (unbind-key "M-<left>" org-mode-map)
+    (unbind-key "M-<right>" org-mode-map)
+    :bind (:map org-mode-map
+                ("C-S-<up>" . 'org-metaup)
+                ("C-S-<down>" . 'org-metadown)
+                ("C-S-<left>" . 'org-metaleft)
+                ("C-S-<right>" . 'org-metaright)))
 #+end_src
+
+*** Function to check folding status
+
+Check whether current item is folded, from [[https://emacs.stackexchange.com/questions/26827/test-whether-org-mode-heading-or-list-is-folded][here]].
+#+begin_src emacs-lisp
+  (defun my-org-get-folded-state ()
+    "Determine whether point is at a folded heading or list item.
+Returns one of symbols `not-at-node', `empty-node', `folded',
+or `not-folded'."
+    (cond
+     ((not (or (org-at-item-p) (org-at-heading-p)))
+      ;; (message "not at node (neither heading nor list item)")
+      'not-at-node)
+     ((org-before-first-heading-p)
+      ;; (message "not at node (neither heading nor list item)")
+      'not-at-node)
+     (t
+      (let (eoh eol eos has-children children-skipped struct)
+        ;; First, determine end of headline (EOH), end of subtree or item
+        ;; (EOS), and if item or heading has children (HAS-CHILDREN).
+        (save-excursion
+          (if (org-at-item-p)
+              (progn
+                (beginning-of-line)
+                (setq struct (org-list-struct))
+                (setq eoh (point-at-eol))
+                (setq eos (org-list-get-item-end-before-blank (point) struct))
+                (setq has-children (org-list-has-child-p (point) struct)))
+            (org-back-to-heading)
+            (setq eoh (save-excursion (outline-end-of-heading) (point)))
+            (setq eos (save-excursion (org-end-of-subtree t t)
+                                      (when (bolp) (backward-char)) (point)))
+            (setq has-children
+                  (or (save-excursion
+                        (let ((level (funcall outline-level)))
+                          (outline-next-heading)
+                          (and (org-at-heading-p t)
+                               (> (funcall outline-level) level))))
+                      (save-excursion
+                        (org-list-search-forward (org-item-beginning-re) eos t)))))
+          ;; Determine end invisible part of buffer (EOL)
+          (beginning-of-line 2)
+          (while (and (not (eobp)) ;; this is like `next-line'
+                      (get-char-property (1- (point)) 'invisible))
+            (goto-char (next-single-char-property-change (point) 'invisible))
+            (and (eolp) (beginning-of-line 2)))
+          (setq eol (point)))
+        (cond
+         ((= eos eoh)
+          ;; (message "empty node")
+          'empty-node)
+         ((or (>= eol eos)
+              (not (string-match "\\S-" (buffer-substring eol eos))))
+          ;; (message "folded")
+          'folded)
+         (t
+          ;; (message "not folded")
+          'not-folded))))))
+#+end_src
+
+*** Shorter function to check folding status
+
+#+begin_src emacs-lisp
+  (defun my-org-folded-p ()
+    "Returns non-nil if point is on a folded headline or plain list
+  item."
+    (and (or (org-at-heading-p)
+             (org-at-item-p))
+         (invisible-p (point-at-eol))))
+#+end_src
+
+** Appearance
+
+Note: More customization can be found in the blog post [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][Beautifying Org Mode in Emacs]].
+Note: =org-modern= ignores =org-bullets= and friends, substituting its own bullets.
 
 Make various elements of an org-mode document look nicer ([[https://github.com/minad/org-modern][org-modern]]).
 #+begin_src emacs-lisp
@@ -619,6 +710,14 @@ Make various elements of an org-mode document look nicer ([[https://github.com/m
     :hook
     (org-mode . org-modern-mode)
     (org-agenda-finalize . org-modern-agenda))
+#+end_src
+
+Hide markers for italics, bold, etc.
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :custom
+    (org-hide-emphasis-markers t))
 #+end_src
 
 ** Refile
@@ -1566,6 +1665,25 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
   (setq projectile-enable-caching t)
 #+end_src
 
+Here is a simple [[https://blog.sumtypeofway.com/posts/emacs-config.html][configuration]] for Emacs' new built-in =project.el=.
+#+begin_src emacs-lisp :tangle no
+(use-package project
+  :pin gnu
+  :bind (("C-c k" . #'project-kill-buffers)
+         ("C-c m" . #'project-compile)
+         ("C-x f" . #'find-file)
+         ("C-c f" . #'project-find-file)
+         ("C-c F" . #'project-switch-project))
+  :custom
+  ;; Customize the options shown upon switching projects.
+  (project-switch-commands
+   '((project-find-file "Find file")
+     (magit-project-status "Magit" ?g)
+     (deadgrep "Grep" ?h)))
+  (compilation-always-kill t)
+  (project-vc-merge-submodules nil))
+#+end_src
+
 ** Man pages
 
 Broken on Windows, due to MSYS2 issues.
@@ -1745,6 +1863,26 @@ Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_p
 
 Documentation for DAP is [[https://emacs-lsp.github.io/dap-mode/][here]]. Python configuration for DAP is [[https://emacs-lsp.github.io/dap-mode/page/configuration/#python][here]].
 Overall configuration is [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]].
+
+A starting point for a configuration from [[https://blog.sumtypeofway.com/posts/emacs-config.html][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package dap-mode
+    :bind
+    (:map dap-mode-map
+     ("C-c b b" . dap-breakpoint-toggle)
+     ("C-c b r" . dap-debug-restart)
+     ("C-c b l" . dap-debug-last)
+     ("C-c b d" . dap-debug))
+    :init
+    (require 'dap-python)
+    (setq dap-python-debugger 'debugpy)
+    (defun pt/turn-on-debugger ()
+      (interactive)
+      (dap-mode)
+      (dap-auto-configure-mode)
+      (dap-ui-mode)
+      (dap-ui-controls-mode)))
+#+end_src
 
 * Python programming
 
