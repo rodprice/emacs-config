@@ -1527,58 +1527,6 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
     ;;     (add-to-list 'exec-path my-putty-directory)))
 #+end_src
 
-* Code folding
-
-#+begin_src emacs-lisp
-(message "starting code folding")
-#+end_src
-
-Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
-#+begin_src emacs-lisp
-  (use-package hideshow
-    :ensure t
-    :config
-    (defun hs-cycle (&optional level)
-      (interactive "p")
-      (let (message-log-max
-            (inhibit-message t))
-        (if (= level 1)
-            (pcase last-command
-              ('hs-cycle
-               (hs-hide-level 1)
-               (setq this-command 'hs-cycle-children))
-              ('hs-cycle-children
-               ;; TODO: Fix this case. `hs-show-block' needs to be
-               ;; called twice to open all folds of the parent
-               ;; block.
-               (save-excursion (hs-show-block))
-               (hs-show-block)
-               (setq this-command 'hs-cycle-subtree))
-              ('hs-cycle-subtree
-               (hs-hide-block))
-              (_
-               (if (not (hs-already-hidden-p))
-                   (hs-hide-block)
-                 (hs-hide-level 1)
-                 (setq this-command 'hs-cycle-children))))
-          (hs-hide-level level)
-          (setq this-command 'hs-hide-level))))
-
-    (defun hs-global-cycle ()
-      (interactive)
-      (pcase last-command
-        ('hs-global-cycle
-         (save-excursion (hs-show-all))
-         (setq this-command 'hs-global-show))
-        (_ (hs-hide-all))))
-
-    :bind (:map prog-mode-map
-                (("C-<tab>" . hs-cycle)
-                 ("S-C-<tab>" . hs-global-cycle)))
-
-    :hook (prog-mode . hs-minor-mode))
-#+end_src
-
 * Version control
 
 ** Magit package
@@ -1756,6 +1704,67 @@ Make flycheck play nice with eldoc. From
      (eldoc-add-command-completions "combobulate-"))
 #+end_src
 
+** Code folding
+
+*** Origami mode
+
+A code folding package that works with =lsp-mode=, found [[https://github.com/gregsexton/origami.el][here]].
+#+begin_src emacs-lisp
+  (use-package origami
+    :ensure t
+    :bind (:map origami-mode-map
+                (("C-<tab>" . origami-recursively-toggle-node)
+                 ("S-C-<tab>" . origami-toggle-all-nodes))))
+#+end_src
+
+*** Hide-show package (disabled)
+
+Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
+#+begin_src emacs-lisp :tangle no
+  (use-package hideshow
+    :ensure t
+    :config
+    (defun hs-cycle (&optional level)
+      (interactive "p")
+      (let (message-log-max
+            (inhibit-message t))
+        (if (= level 1)
+            (pcase last-command
+              ('hs-cycle
+               (hs-hide-level 1)
+               (setq this-command 'hs-cycle-children))
+              ('hs-cycle-children
+               ;; TODO: Fix this case. `hs-show-block' needs to be
+               ;; called twice to open all folds of the parent
+               ;; block.
+               (save-excursion (hs-show-block))
+               (hs-show-block)
+               (setq this-command 'hs-cycle-subtree))
+              ('hs-cycle-subtree
+               (hs-hide-block))
+              (_
+               (if (not (hs-already-hidden-p))
+                   (hs-hide-block)
+                 (hs-hide-level 1)
+                 (setq this-command 'hs-cycle-children))))
+          (hs-hide-level level)
+          (setq this-command 'hs-hide-level))))
+
+    (defun hs-global-cycle ()
+      (interactive)
+      (pcase last-command
+        ('hs-global-cycle
+         (save-excursion (hs-show-all))
+         (setq this-command 'hs-global-show))
+        (_ (hs-hide-all))))
+
+    :bind (:map prog-mode-map
+                (("C-<tab>" . hs-cycle)
+                 ("S-C-<tab>" . hs-global-cycle)))
+
+    :hook (prog-mode . hs-minor-mode))
+#+end_src
+
 ** Eglot package (disabled)
 
 Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
@@ -1830,7 +1839,18 @@ features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][h
        web-mode        ; ts-ls/HTML/CSS
        haskell-mode    ; haskell-language-server
        ) . lsp-deferred)
-     (lsp-completion-mode . my-lsp-mode-setup-completion)))
+     (lsp-completion-mode . my-lsp-mode-setup-completion)
+     (lsp-after-open-hook . lsp-origami-try-enable)))
+#+end_src
+
+Send LSP data to =origami.el= for code folding. Minimal documentation [[https://github.com/emacs-lsp/lsp-origami][here]].
+#+begin_src emacs-lisp
+  (use-package lsp-origami
+    :ensure t
+    :after lsp-mode
+    :config
+    (setq lsp-enable-folding t)
+    :hook (prog-mode . origami-mode))
 #+end_src
 
 Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
@@ -1905,11 +1925,17 @@ same author.
 Remove "guess indent" python message
 #+begin_src emacs-lisp
   (use-package python
+    :preface
+    (defun my-origami-local-fold-replacement ()
+      (set (make-local-variable 'origami-fold-replacement)
+           "...\n"))
     :config
     (setq python-indent-guess-indent-offset-verbose nil)
     :hook
     ((python-mode . imenu-add-menubar-index)
-     (python-mode . eldoc-mode)))
+     (python-mode . eldoc-mode)
+     (python-mode . origami-mode)
+     (python-mode . my-origami-local-fold-replacement)))
 #+end_src
 
 ** Environment variables
