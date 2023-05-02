@@ -570,7 +570,9 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 
 Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]].
 
-Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]].
+Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]]. This uses [[https://pandoc.org/][pandoc]] rather than the
+default multimarkdown, so it can run on Windows. A cheat sheet for
+Github-flavored Markdown is [[https://github.github.com/gfm/][here]].
 #+begin_src emacs-lisp
   (use-package markdown-mode
     :ensure t
@@ -578,8 +580,17 @@ Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][h
     ("README\\.md\\'" . gfm-mode)
     :custom
     (markdown-enable-math t)
-    :init
-    (setq markdown-command "pandoc"))
+    (markdown-live-preview-delete-export 'delete-on-export)
+    (markdown-asymmetric-header t)
+    :config
+    (setq markdown-command
+          (concat
+           "pandoc"
+           " --from=markdown --to=html"
+           " --standalone --mathjax --highlight-style=pygments"
+           " --css=pandoc.css"
+           " --quiet"
+           )))
 #+end_src
 
 [[https://github.com/Fanael/edit-indirect/][Edit code blocks]] in a new buffer, like =org-mode=.
@@ -739,6 +750,8 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
 #+end_src
 
 ** LaTeX
+
+Note: An extensive configuration for AUCTeX is [[https://sqrtminusone.xyz/configs/emacs/#latex][here]].
 
 #+begin_src emacs-lisp :tangle no
   ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
@@ -1795,7 +1808,7 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 
 Note: The configuration below is from [[https://ianyepan.github.io/posts/emacs-ide/][Building an Intelligent Emacs]]
 and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]]. Documentation is at the =lsp-mode= [[https://emacs-lsp.github.io/lsp-mode/][site]]. Main
-features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][here]].
+features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][here]]. The =advice= below comes from the LSP [[https://emacs-lsp.github.io/lsp-mode/page/faq/][FAQ]].
 #+begin_src emacs-lisp
   (use-package lsp-mode
     :ensure t
@@ -1804,6 +1817,9 @@ features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][h
     (defun my-lsp-mode-setup-completion ()
       (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
             '(orderless))) ;; Configure orderless
+    ;; (advice-add 'lsp :before
+    ;;             (lambda (&rest _args)
+    ;;               (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
     :config
     (setq lsp-completion-provider :none)
     (setq lsp-auto-guess-root t)
@@ -1853,19 +1869,6 @@ Send LSP data to =origami.el= for code folding. Minimal documentation [[https://
     :hook (prog-mode . origami-mode))
 #+end_src
 
-Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
-#+begin_src emacs-lisp
-  (use-package lsp-pyright
-    :ensure t
-    :hook ((python-mode . (lambda () (require 'lsp-pyright)))
-           (python-mode . lsp-deferred))
-    :config
-    ;; these hooks can't go in the :hook section since
-    ;; lsp-restart-workspace is not available if lsp isn't active
-    (add-hook 'conda-postactivate-hook (lambda () (lsp-restart-workspace)))
-    (add-hook 'conda-postdeactivate-hook (lambda () (lsp-restart-workspace))))
-#+end_src
-
 #+begin_src emacs-lisp :tangle no
   (use-package lsp-ui
     :ensure t
@@ -1882,26 +1885,31 @@ Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_p
 ** DAP mode
 
 Documentation for DAP is [[https://emacs-lsp.github.io/dap-mode/][here]]. Python configuration for DAP is [[https://emacs-lsp.github.io/dap-mode/page/configuration/#python][here]].
-Overall configuration is [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]].
+Overall configuration is [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]]. An interesting configuration with a
+unique hydra, etc, is [[https://sqrtminusone.xyz/configs/emacs/#dap][here]].
 
 A starting point for a configuration from [[https://blog.sumtypeofway.com/posts/emacs-config.html][here]].
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package dap-mode
+    :ensure t
     :bind
     (:map dap-mode-map
      ("C-c b b" . dap-breakpoint-toggle)
      ("C-c b r" . dap-debug-restart)
      ("C-c b l" . dap-debug-last)
      ("C-c b d" . dap-debug))
+    :custom
+    (dap-print-io t)
+    (lsp-enable-dap-auto-configure t)
     :init
-    (require 'dap-python)
-    (setq dap-python-debugger 'debugpy)
     (defun pt/turn-on-debugger ()
       (interactive)
       (dap-mode)
       (dap-auto-configure-mode)
       (dap-ui-mode)
       (dap-ui-controls-mode)))
+    ;; :hook
+    ;; (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
 #+end_src
 
 * Python programming
@@ -1931,6 +1939,11 @@ Remove "guess indent" python message
            "...\n"))
     :config
     (setq python-indent-guess-indent-offset-verbose nil)
+    (require 'dap-python)
+    :custom
+    (python-shell-interpreter "python3")
+    (dap-python-executable "python3")
+    (dap-python-debugger 'debugpy)
     :hook
     ((python-mode . imenu-add-menubar-index)
      (python-mode . eldoc-mode)
@@ -1962,11 +1975,16 @@ Note: Another possibly interesting approach is [[https://github.com/10sr/with-ve
 sets up a macro =(with-venv BODY)= that ensures that =BODY= runs in the
 correct virtual environment.
 
-This uses a modified conda.el package that works on Windows machines.
+Note: Here's an emacs [[https://sqrtminusone.xyz/configs/emacs/#anaconda][config]] that advises conda.el functions to keep
+track of
+
 #+begin_src emacs-lisp
   (use-package pythonic
     :ensure t)
+#+end_src
 
+This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package that works on Windows machines.
+#+begin_src emacs-lisp
   (use-package conda
      :ensure nil
      :after pythonic
@@ -1983,6 +2001,57 @@ This uses a modified conda.el package that works on Windows machines.
                  (lambda ()
                    (when (bound-and-true-p conda-project-env-path)
                      (conda-env-activate-for-buffer)))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-conda-postactivate ()
+    (message "--- in conda-postactivate hook")
+    (message "--- current-buffer is %s" (current-buffer))
+    (message "--- conda-env-current-name is '%s'" conda-env-current-name)
+    (message "--- conda-env-current-path is '%s'" conda-env-current-path)
+    (if (bound-and-true-p conda-project-env-path)
+        (message "--- conda-project-env-path is '%s'" conda-project-env-path)
+      (message "--- conda-project-env-path is not bound")))
+  (defun my-conda-postdeactivate ()
+    (message "--- in conda-postdeactivate hook")
+    (message "--- current-buffer is %s" (current-buffer))
+    (message "--- conda-env-current-name is '%s'" conda-env-current-name)
+    (message "--- conda-env-current-path is '%s'" conda-env-current-path)
+    (if (bound-and-true-p conda-project-env-path)
+        (message "--- conda-project-env-path is '%s'" conda-project-env-path)
+      (message "--- conda-project-env-path is not bound")))
+#+end_src
+
+Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
+#+begin_src emacs-lisp
+  (use-package lsp-pyright
+    :ensure t
+    :after conda
+    :hook ((python-mode . (lambda () (require 'lsp-pyright)))
+           (python-mode . lsp-deferred))
+    :config
+    ;; these hooks can't go in the :hook section since
+    ;; lsp-restart-workspace is not available if lsp isn't active
+    (add-hook 'conda-postactivate-hook (lambda () (lsp-restart-workspace)))
+    (add-hook 'conda-postactivate-hook #'my-conda-postactivate)
+    (add-hook 'conda-postdeactivate-hook (lambda () (lsp-restart-workspace)))
+    (add-hook 'conda-postdeactivate-hook #'my-conda-postactivate))
+#+end_src
+
+Tell =lsp-pyright= about conda environments, from [[https://github.com/emacs-lsp/lsp-pyright/issues/52][here]].
+#+begin_src emacs-lisp :tangle no
+  (with-eval-after-load 'conda
+    (with-eval-after-load 'lsp-pyright
+      (progn
+        (defun autoenv-for-lsp-pyright ()
+          (let* ((env-name (conda--infer-env-from-buffer))
+                 (env-path (concat conda-env-home-directory "/envs/" env-name)))
+            (setq-local lsp-pyright-venv-path env-path)
+            (setq-local mode-line-process (concat "(" env-name ")"))
+            (message "setting lsp-pyright-venv-path to %s" env-path))
+          )
+        (push 'autoenv-for-lsp-pyright python-mode-hook)
+        )))
 #+end_src
 
 ** Testing

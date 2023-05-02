@@ -12,6 +12,7 @@
 (load (concat (car (split-string (system-name) "\\.")) "-preload") 'noerror)
 
 ;; Have this available just in case
+(setq confirm-kill-emacs 'y-or-n-p)
 (defun server-shutdown ()
   "Save buffers, quit, and shutdown (kill) server."
   (interactive)
