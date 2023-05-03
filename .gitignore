@@ -43,3 +43,4 @@ NUL
 .emacs.desktop.lock
 *.html
 .cache
+.dap*

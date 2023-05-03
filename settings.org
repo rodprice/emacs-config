@@ -1974,7 +1974,8 @@ same author.
 
 ** Python mode
 
-Remove "guess indent" python message
+Remove "guess indent" python message. IPython prints a warning message
+on startup. A hint as to how to clean that up is [[http://blog.algarvio.me/2009/1/29/ipython-and-virtualenv/][here]].
 #+begin_src emacs-lisp
   (use-package python
     :preface
@@ -2005,15 +2006,29 @@ Remove "guess indent" python message
 How to kill a buffer [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Killing-Buffers.html][here]].
 #+begin_src emacs-lisp
   (defun my-delete-python-repl ()
-    "Stop the Python REPL, then delete its buffer and its window."
+    "Stop the Python REPL, then delete its window and its buffer."
     (interactive)
-    (if (not (eq (buffer-local-value 'major-mode (current-buffer))
-                 'inferior-python-mode))
-        (user-error "This window does not contain a Python REPL!")
-      (comint-send-eof)
-      (set-buffer-modified-p nil)
-      (kill-buffer)
-      (popper--delete-popup (selected-window))))
+    (unless (eq (buffer-local-value 'major-mode (current-buffer))
+                'inferior-python-mode)
+      (user-error "This window does not contain a Python REPL!"))
+    (let ((proc (get-buffer-process (current-buffer)))
+          (win (selected-window))
+          (buf (window-buffer)))
+      ;; Kill ipython process, if running
+      (when proc
+        (goto-char (point-max))
+        (comint-kill-input)
+        (comint-send-eof))
+      ;; Delete the ipython window
+      (if (not (boundp 'popper-mode))
+          (quit-window nil win)
+        (popper--delete-popup win)
+        (alist-pop 'popper-open-popup-alist win)
+        (alist-pop 'popper-buried-popup-alist win))
+      ;; Kill the ipython buffer
+      (with-current-buffer buf
+        (set-buffer-modified-p nil)
+        (kill-buffer))))
 #+end_src
 
 ** Environment variables
