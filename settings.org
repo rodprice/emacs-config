@@ -507,6 +507,26 @@ Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.
   (desktop-save-mode)
 #+end_src
 
+#+begin_src emacs-lisp :tangle no
+  (use-package desktop
+    :preface
+    (defun restore-desktop (frame)
+      "Restores desktop and cancels hook after first frame opens.
+    So the daemon can run at startup and it'll still work."
+      (with-selected-frame frame
+        (desktop-save-mode 1)
+        (desktop-read)
+        (remove-hook 'after-make-frame-functions 'restore-desktop)))
+    :config
+    ;; (setq desktop-restore-forces-onscreen nil)
+    (if (daemonp)
+        (add-hook 'server-after-make-frame-hook #'desktop-read)
+      (add-hook 'window-setup-hook #'desktop-read))
+    (setq desktop-save t)  ;; always save
+    (desktop-save-mode 1)
+    (add-hook 'after-make-frame-functions 'restore-desktop))
+#+end_src
+
 ** Window movement
 
 #+begin_src emacs-lisp
@@ -1672,7 +1692,11 @@ Documentation for flycheck [[https://www.flycheck.org][here]].
       (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
       (setq flycheck-display-errors-function nil)
       (setq flycheck-help-echo-function nil))
-    :init (global-flycheck-mode)
+    :init
+    (setq flycheck-highlighting-mode 'symbols
+          flycheck-indication-mode 'left-fringe
+          flycheck-standard-error-navigation t)
+    (global-flycheck-mode)
     :bind (("M-n" . flycheck-next-error)
            ("M-p" . flycheck-previous-error)
            ("M-l" . flycheck-list-errors))
@@ -1806,57 +1830,72 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 
 ** LSP mode
 
+#+begin_src emacs-lisp
+  (defun my-workspace-folders (added removed)
+    (message "--- Running my-workspace-folders")
+    (message "--- argument 'added' is %s" added)
+    (message "--- argument 'removed' is %s" removed))
+#+end_src
+
 Note: The configuration below is from [[https://ianyepan.github.io/posts/emacs-ide/][Building an Intelligent Emacs]]
 and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]]. Documentation is at the =lsp-mode= [[https://emacs-lsp.github.io/lsp-mode/][site]]. Main
 features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][here]]. The =advice= below comes from the LSP [[https://emacs-lsp.github.io/lsp-mode/page/faq/][FAQ]].
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :ensure t
-    :commands lsp
-    :init
-    (defun my-lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(orderless))) ;; Configure orderless
-    ;; (advice-add 'lsp :before
-    ;;             (lambda (&rest _args)
-    ;;               (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
-    :config
-    (setq lsp-completion-provider :none)
-    (setq lsp-auto-guess-root t)
-    (setq lsp-log-io nil)
-    (setq lsp-restart 'auto-restart)
-    (setq lsp-enable-symbol-highlighting nil)
-    (setq lsp-enable-on-type-formatting nil)
-    (setq lsp-signature-auto-activate nil)
-    (setq lsp-signature-render-documentation nil)
-    (setq lsp-eldoc-hook nil)
-    (setq lsp-modeline-code-actions-enable nil)
-    (setq lsp-modeline-diagnostics-enable nil)
-    (setq lsp-headerline-breadcrumb-enable nil)
-    (setq lsp-semantic-tokens-enable nil)
-    (setq lsp-enable-folding nil)
-    (setq lsp-enable-imenu nil)
-    (setq lsp-enable-snippet nil)
-    (setq read-process-output-max (* 1024 1024)) ;; 1MB
-    (setq lsp-idle-delay 0.5)
-    (setq lsp-log-io t)                   ;; DEBUG
-    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
-    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
-    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]docs\\'")
-    :hook
-    (((c-mode          ; clangd
-       c++-mode        ; clangd
-       c-or-c++-mode   ; clangd
-       java-mode       ; eclipse-jdtls
-       js-mode         ; ts-ls (tsserver wrapper)
-       js-jsx-mode     ; ts-ls (tsserver wrapper)
-       typescript-mode ; ts-ls (tsserver wrapper)
-       python-mode     ; pyright
-       web-mode        ; ts-ls/HTML/CSS
-       haskell-mode    ; haskell-language-server
-       ) . lsp-deferred)
-     (lsp-completion-mode . my-lsp-mode-setup-completion)
-     (lsp-after-open-hook . lsp-origami-try-enable)))
+    (use-package lsp-mode
+      :ensure t
+      :commands lsp
+      :init
+      (defun my-lsp-mode-setup-completion ()
+        (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+              '(orderless))) ;; Configure orderless
+      ;; (advice-add 'lsp :before
+      ;;             (lambda (&rest _args)
+      ;;               (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
+      :config
+      (setq lsp-completion-provider :none)
+      (setq lsp-auto-guess-root t)
+      (setq lsp-log-io nil)
+      (setq lsp-restart 'auto-restart)
+      (setq lsp-enable-symbol-highlighting nil)
+      (setq lsp-enable-on-type-formatting nil)
+      (setq lsp-signature-auto-activate nil)
+      (setq lsp-signature-render-documentation nil)
+      (setq lsp-eldoc-hook nil)
+      (setq lsp-modeline-code-actions-enable nil)
+      (setq lsp-modeline-diagnostics-enable nil)
+      (setq lsp-headerline-breadcrumb-enable nil)
+      (setq lsp-semantic-tokens-enable nil)
+      (setq lsp-enable-folding nil)
+      (setq lsp-enable-imenu nil)
+      (setq lsp-enable-snippet nil)
+      (setq read-process-output-max (* 1024 1024)) ;; 1MB
+      (setq lsp-idle-delay 0.5)
+      (setq lsp-log-io t)                   ;; DEBUG
+      (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
+      (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
+      (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]docs\\'")
+      :hook
+      (((c-mode          ; clangd
+         c++-mode        ; clangd
+         c-or-c++-mode   ; clangd
+         java-mode       ; eclipse-jdtls
+         js-mode         ; ts-ls (tsserver wrapper)
+         js-jsx-mode     ; ts-ls (tsserver wrapper)
+         typescript-mode ; ts-ls (tsserver wrapper)
+         python-mode     ; pyright
+         web-mode        ; ts-ls/HTML/CSS
+         haskell-mode    ; haskell-language-server
+         ) . lsp-deferred)
+       (lsp-mode . lsp-enable-which-key-integration)
+       (lsp-completion-mode . my-lsp-mode-setup-completion)
+       (lsp-after-open . lsp-origami-try-enable)
+       (lsp-workspace-folders-changed . my-workspace-folders)))
+#+end_src
+
+Consult interface for symbols and LSP diagnostics, found [[https://github.com/gagbo/consult-lsp][here]].
+#+begin_src emacs-lisp
+  (use-package consult-lsp
+    :ensure t)
 #+end_src
 
 Send LSP data to =origami.el= for code folding. Minimal documentation [[https://github.com/emacs-lsp/lsp-origami][here]].
@@ -1872,6 +1911,7 @@ Send LSP data to =origami.el= for code folding. Minimal documentation [[https://
 #+begin_src emacs-lisp :tangle no
   (use-package lsp-ui
     :ensure t
+    :after lsp-mode
     :commands lsp-ui-mode
     :config
     (setq lsp-ui-doc-enable nil)
@@ -1879,7 +1919,11 @@ Send LSP data to =origami.el= for code folding. Minimal documentation [[https://
     (setq lsp-ui-doc-include-signature t)
     (setq lsp-ui-doc-border (face-foreground 'default))
     (setq lsp-ui-sideline-show-code-actions t)
-    (setq lsp-ui-sideline-delay 0.05))
+    (setq lsp-ui-sideline-delay 0.05)
+    :bind (:map lsp-ui-mode-map
+                ("C-c i" . lsp-ui-menu))
+    :hook
+    (lsp-mode . lsp-ui-menu))
 #+end_src
 
 ** DAP mode
@@ -1938,10 +1982,17 @@ Remove "guess indent" python message
       (set (make-local-variable 'origami-fold-replacement)
            "...\n"))
     :config
-    (setq python-indent-guess-indent-offset-verbose nil)
     (require 'dap-python)
+    (add-to-list 'popper-reference-buffers "\\*IPython\\*")
+    (add-to-list 'popper-reference-buffers 'inferior-python-mode)
+    (popper--set-reference-vars)
     :custom
-    (python-shell-interpreter "python3")
+    ;; (python-shell-interpreter "python3")
+    ;; (python-shell-completion-native-enable nil)
+    (python-indent-guess-indent-offset-verbose nil)
+    (python-shell-buffer-name "IPython")
+    (python-shell-interpreter "ipython")
+    (python-shell-interpreter-args "-i --simple-prompt")
     (dap-python-executable "python3")
     (dap-python-debugger 'debugpy)
     :hook
@@ -1949,6 +2000,20 @@ Remove "guess indent" python message
      (python-mode . eldoc-mode)
      (python-mode . origami-mode)
      (python-mode . my-origami-local-fold-replacement)))
+#+end_src
+
+How to kill a buffer [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Killing-Buffers.html][here]].
+#+begin_src emacs-lisp
+  (defun my-delete-python-repl ()
+    "Stop the Python REPL, then delete its buffer and its window."
+    (interactive)
+    (if (not (eq (buffer-local-value 'major-mode (current-buffer))
+                 'inferior-python-mode))
+        (user-error "This window does not contain a Python REPL!")
+      (comint-send-eof)
+      (set-buffer-modified-p nil)
+      (kill-buffer)
+      (popper--delete-popup (selected-window))))
 #+end_src
 
 ** Environment variables
@@ -1973,7 +2038,8 @@ be no Windows-compatible version.
 
 Note: Another possibly interesting approach is [[https://github.com/10sr/with-venv-el][with-venv.el]], which
 sets up a macro =(with-venv BODY)= that ensures that =BODY= runs in the
-correct virtual environment.
+correct virtual environment. The function =conda-with-env= in conda.el
+claims to do this as well.
 
 Note: Here's an emacs [[https://sqrtminusone.xyz/configs/emacs/#anaconda][config]] that advises conda.el functions to keep
 track of
@@ -2026,9 +2092,11 @@ Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_p
 #+begin_src emacs-lisp
   (use-package lsp-pyright
     :ensure t
-    :after conda
+    :after (python lsp-mode conda)
     :hook ((python-mode . (lambda () (require 'lsp-pyright)))
-           (python-mode . lsp-deferred))
+           (python-mode . lsp))
+    ;; :custom
+    ;; (lsp-pyright-venv-path (getenv "VIRTUAL_ENV"))
     :config
     ;; these hooks can't go in the :hook section since
     ;; lsp-restart-workspace is not available if lsp isn't active
