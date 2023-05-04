@@ -796,6 +796,10 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
             org-tufte-embed-images nil))
 #+end_src
 
+** Blogging
+
+Note: A possibly interesting setup using Hugo, [[https://andreyorst.gitlab.io/posts/2022-10-16-my-blogging-setup-with-emacs-and-org-mode/][here]].
+
 ** Junkyard
 
 Note: [[https://github.com/rksm/org-ai][org-ai]] is yet another emacs interface to ChatGPT, etc.
@@ -1648,23 +1652,67 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
   (setq projectile-enable-caching t)
 #+end_src
 
+Note: [[https://github.com/karthink/project-x][project-x.el]] has some possibly useful extensions. There's also
+[[https://github.com/redguardtoo/find-file-in-project][find-file-in-project.el]].
+
 Here is a simple [[https://blog.sumtypeofway.com/posts/emacs-config.html][configuration]] for Emacs' new built-in =project.el=.
 #+begin_src emacs-lisp :tangle no
-(use-package project
-  :pin gnu
-  :bind (("C-c k" . #'project-kill-buffers)
-         ("C-c m" . #'project-compile)
-         ("C-x f" . #'find-file)
-         ("C-c f" . #'project-find-file)
-         ("C-c F" . #'project-switch-project))
-  :custom
-  ;; Customize the options shown upon switching projects.
-  (project-switch-commands
-   '((project-find-file "Find file")
-     (magit-project-status "Magit" ?g)
-     (deadgrep "Grep" ?h)))
-  (compilation-always-kill t)
-  (project-vc-merge-submodules nil))
+    (use-package project
+      :pin gnu
+      :bind (("C-c k" . #'project-kill-buffers)
+             ("C-c m" . #'project-compile)
+             ("C-x f" . #'find-file)
+             ("C-c f" . #'project-find-file)
+             ("C-c F" . #'project-switch-project))
+      :custom
+      ;; Customize the options shown upon switching projects.
+      (project-switch-commands
+       '((project-find-file "Find file")
+         (magit-project-status "Magit" ?g)
+         (deadgrep "Grep" ?h)))
+      (compilation-always-kill t)
+      (project-vc-merge-submodules nil))
+  ;;    (project-vc-include-untracked nil))
+  ;;    (project-directory-exclusion-list '())
+#+end_src
+
+A =consult= package, [[https://github.com/Qkessler/consult-project-extra][consult-project-extra.el]] for project.el.
+#+begin_src emacs-lisp :tangle no
+  (use-package consult-project-extra
+    :ensure t)
+#+end_src
+
+Save project buffers only before compilation, from [[https://andreyorst.gitlab.io/posts/2022-07-16-project-el-enhancements/][here]].
+#+begin_src emacs-lisp
+  (defun project-save-some-buffers (&optional arg)
+    "Save some modified file-visiting buffers in the current project.
+
+  Optional argument ARG (interactively, prefix argument) non-nil
+  means save all with no questions."
+    (interactive "P")
+    (let* ((project-buffers (project-buffers (project-current)))
+           (pred (lambda () (memq (current-buffer) project-buffers))))
+      (funcall-interactively #'save-some-buffers arg pred)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (define-advice project-compile (:around (fn) save-project-buffers)
+    "Only ask to save project-related buffers."
+    (let* ((project-buffers (project-buffers (project-current)))
+           (compilation-save-buffers-predicate
+            (lambda () (memq (current-buffer) project-buffers))))
+      (funcall fn)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (define-advice recompile (:around (fn &optional edit-command) save-project-buffers)
+    "Only ask to save project-related buffers if inside a project."
+    (if (project-current)
+        (let* ((project-buffers (project-buffers (project-current)))
+               (compilation-save-buffers-predicate
+                (lambda () (memq (current-buffer) project-buffers))))
+          (funcall fn edit-command))
+      (funcall fn edit-command)))
 #+end_src
 
 ** Man pages
@@ -1985,26 +2033,18 @@ Set up Python interpreters, code folding, etc.
            "...\n"))
     :config
     (require 'dap-python)
-    ;; (add-to-list 'popper-reference-buffers "\\*IPython\\*")
-    ;; (add-to-list 'popper-reference-buffers 'inferior-python-mode)
-    ;; (popper--set-reference-vars)
     :custom
-    ;; (python-shell-interpreter "python3")
-    ;; (python-shell-completion-native-enable nil)
     (python-indent-guess-indent-offset-verbose nil)
-    (python-shell-buffer-name "IPython")
-    (python-shell-interpreter "ipython")
-    (python-shell-interpreter-args
-     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
     (dap-python-executable "python3")
     (dap-python-debugger 'debugpy)
     :hook
     ((python-mode . imenu-add-menubar-index)
      (python-mode . eldoc-mode)
      (python-mode . origami-mode)
-     (python-mode . my-origami-local-fold-replacement)
-     (inferior-python-mode . my-add-kill-buffer-sentinel)))
+     (python-mode . my-origami-local-fold-replacement)))
 #+end_src
+
+** Python REPL
 
 Close the IPython window and kill the IPython buffer when IPython
 exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]]. A blog post with
@@ -2021,10 +2061,51 @@ a much much complex method is [[https://www.eigenbahn.com/2020/05/13/emacs-comin
           (funcall #',sentinel process signal)
           ;; Kill the buffer on an exit signal.
           (when (memq (process-status process) '(exit signal))
-                 (buffer-live-p (process-buffer process)))
             (let ((buffer (process-buffer process)))
               (when (buffer-live-p buffer)
-                (quit-window t (get-buffer-window buffer))))))))
+                (quit-window t (get-buffer-window buffer)))))))))
+#+end_src
+
+Close the IPython window without killing its buffer.
+#+begin_src emacs-lisp
+  (defun my-close-ipython-window ()
+    (interactive)
+    (let ((buffer (current-buffer)))
+      (unless (eq
+               (alist-get'major-mode (buffer-local-variables buffer))
+               'inferior-python-mode)
+        (user-error "Buffer '%s' does not have a Python interpreter." buffer))
+      (let ((window (get-buffer-window buffer)))
+        ;; Borrowed from popper.el
+        (when (window-valid-p window)
+          (cond
+           ((window-parent window)
+            (if (window-parameter window 'window-side)
+                (delete-window window)
+              (quit-window nil window)))
+           ((frame-parent) (delete-frame))
+           (t (quit-window nil window)))))))
+#+end_src
+
+Set up the IPython interpreter.
+#+begin_src emacs-lisp
+  (use-package python-mode
+    :after popper
+    :init
+    (add-to-list 'popper-reference-buffers "\\*IPython\\*")
+    (add-to-list 'popper-reference-buffers 'inferior-python-mode)
+    (popper--set-reference-vars)
+    :custom
+    ;; (python-shell-interpreter "python3")
+    ;; (python-shell-completion-native-enable nil)
+    (python-shell-buffer-name "IPython")
+    (python-shell-interpreter "ipython")
+    (python-shell-interpreter-args
+     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
+    :bind (:map inferior-python-mode-map
+                ("M-d" . my-close-ipython-window))
+    :hook
+     (inferior-python-mode . my-add-kill-buffer-sentinel))
 #+end_src
 
 ** Environment variables
