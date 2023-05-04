@@ -1508,6 +1508,8 @@ Show all buffers currently displayed in windows in all frames
 
 * Remote
 
+Note: A possibly useful blog post: [[https://www.eigenbahn.com/2020/07/08/painless-emacs-remote-shells][Painless Emacs remote shells]].
+
 #+begin_src emacs-lisp
 (message "starting remote")
 #+end_src
@@ -1974,8 +1976,7 @@ same author.
 
 ** Python mode
 
-Remove "guess indent" python message. IPython prints a warning message
-on startup. A hint as to how to clean that up is [[http://blog.algarvio.me/2009/1/29/ipython-and-virtualenv/][here]].
+Set up Python interpreters, code folding, etc.
 #+begin_src emacs-lisp
   (use-package python
     :preface
@@ -1984,51 +1985,46 @@ on startup. A hint as to how to clean that up is [[http://blog.algarvio.me/2009/
            "...\n"))
     :config
     (require 'dap-python)
-    (add-to-list 'popper-reference-buffers "\\*IPython\\*")
-    (add-to-list 'popper-reference-buffers 'inferior-python-mode)
-    (popper--set-reference-vars)
+    ;; (add-to-list 'popper-reference-buffers "\\*IPython\\*")
+    ;; (add-to-list 'popper-reference-buffers 'inferior-python-mode)
+    ;; (popper--set-reference-vars)
     :custom
     ;; (python-shell-interpreter "python3")
     ;; (python-shell-completion-native-enable nil)
     (python-indent-guess-indent-offset-verbose nil)
     (python-shell-buffer-name "IPython")
     (python-shell-interpreter "ipython")
-    (python-shell-interpreter-args "-i --simple-prompt")
+    (python-shell-interpreter-args
+     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
     (dap-python-executable "python3")
     (dap-python-debugger 'debugpy)
     :hook
     ((python-mode . imenu-add-menubar-index)
      (python-mode . eldoc-mode)
      (python-mode . origami-mode)
-     (python-mode . my-origami-local-fold-replacement)))
+     (python-mode . my-origami-local-fold-replacement)
+     (inferior-python-mode . my-add-kill-buffer-sentinel)))
 #+end_src
 
-How to kill a buffer [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Killing-Buffers.html][here]].
+Close the IPython window and kill the IPython buffer when IPython
+exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]]. A blog post with
+a much much complex method is [[https://www.eigenbahn.com/2020/05/13/emacs-comint-buffer-auto-close][Auto-close Emacs interpreter buffers]].
 #+begin_src emacs-lisp
-  (defun my-delete-python-repl ()
-    "Stop the Python REPL, then delete its window and its buffer."
-    (interactive)
-    (unless (eq (buffer-local-value 'major-mode (current-buffer))
-                'inferior-python-mode)
-      (user-error "This window does not contain a Python REPL!"))
-    (let ((proc (get-buffer-process (current-buffer)))
-          (win (selected-window))
-          (buf (window-buffer)))
-      ;; Kill ipython process, if running
-      (when proc
-        (goto-char (point-max))
-        (comint-kill-input)
-        (comint-send-eof))
-      ;; Delete the ipython window
-      (if (not (boundp 'popper-mode))
-          (quit-window nil win)
-        (popper--delete-popup win)
-        (alist-pop 'popper-open-popup-alist win)
-        (alist-pop 'popper-buried-popup-alist win))
-      ;; Kill the ipython buffer
-      (with-current-buffer buf
-        (set-buffer-modified-p nil)
-        (kill-buffer))))
+  (defun my-add-kill-buffer-sentinel ()
+    "Set a process sentinel that kills the buffer when the process exits."
+    (let* ((process (get-buffer-process (current-buffer)))
+           (sentinel (process-sentinel process)))
+      (set-process-sentinel
+       process
+       `(lambda (process signal)
+          ;; Call the original process sentinel first.
+          (funcall #',sentinel process signal)
+          ;; Kill the buffer on an exit signal.
+          (when (memq (process-status process) '(exit signal))
+                 (buffer-live-p (process-buffer process)))
+            (let ((buffer (process-buffer process)))
+              (when (buffer-live-p buffer)
+                (quit-window t (get-buffer-window buffer))))))))
 #+end_src
 
 ** Environment variables
@@ -2443,6 +2439,8 @@ A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-pyth
 
 Installation [[https://github.com/akermu/emacs-libvterm/#requirements][instructions]] for [[https://github.com/akermu/emacs-libvterm][emacs-libvterm]]. Doesn't work for Windows.
 Toggle between a buffer and vterm ([[https://github.com/akermu/emacs-libvterm/#requirements][vterm-toggle]]).
+
+A possibly useful blog post: [[https://www.eigenbahn.com/2020/01/21/painless-emacs-interactive-shells][Painless Emacs interactive shells]].
 
 ** Vterm
 
