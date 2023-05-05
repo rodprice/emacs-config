@@ -1629,41 +1629,59 @@ Make the gutter show added/deleted/modified code blocks ([[https://ianyepan.gith
 
 ** Projects
 
-Maintain projects in emacs. Color me skeptical. Documentation for
-=projectile= is [[https://docs.projectile.mx/projectile/index.html][here]]. There's a =consult= package, [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]].
-David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/watch?v=INTu30BHZGk&list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ&index=4&t=130s][video]].
-#+begin_src emacs-lisp :tangle no
-  (use-package projectile
-    :ensure t
-    :diminish projectile-mode
-    :custom ((projectile-completion-system 'ivy))
-    :bind-keymap
-    ("C-c p" . projectile-command-map)  ;; conflicts with cape
-    :init
-    (when (file-directory-p "~/working")
-      (setq projectile-project-search-path '("~/working")))
-    (setq projectile-switch-project-action #'projectile-dired)
-    :config (projectile-mode))
+*** TOML
+
+Use the 'pyproject.toml' file in a project to set various defaults for
+the project. A useful StackOverflow discussion of this file is [[https://stackoverflow.com/questions/62983756/what-is-pyproject-toml-file-for][here]].
+
+A [[https://github.com/gongo/emacs-toml][package]] to read TOML files.
+#+begin_src emacs-lisp
+  (use-package toml
+    :ensure t)
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
-  (projectile-global-mode t)
-  (setq projectile-indexing-method 'git)
-  (setq projectile-enable-caching t)
+Read a toml file into an alist.
+#+begin_src emacs-lisp
+  (defun my-read-toml-file (dirname &optional filename)
+    "Read a TOML file found in directory DIRNAME and return its
+  contents. If FILENAME is not specified, use `pyproject.py'."
+    (let* ((dirpath (file-name-as-directory (expand-file-name dirname)))
+           (filepath (concat dirpath (or filename "pyproject.toml"))))
+      (unless (file-exists-p filepath)
+        (user-error "Can't find file at %s" filepath))
+      (unless (file-readable-p filepath)
+        (user-error "File at %s is not readable" filepath))
+      (toml:read-from-file filepath)))
 #+end_src
+
+#+begin_src emacs-lisp
+  (defun my-toml-get-setting (setting toml-obj)
+    "Query TOML-OBJ using SETTING, which is either a string or a list
+  of strings containing keys found in TOML-OBJ."
+    (let* ((path (if (listp setting) setting (list setting)))
+           (result (toml:assoc path toml-obj)))
+      (cdr-safe result)))
+#+end_src
+
+*** Project
 
 Note: [[https://github.com/karthink/project-x][project-x.el]] has some possibly useful extensions. There's also
 [[https://github.com/redguardtoo/find-file-in-project][find-file-in-project.el]].
+
+#+begin_src emacs-lisp
+  (use-package project
+    )
+#+end_src
 
 Here is a simple [[https://blog.sumtypeofway.com/posts/emacs-config.html][configuration]] for Emacs' new built-in =project.el=.
 #+begin_src emacs-lisp :tangle no
     (use-package project
       :pin gnu
-      :bind (("C-c k" . #'project-kill-buffers)
-             ("C-c m" . #'project-compile)
-             ("C-x f" . #'find-file)
-             ("C-c f" . #'project-find-file)
-             ("C-c F" . #'project-switch-project))
+      ;; :bind (("C-c k" . #'project-kill-buffers)
+      ;;        ("C-c m" . #'project-compile)
+      ;;        ("C-x f" . #'find-file)
+      ;;        ("C-c f" . #'project-find-file)
+      ;;        ("C-c F" . #'project-switch-project))
       :custom
       ;; Customize the options shown upon switching projects.
       (project-switch-commands
@@ -1695,7 +1713,7 @@ Save project buffers only before compilation, from [[https://andreyorst.gitlab.i
       (funcall-interactively #'save-some-buffers arg pred)))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (define-advice project-compile (:around (fn) save-project-buffers)
     "Only ask to save project-related buffers."
     (let* ((project-buffers (project-buffers (project-current)))
@@ -1704,7 +1722,7 @@ Save project buffers only before compilation, from [[https://andreyorst.gitlab.i
       (funcall fn)))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (define-advice recompile (:around (fn &optional edit-command) save-project-buffers)
     "Only ask to save project-related buffers if inside a project."
     (if (project-current)
@@ -1713,6 +1731,31 @@ Save project buffers only before compilation, from [[https://andreyorst.gitlab.i
                 (lambda () (memq (current-buffer) project-buffers))))
           (funcall fn edit-command))
       (funcall fn edit-command)))
+#+end_src
+
+*** Projectile (disabled)
+
+Maintain projects in emacs. Color me skeptical. Documentation for
+=projectile= is [[https://docs.projectile.mx/projectile/index.html][here]]. There's a =consult= package, [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]].
+David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/watch?v=INTu30BHZGk&list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ&index=4&t=130s][video]].
+#+begin_src emacs-lisp :tangle no
+  (use-package projectile
+    :ensure t
+    :diminish projectile-mode
+    :custom ((projectile-completion-system 'ivy))
+    :bind-keymap
+    ("C-c p" . projectile-command-map)  ;; conflicts with cape
+    :init
+    (when (file-directory-p "~/working")
+      (setq projectile-project-search-path '("~/working")))
+    (setq projectile-switch-project-action #'projectile-dired)
+    :config (projectile-mode))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (projectile-global-mode t)
+  (setq projectile-indexing-method 'git)
+  (setq projectile-enable-caching t)
 #+end_src
 
 ** Man pages
@@ -1801,7 +1844,24 @@ A code folding package that works with =lsp-mode=, found [[https://github.com/gr
     :ensure t
     :bind (:map origami-mode-map
                 (("C-<tab>" . origami-recursively-toggle-node)
-                 ("S-C-<tab>" . origami-toggle-all-nodes))))
+                 ("S-C-<tab>" . origami-toggle-all-nodes)))
+    :hook (origami-mode . my-add-origami-emacs-lisp-parser))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-origami-elisp-parser (create)
+    (origami-lisp-parser
+     create
+     "(\\(cl-def\\|def\\)\\w*\\s-*\\(\\s_\\|\\w\\|[:?!]\\)*\\([ \\t]*(.*?)\\)?"))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-add-origami-emacs-lisp-parser ()
+    "Replace the origami elisp parser to handle `cl-defmethod', etc."
+    (alist-pop origami-parser-alist 'emacs-lisp-mode)
+    (push '(emacs-lisp-mode . my-origami-elisp-parser) origami-parser-alist)
+    (alist-pop origami-parser-alist 'lisp-interaction-mode)
+    (push '(lisp-interaction-mode . my-origami-elisp-parser) origami-parser-alist))
 #+end_src
 
 *** Hide-show package (disabled)
