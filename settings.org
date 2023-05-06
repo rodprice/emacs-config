@@ -154,34 +154,43 @@ info node. This puts the defaults back in.
 
 ** Frame titles
 
-   Display buffer name in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
+Display buffer information in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
 #+begin_src emacs-lisp
+    (defun my-emacs-version ()
+      "Returns a shortened Emacs name and version string."
+      (let ((ls (split-string (emacs-version) " ")))
+        (substring
+         (format "%s" `(,(car ls) ,(cadr ls) ,(caddr ls)))
+         1
+         -1)))
 
-     (defun my-emacs-version ()
-       "Returns a shortened Emacs name and version string."
-       (let ((ls (split-string (emacs-version) " ")))
-         (substring
-          (format "%s" `(,(car ls) ,(cadr ls) ,(caddr ls)))
-          1
-          -1)))
+    (defun my-conda-env-current-name ()
+      "Returns the name of the current conda environment."
+      (if (bound-and-true-p conda-env-current-name)
+          (concat " - Conda: " conda-env-current-name)
+        ""))
 
-     (defun my-conda-env-current-name ()
-       "Returns the name of the current conda environment."
-       (if (bound-and-true-p conda-env-current-name)
-           (concat " - Conda: " conda-env-current-name)
-         ""))
+    (defun my-git-branch-name ()
+      "Returns the name of the current git branch."
+      (if vc-mode
+          (concat " -" (substring-no-properties vc-mode))
+        ""))
 
-     (defun my-git-branch-name ()
-       "Returns the name of the current git branch."
-       (if vc-mode
-           (concat " -" (substring-no-properties vc-mode))
-         ""))
+    (defun my-project-name ()
+      "Returns the name of the current project."
+      (if (not (featurep 'project))
+          ""
+        (let ((project (project-current)))
+          (if (null project)
+              ""
+            (format " - Project: %s" (project-name project))))))
 
-     (setq frame-title-format
-           '(""
-             (:eval (replace-regexp-in-string "^ +" "" (my-emacs-version)))
-             (:eval (my-conda-env-current-name))
-             (:eval (my-git-branch-name))))
+    (setq frame-title-format
+          '(""
+            (:eval (replace-regexp-in-string "^ +" "" (my-emacs-version)))
+            (:eval (my-conda-env-current-name))
+            (:eval (my-git-branch-name))
+            (:eval (my-project-name))))
 #+end_src
 
 ** Mode line
@@ -1642,7 +1651,7 @@ A [[https://github.com/gongo/emacs-toml][package]] to read TOML files.
 
 Read a toml file into an alist.
 #+begin_src emacs-lisp
-  (defun my-read-toml-file (dirname &optional filename)
+  (defun my-toml-read-file (dirname &optional filename)
     "Read a TOML file found in directory DIRNAME and return its
   contents. If FILENAME is not specified, use `pyproject.py'."
     (let* ((dirpath (file-name-as-directory (expand-file-name dirname)))
@@ -1654,13 +1663,46 @@ Read a toml file into an alist.
       (toml:read-from-file filepath)))
 #+end_src
 
+Query the toml alist.
 #+begin_src emacs-lisp
-  (defun my-toml-get-setting (setting toml-obj)
+  (defun my-toml-get-setting (toml-obj setting)
     "Query TOML-OBJ using SETTING, which is either a string or a list
   of strings containing keys found in TOML-OBJ."
     (let* ((path (if (listp setting) setting (list setting)))
            (result (toml:assoc path toml-obj)))
       (cdr-safe result)))
+#+end_src
+
+Get the settings under =[tool.pytest.ini_options]=.
+#+begin_src emacs-lisp
+  (defun my-toml-settings-pytest (dirname &optional key)
+    "Get the pytest settings in the pyproject.py file in directory
+  DIRNAME."
+    (let ((toml (my-toml-read-file dirname))
+          (path '("tool" "pytest" "ini_options")))
+      (my-toml-get-setting
+       toml
+       (append path (if key (list key) '())))))
+#+end_src
+
+Get the settings under =[tool.pyright]=.
+#+begin_src emacs-lisp
+  (defun my-toml-settings-pyright (dirname &optional key)
+    "Get the pyright settings in the pyproject.py file in directory
+  DIRNAME."
+    (let ((toml (my-toml-read-file dirname))
+          (path '("tool" "pyright")))
+      (my-toml-get-setting
+       toml
+       (append path (if key (list key) '())))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-toml-ignored-dirs (dirname)
+    ""
+    (let ((ignore (my-toml-settings-pyright dirname "ignore"))
+          (exclude (my-toml-settings-pyright dirname "exclude")))
+      (mapcar 'expand-file-name (append ignore exclude))))
 #+end_src
 
 *** Project
@@ -1670,6 +1712,7 @@ Note: [[https://github.com/karthink/project-x][project-x.el]] has some possibly 
 
 #+begin_src emacs-lisp
   (use-package project
+    :ensure nil
     )
 #+end_src
 
@@ -1690,6 +1733,7 @@ Here is a simple [[https://blog.sumtypeofway.com/posts/emacs-config.html][config
          (deadgrep "Grep" ?h)))
       (compilation-always-kill t)
       (project-vc-merge-submodules nil))
+  ;;    (project-current-directory-override nil)
   ;;    (project-vc-include-untracked nil))
   ;;    (project-directory-exclusion-list '())
 #+end_src
@@ -1698,6 +1742,19 @@ A =consult= package, [[https://github.com/Qkessler/consult-project-extra][consul
 #+begin_src emacs-lisp :tangle no
   (use-package consult-project-extra
     :ensure t)
+#+end_src
+
+Switching projects by visiting a file, from [[https://macowners.club/posts/custom-functions-5-navigation/][here]].
+#+begin_src emacs-lisp
+  (defun timu-nav-project-switch-project (dir)
+    "\"Switch\" to another project by running an Emacs command.
+  Directly use `project-find-file' instead of getting prompted.
+
+  When called in a program, it will use the project corresponding
+  to directory DIR."
+    (interactive (list (project-prompt-project-dir)))
+      (let ((project-current-directory-override dir))
+      (project-find-file)))
 #+end_src
 
 Save project buffers only before compilation, from [[https://andreyorst.gitlab.io/posts/2022-07-16-project-el-enhancements/][here]].
@@ -1951,55 +2008,52 @@ Note: The configuration below is from [[https://ianyepan.github.io/posts/emacs-i
 and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]]. Documentation is at the =lsp-mode= [[https://emacs-lsp.github.io/lsp-mode/][site]]. Main
 features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][here]]. The =advice= below comes from the LSP [[https://emacs-lsp.github.io/lsp-mode/page/faq/][FAQ]].
 #+begin_src emacs-lisp
-    (use-package lsp-mode
-      :ensure t
-      :commands lsp
-      :init
-      (defun my-lsp-mode-setup-completion ()
-        (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-              '(orderless))) ;; Configure orderless
-      ;; (advice-add 'lsp :before
-      ;;             (lambda (&rest _args)
-      ;;               (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
-      :config
-      (setq lsp-completion-provider :none)
-      (setq lsp-auto-guess-root t)
-      (setq lsp-log-io nil)
-      (setq lsp-restart 'auto-restart)
-      (setq lsp-enable-symbol-highlighting nil)
-      (setq lsp-enable-on-type-formatting nil)
-      (setq lsp-signature-auto-activate nil)
-      (setq lsp-signature-render-documentation nil)
-      (setq lsp-eldoc-hook nil)
-      (setq lsp-modeline-code-actions-enable nil)
-      (setq lsp-modeline-diagnostics-enable nil)
-      (setq lsp-headerline-breadcrumb-enable nil)
-      (setq lsp-semantic-tokens-enable nil)
-      (setq lsp-enable-folding nil)
-      (setq lsp-enable-imenu nil)
-      (setq lsp-enable-snippet nil)
-      (setq read-process-output-max (* 1024 1024)) ;; 1MB
-      (setq lsp-idle-delay 0.5)
-      (setq lsp-log-io t)                   ;; DEBUG
-      (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]junkyard\\'")
-      (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]install\\'")
-      (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]docs\\'")
-      :hook
-      (((c-mode          ; clangd
-         c++-mode        ; clangd
-         c-or-c++-mode   ; clangd
-         java-mode       ; eclipse-jdtls
-         js-mode         ; ts-ls (tsserver wrapper)
-         js-jsx-mode     ; ts-ls (tsserver wrapper)
-         typescript-mode ; ts-ls (tsserver wrapper)
-         python-mode     ; pyright
-         web-mode        ; ts-ls/HTML/CSS
-         haskell-mode    ; haskell-language-server
-         ) . lsp-deferred)
-       (lsp-mode . lsp-enable-which-key-integration)
-       (lsp-completion-mode . my-lsp-mode-setup-completion)
-       (lsp-after-open . lsp-origami-try-enable)
-       (lsp-workspace-folders-changed . my-workspace-folders)))
+  (use-package lsp-mode
+    :ensure t
+    :commands lsp
+    :init
+    (defun my-lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless))) ;; Configure orderless
+    ;; (advice-add 'lsp :before
+    ;;             (lambda (&rest _args)
+    ;;               (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
+    :config
+    (setq lsp-completion-provider :none)
+    (setq lsp-auto-guess-root t)
+    (setq lsp-log-io nil)
+    (setq lsp-restart 'auto-restart)
+    (setq lsp-enable-symbol-highlighting nil)
+    (setq lsp-enable-on-type-formatting nil)
+    (setq lsp-signature-auto-activate nil)
+    (setq lsp-signature-render-documentation nil)
+    (setq lsp-eldoc-hook nil)
+    (setq lsp-modeline-code-actions-enable nil)
+    (setq lsp-modeline-diagnostics-enable nil)
+    (setq lsp-headerline-breadcrumb-enable nil)
+    (setq lsp-semantic-tokens-enable nil)
+    (setq lsp-enable-folding nil)
+    (setq lsp-enable-imenu nil)
+    (setq lsp-enable-snippet nil)
+    (setq read-process-output-max (* 1024 1024)) ;; 1MB
+    (setq lsp-idle-delay 0.5)
+    (setq lsp-log-io t)                   ;; DEBUG
+    :hook
+    (((c-mode          ; clangd
+       c++-mode        ; clangd
+       c-or-c++-mode   ; clangd
+       java-mode       ; eclipse-jdtls
+       js-mode         ; ts-ls (tsserver wrapper)
+       js-jsx-mode     ; ts-ls (tsserver wrapper)
+       typescript-mode ; ts-ls (tsserver wrapper)
+       python-mode     ; pyright
+       web-mode        ; ts-ls/HTML/CSS
+       haskell-mode    ; haskell-language-server
+       ) . lsp-deferred)
+     (lsp-mode . lsp-enable-which-key-integration)
+     (lsp-completion-mode . my-lsp-mode-setup-completion)
+     (lsp-after-open . lsp-origami-try-enable)
+     (lsp-workspace-folders-changed . my-workspace-folders)))
 #+end_src
 
 Consult interface for symbols and LSP diagnostics, found [[https://github.com/gagbo/consult-lsp][here]].
