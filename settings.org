@@ -2141,16 +2141,15 @@ same author.
 Set up Python interpreters, code folding, etc.
 #+begin_src emacs-lisp
   (use-package python
-    :preface
-    (defun my-origami-local-fold-replacement ()
-      (set (make-local-variable 'origami-fold-replacement)
-           "...\n"))
-    :config
-    (require 'dap-python)
+    ;; :config
+    ;; (require 'dap-python)
     :custom
     (python-indent-guess-indent-offset-verbose nil)
-    (dap-python-executable "python3")
-    (dap-python-debugger 'debugpy)
+    ;; (python-indent-trigger-commands #'indent-for-tab-command)
+    ;; (dap-python-executable "python3")
+    ;; (dap-python-debugger 'debugpy)
+    :bind (:map python-mode-map
+                ("<f5>" . my-python-start-or-switch-repl))
     :hook
     ((python-mode . imenu-add-menubar-index)
      (python-mode . eldoc-mode)
@@ -2158,7 +2157,46 @@ Set up Python interpreters, code folding, etc.
      (python-mode . my-origami-local-fold-replacement)))
 #+end_src
 
+#+begin_src emacs-lisp
+  (defun my-origami-local-fold-replacement ()
+    (set (make-local-variable 'origami-fold-replacement)
+         "...\n"))
+#+end_src
+
+Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/questions/36520/dedicated-python-shell][StackExchange]].
+#+begin_src emacs-lisp
+  (defun my-python-start-or-switch-repl ()
+    "Start and/or switch to the Python REPL."
+    (interactive)
+    (if (python-shell-get-process)
+        (python-shell-switch-to-shell)
+      (progn
+        (run-python (python-shell-calculate-command) t t)
+        (python-shell-switch-to-shell))))
+#+end_src
+
 ** Python REPL
+
+Set up the IPython interpreter.
+#+begin_src emacs-lisp
+  (use-package python
+    :after popper
+    :init
+    (add-to-list 'popper-reference-buffers "\\*IPython\\*")
+    (add-to-list 'popper-reference-buffers 'inferior-python-mode)
+    (popper--set-reference-vars)
+    :custom
+    ;; (python-shell-interpreter "python3")
+    ;; (python-shell-completion-native-enable nil)
+    (python-shell-buffer-name "IPython")
+    (python-shell-interpreter "ipython")
+    (python-shell-interpreter-args
+     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
+    :bind (:map inferior-python-mode-map
+                ("<f5>" . my-close-ipython-window))
+    :hook
+     (inferior-python-mode . my-add-kill-buffer-sentinel))
+#+end_src
 
 Close the IPython window and kill the IPython buffer when IPython
 exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]]. A blog post with
@@ -2199,27 +2237,6 @@ Close the IPython window without killing its buffer.
               (quit-window nil window)))
            ((frame-parent) (delete-frame))
            (t (quit-window nil window)))))))
-#+end_src
-
-Set up the IPython interpreter.
-#+begin_src emacs-lisp
-  (use-package python-mode
-    :after popper
-    :init
-    (add-to-list 'popper-reference-buffers "\\*IPython\\*")
-    (add-to-list 'popper-reference-buffers 'inferior-python-mode)
-    (popper--set-reference-vars)
-    :custom
-    ;; (python-shell-interpreter "python3")
-    ;; (python-shell-completion-native-enable nil)
-    (python-shell-buffer-name "IPython")
-    (python-shell-interpreter "ipython")
-    (python-shell-interpreter-args
-     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
-    :bind (:map inferior-python-mode-map
-                ("M-d" . my-close-ipython-window))
-    :hook
-     (inferior-python-mode . my-add-kill-buffer-sentinel))
 #+end_src
 
 ** Environment variables
@@ -2601,6 +2618,7 @@ A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-pyth
 
 ** Jupyter
 
+Note: The package =emacs-jupyter= is [[https://github.com/nnicandro/emacs-jupyter][here]].
 #+begin_src emacs-lisp :tangle no
   (use-package jupyter
     :after (ob-jupyter ob-python)
