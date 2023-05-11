@@ -584,6 +584,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*Apropos\\*"
             "\\*Buffer List\\*"
             "^\\*eldoc"
+            "\\*xref\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
@@ -1905,22 +1906,6 @@ A code folding package that works with =lsp-mode=, found [[https://github.com/gr
     :hook (origami-mode . my-add-origami-emacs-lisp-parser))
 #+end_src
 
-#+begin_src emacs-lisp
-  (defun my-origami-elisp-parser (create)
-    (origami-lisp-parser
-     create
-     "(\\(cl-def\\|def\\)\\w*\\s-*\\(\\s_\\|\\w\\|[:?!]\\)*\\([ \\t]*(.*?)\\)?"))
-#+end_src
-
-#+begin_src emacs-lisp
-  (defun my-add-origami-emacs-lisp-parser ()
-    "Replace the origami elisp parser to handle `cl-defmethod', etc."
-    (alist-pop origami-parser-alist 'emacs-lisp-mode)
-    (push '(emacs-lisp-mode . my-origami-elisp-parser) origami-parser-alist)
-    (alist-pop origami-parser-alist 'lisp-interaction-mode)
-    (push '(lisp-interaction-mode . my-origami-elisp-parser) origami-parser-alist))
-#+end_src
-
 *** Hide-show package (disabled)
 
 Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
@@ -1969,7 +1954,9 @@ Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthi
     :hook (prog-mode . hs-minor-mode))
 #+end_src
 
-** Eglot package (disabled)
+** Eglot package
+
+Note: Eglot's manual is [[https://joaotavora.github.io/eglot/][here]].
 
 Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
 #+begin_src emacs-lisp :tangle no
@@ -1983,6 +1970,8 @@ Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language serv
             'eldoc-documentation-compose-eagerly))
     :custom
     (eglot-connect-timeout 120)   ; my work computer is slow, slow, slow
+    (eglot-stay-out-of 'company)
+    (eglot-report-progress t)
     :hook ((eglot-managed-mode . mp-eglot-eldoc)
            (python-mode . eglot-ensure)))
 #+end_src
@@ -1995,9 +1984,9 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
     :config (global-flycheck-eglot-mode 1))
 #+end_src
 
-** LSP mode
+** LSP mode (disabled)
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun my-workspace-folders (added removed)
     (message "--- Running my-workspace-folders")
     (message "--- argument 'added' is %s" added)
@@ -2007,7 +1996,7 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 Note: The configuration below is from [[https://ianyepan.github.io/posts/emacs-ide/][Building an Intelligent Emacs]]
 and the [[https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless][Corfu wiki]]. Documentation is at the =lsp-mode= [[https://emacs-lsp.github.io/lsp-mode/][site]]. Main
 features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][here]]. The =advice= below comes from the LSP [[https://emacs-lsp.github.io/lsp-mode/page/faq/][FAQ]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package lsp-mode
     :ensure t
     :commands lsp
@@ -2019,6 +2008,11 @@ features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][h
     ;;             (lambda (&rest _args)
     ;;               (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
     :config
+    ;; Stop emacs from asking about this when in .dir-locals.el
+    (put 'lsp-file-watch-ignored-directories
+         'safe-local-variable
+         #'my-list-of-strings-p)
+
     (setq lsp-completion-provider :none)
     (setq lsp-auto-guess-root t)
     (setq lsp-log-io nil)
@@ -2057,13 +2051,13 @@ features are found [[https://emacs-lsp.github.io/lsp-mode/page/main-features/][h
 #+end_src
 
 Consult interface for symbols and LSP diagnostics, found [[https://github.com/gagbo/consult-lsp][here]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package consult-lsp
     :ensure t)
 #+end_src
 
 Send LSP data to =origami.el= for code folding. Minimal documentation [[https://github.com/emacs-lsp/lsp-origami][here]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package lsp-origami
     :ensure t
     :after lsp-mode
@@ -2090,14 +2084,14 @@ Send LSP data to =origami.el= for code folding. Minimal documentation [[https://
     (lsp-mode . lsp-ui-menu))
 #+end_src
 
-** DAP mode
+** DAP mode (disabled)
 
 Documentation for DAP is [[https://emacs-lsp.github.io/dap-mode/][here]]. Python configuration for DAP is [[https://emacs-lsp.github.io/dap-mode/page/configuration/#python][here]].
 Overall configuration is [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]]. An interesting configuration with a
 unique hydra, etc, is [[https://sqrtminusone.xyz/configs/emacs/#dap][here]].
 
 A starting point for a configuration from [[https://blog.sumtypeofway.com/posts/emacs-config.html][here]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package dap-mode
     :ensure t
     :bind
@@ -2120,6 +2114,30 @@ A starting point for a configuration from [[https://blog.sumtypeofway.com/posts/
     ;; (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
 #+end_src
 
+* Emacs lisp programming
+
+** Code folding
+
+#+begin_src emacs-lisp
+  (add-hook 'emacs-lisp-mode-hook #'origami-mode)
+  (add-hook 'origami-mode-hook #'my-add-origami-emacs-lisp-parser)
+#+end_src
+
+Include emacs Common Lisp extensions.
+#+begin_src emacs-lisp
+  (defun my-origami-elisp-parser (create)
+    (origami-lisp-parser
+     create
+     "(\\(cl-def\\|def\\)\\w*\\s-*\\(\\s_\\|\\w\\|[:?!]\\)*\\([ \\t]*(.*?)\\)?"))
+
+  (defun my-add-origami-emacs-lisp-parser ()
+    "Replace the origami elisp parser to handle `cl-defmethod', etc."
+    (alist-pop origami-parser-alist 'emacs-lisp-mode)
+    (push '(emacs-lisp-mode . my-origami-elisp-parser) origami-parser-alist)
+    (alist-pop origami-parser-alist 'lisp-interaction-mode)
+    (push '(lisp-interaction-mode . my-origami-elisp-parser) origami-parser-alist))
+#+end_src
+
 * Python programming
 
 #+begin_src emacs-lisp
@@ -2136,6 +2154,13 @@ I should probably read through the Python page of [[https://wikemacs.org/wiki/Py
 A "minimalistic" Python IDE for Emacs, [[https://github.com/abo-abo/lpy][lpy-mode]]. See also [[https://github.com/abo-abo/lispy][lispy]] by the
 same author.
 
+Getting Emacs 29 for MacOS: [[https://www.adventuresinwhy.com/post/compiling-emacs-with-tree-sitter/][Compiling Emacs 29 with Tree-sitter]].
+An Eglot configuration: [[https://www.adventuresinwhy.com/post/eglot/][Eglot+Tree-sitter in Emacs 29]].
+Other useful articles by the same author [[https://www.adventuresinwhy.com/tag/emacs/][here]].
+
+=python-lsp-server= [[https://github.com/python-lsp/python-lsp-server][here]]. Emacs lsp client for python ruff language
+server [[https://github.com/emacs-lsp/lsp-mode/issues/3876][here]]. Ruff docs, such as they are, [[https://beta.ruff.rs/docs/][here]].
+
 ** Python mode
 
 Set up Python interpreters, code folding, etc.
@@ -2148,8 +2173,6 @@ Set up Python interpreters, code folding, etc.
     ;; (python-indent-trigger-commands #'indent-for-tab-command)
     ;; (dap-python-executable "python3")
     ;; (dap-python-debugger 'debugpy)
-    :bind (:map python-mode-map
-                ("<f5>" . my-python-start-or-switch-repl))
     :hook
     ((python-mode . imenu-add-menubar-index)
      (python-mode . eldoc-mode)
@@ -2163,21 +2186,15 @@ Set up Python interpreters, code folding, etc.
          "...\n"))
 #+end_src
 
-Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/questions/36520/dedicated-python-shell][StackExchange]].
-#+begin_src emacs-lisp
-  (defun my-python-start-or-switch-repl ()
-    "Start and/or switch to the Python REPL."
-    (interactive)
-    (if (python-shell-get-process)
-        (python-shell-switch-to-shell)
-      (progn
-        (run-python (python-shell-calculate-command) t t)
-        (python-shell-switch-to-shell))))
-#+end_src
-
 ** Python REPL
 
-Set up the IPython interpreter.
+Set up the IPython interpreter. Hitting key F5 when the current buffer
+is in =python-mode= pops up an IPython REPL. Hitting key F5 when the
+current buffer is in =inferior-python-mode=, that is, when running the
+REPL, closes the window without killing the REPL. Killing the REPL by
+typing =exit()=, hitting key C-d, or some other means, closes the REPL
+window and kills the REPL buffer.
+
 #+begin_src emacs-lisp
   (use-package python
     :after popper
@@ -2192,10 +2209,26 @@ Set up the IPython interpreter.
     (python-shell-interpreter "ipython")
     (python-shell-interpreter-args
      "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
-    :bind (:map inferior-python-mode-map
-                ("<f5>" . my-close-ipython-window))
+    :bind
+    ((:map python-mode-map
+           ("<f5>" . my-python-start-or-switch-repl))
+     (:map inferior-python-mode-map
+           ("<f5>" . my-close-ipython-window)))
     :hook
-     (inferior-python-mode . my-add-kill-buffer-sentinel))
+    (inferior-python-mode . my-add-kill-buffer-sentinel))
+#+end_src
+
+Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/questions/36520/dedicated-python-shell][StackExchange]].
+#+begin_src emacs-lisp
+  (defun my-python-start-or-switch-repl ()
+    "Start and/or switch to the Python REPL."
+    (interactive)
+    (if (python-shell-get-process)
+        (python-shell-switch-to-shell)
+      (progn
+        (message "Starting %s REPL" python-shell-interpreter)
+        (run-python (python-shell-calculate-command) t t)
+        (python-shell-switch-to-shell))))
 #+end_src
 
 Close the IPython window and kill the IPython buffer when IPython
@@ -2275,21 +2308,21 @@ track of
 This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package that works on Windows machines.
 #+begin_src emacs-lisp
   (use-package conda
-     :ensure nil
-     :after pythonic
-     :load-path "lisp"
-     :custom
-       (conda-anaconda-home my-anaconda-dir)
-       (conda-env-home-directory my-anaconda-dir)
-       (conda-message-on-environment-switch nil)
-     :config
-       (conda-env-initialize-interactive-shells)
-       (conda-env-initialize-eshell)
-       (conda-env-autoactivate-mode 0)
-       (add-hook 'find-file-hook
-                 (lambda ()
-                   (when (bound-and-true-p conda-project-env-path)
-                     (conda-env-activate-for-buffer)))))
+    :ensure nil
+    :after pythonic
+    :load-path "lisp"
+    :custom
+    (conda-anaconda-home my-anaconda-dir)
+    (conda-env-home-directory my-anaconda-dir)
+    (conda-message-on-environment-switch nil)
+    :config
+    (conda-env-initialize-interactive-shells)
+    (conda-env-initialize-eshell)
+    (conda-env-autoactivate-mode 0)
+    (add-hook 'find-file-hook
+              (lambda ()
+                (when (bound-and-true-p conda-project-env-path)
+                  (conda-env-activate-for-buffer)))))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -2312,7 +2345,7 @@ This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package t
 #+end_src
 
 Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package lsp-pyright
     :ensure t
     :after (python lsp-mode conda)
@@ -2655,6 +2688,8 @@ Toggle between a buffer and vterm ([[https://github.com/akermu/emacs-libvterm/#r
 
 A possibly useful blog post: [[https://www.eigenbahn.com/2020/01/21/painless-emacs-interactive-shells][Painless Emacs interactive shells]].
 
+A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/comments/n8jd7z/emacs_msys2_windows_task_scheduler_a_love_story/][here]]. (Also has daemon setup.)
+
 ** Vterm
 
 Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].
@@ -2684,3 +2719,9 @@ Support jumping to prompts in eshell ([[https://github.com/minad/consult/wiki#co
 From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mastodon][here]].
 #+begin_src emacs-lisp
 #+end_src
+
+* Notes
+
+Compiling Emacs 29 on Windows with Msys2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]].
+
+The psychology of bad habits, [[https://iai.tv/video/the-psychology-of-bad-habits-susan-michie][here]].
