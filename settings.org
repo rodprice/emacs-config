@@ -59,6 +59,7 @@ Truncate long lines everywhere.
 Delete trailing whitespace before save.
 #+begin_src emacs-lisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (setq require-final-newline t)
 #+end_src
 
 Highlight current line.
@@ -118,6 +119,47 @@ info node. This puts the defaults back in.
         (add-to-list 'Info-directory-list dir t))))
 #+end_src
 
+** Buffer defaults
+
+Add options to kill or revert buffer when prompted to save a buffer.
+From this [[https://github.com/svend/dot-emacsd][config]].
+#+begin_src emacs-lisp
+  (add-to-list
+   'save-some-buffers-action-alist
+   '(?k
+     (lambda (buf)
+       (kill-buffer buf))
+     "kill this buffer"))
+  (add-to-list
+   'save-some-buffers-action-alist
+   '(?r
+     (lambda (buf)
+       (save-current-buffer
+         (set-buffer buf)
+         (revert-buffer t t t)))
+     "revert this buffer"))
+#+end_src
+
+** Time zones
+
+Set time zones displayed by =world-clock=. A list of time zones is [[https://timezonedb.com/time-zones][here]].
+Another list, with legacy abbreviations, is [[https://en.wikipedia.org/wiki/List_of_tz_database_time_zones][here]]. Windows requires
+the legacy Posix format, while Linux, etc. use the zoneinfo format.
+
+#+begin_src emacs-lisp
+  (if (eq system-type 'windows-nt)
+      (setq legacy-style-world-list
+            '(("UTC0" "UTC")
+              ("MST7MDT" "Denver")         ;; UTC-06:00
+              ("EST5EDT" "Fairfax")        ;; UTC-04:00
+              ("GMT0BST" "London")))       ;; UTC+01:00
+    (setq world-clock-list
+          '(("UTC0" "UTC")
+            ("America/Denver" "Denver")    ;; UTC-06:00
+            ("America/New_York" "Fairfax") ;; UTC-04:00
+            ("Europe/London" "London"))))  ;; UTC+01:00
+#+end_src
+
 * GUI elements
 
 #+begin_src emacs-lisp
@@ -126,7 +168,7 @@ info node. This puts the defaults back in.
 
 ** Menu bar, tool bar, scroll bars
 
-   Keep menu bar, drop toolbar and scroll bars.
+Keep menu bar, drop toolbar and scroll bars.
 #+begin_src emacs-lisp
      (setq inhibit-startup-message t)
      ;;  (menu-bar-mode -1)
@@ -139,11 +181,16 @@ info node. This puts the defaults back in.
      (setq visible-bell t)
 #+end_src
 
-   Show line numbers on the left.
+Show line numbers on the left.
 #+begin_src emacs-lisp
      (if (>= emacs-major-version 29)
          (global-display-line-numbers-mode 1)
        (global-linum-mode t))
+#+end_src
+
+Smooth scrolling
+#+begin_src emacs-lisp
+  (pixel-scroll-mode)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -200,6 +247,10 @@ Display buffer information in frame titles. ([[https://github.com/malb/emacs.d/b
      (setq uniquify-buffer-name-style 'forward)
      ;; Display the column number in the mode line
      (setq column-number-mode t)
+#+end_src
+
+#+begin_src emacs-lisp
+  (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
 * Fonts
@@ -516,24 +567,39 @@ Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.
   (desktop-save-mode)
 #+end_src
 
+#+begin_src emacs-lisp
+  (defun my-desktop-after-read-hook ()
+    (message "--- Running `desktop-after-read-hook'")
+    (list-buffers))
+#+end_src
+
 #+begin_src emacs-lisp :tangle no
   (use-package desktop
     :preface
-    (defun restore-desktop (frame)
+    (defun my-restore-desktop (frame)
       "Restores desktop and cancels hook after first frame opens.
     So the daemon can run at startup and it'll still work."
       (with-selected-frame frame
         (desktop-save-mode 1)
         (desktop-read)
-        (remove-hook 'after-make-frame-functions 'restore-desktop)))
+        (remove-hook 'after-make-frame-functions 'my-restore-desktop)))
     :config
+    ;; (add-to-list 'desktop-buffer-mode-handlers ...)
+    ;; (add-to-list 'desktop-files-not-to-save ...)
+    ;; (add-to-list 'desktop-modes-not-to-save ...)
+    ;; (add-to-list 'desktop-globals-to-save ...)
+    ;; (add-to-list 'desktop-clear-preserve-buffers ...)
+    ;; (add-to-list 'desktop-globals-to-clear ...)
+    ;; (add-to-list 'desktop-locals-to-save ...)
     ;; (setq desktop-restore-forces-onscreen nil)
     (if (daemonp)
         (add-hook 'server-after-make-frame-hook #'desktop-read)
       (add-hook 'window-setup-hook #'desktop-read))
     (setq desktop-save t)  ;; always save
     (desktop-save-mode 1)
-    (add-hook 'after-make-frame-functions 'restore-desktop))
+    (add-hook 'after-make-frame-functions 'my-restore-desktop)
+    :hook
+    ((desktop-after-read . #'my-desktop-after-read-hook)))
 #+end_src
 
 ** Window movement
@@ -585,6 +651,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*Buffer List\\*"
             "^\\*eldoc"
             "\\*xref\\*"
+            "\\*wclock\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
@@ -2725,3 +2792,7 @@ From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mast
 Compiling Emacs 29 on Windows with Msys2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]].
 
 The psychology of bad habits, [[https://iai.tv/video/the-psychology-of-bad-habits-susan-michie][here]].
+
+Look for the section "space as control key" in this guy's [[https://github.com/svend/dot-emacsd][config]].
+Might be a way to circumvent browser's nasty habit of stealing key
+strokes.
