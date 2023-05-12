@@ -455,6 +455,38 @@ Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-ma
   (advice-add 'pop-to-mark-command :around #'modi/multi-pop-to-mark)
 #+end_src
 
+** Parentheses
+
+#+begin_src emacs-lisp
+  (electric-pair-mode 1)
+#+end_src
+
+** Structured editing (disabled)
+
+[[https://github.com/AmaiKinono/puni][Puni]] is a minor mode for structured editing.
+
+| Command                   | Default keybinding |
+|---------------------------+--------------------|
+| puni-forward-delete-char  | C-d                |
+| puni-backward-delete-char | DEL                |
+| puni-forward-kill-word    | M-d                |
+| puni-backward-kill-word   | M-DEL              |
+| puni-kill-line            | C-k                |
+| puni-backward-kill-line   | C-S-k              |
+
+Use puni-mode only for certain major modes.
+#+begin_src emacs-lisp :tangle no
+  (use-package puni
+    :ensure t
+    :defer t
+    :hook ((prog-mode
+            sgml-mode
+            nxml-mode
+            tex-mode
+            eval-expression-minibuffer-setup
+            ) . puni-mode))
+#+end_src
+
 ** Mark ring
 
 Move through the mark ring with =C-u C-SPC C-SPC= etc.
@@ -538,6 +570,18 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
     :config
     (which-key-mode)
     (setq which-key-idle-delay 1))
+#+end_src
+
+** Drag-stuff package
+
+[[https://github.com/rejeep/drag-stuff.el][drag-stuff]] lets you drag lines and regions around.
+#+begin_src emacs-lisp
+  (use-package drag-stuff
+    :ensure t
+    :custom
+    (drag-stuff-modifier '(con meta))
+    :config
+    (drag-stuff-global-mode 1))
 #+end_src
 
 * Window management
@@ -652,6 +696,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "^\\*eldoc"
             "\\*xref\\*"
             "\\*wclock\\*"
+            "\\*PowerShell\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
@@ -659,11 +704,13 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
     (popper-echo-mode +1))
 #+end_src
 
-* Markdown mode
+* Markup languages
 
 #+begin_src emacs-lisp
-(message "starting markdown mode")
+(message "starting markup languages")
 #+end_src
+
+** Markdown
 
 Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]].
 
@@ -697,6 +744,89 @@ Github-flavored Markdown is [[https://github.github.com/gfm/][here]].
     :after markdown-mode
     :load-path "mode")
 #+end_src
+
+** YAML
+
+A major mode for =YAML= files is found [[https://github.com/yoshiki/yaml-mode/blob/master/yaml-mode.el][here]]. There's a linter called
+[[https://github.com/adrienverge/yamllint][yamllint]], with a flycheck adapter [[https://github.com/krzysztof-magosa/flycheck-yamllint][here]].
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :ensure t
+    :defer t)
+#+end_src
+
+** JSON
+
+#+begin_src emacs-lisp
+  (use-package json-mode
+    :ensure t
+    :defer t)
+#+end_src
+
+  [[https://github.com/taku0/json-par][json-par]] is a package that says it's "ctrl-less, yet mode-less". The
+  manual is [[https://www.tatapa.org/~takuo/json-par/manual.html][here]].
+
+  | Key        | Command                            | Description                                      |
+  |------------+------------------------------------+--------------------------------------------------|
+  | j          | json-par-backward-member           | To the next member (key-value pair).             |
+  | k          | json-par-forward-member            | To the previous member.                          |
+  | h          | json-par-up-backward               | To the beginning of the containing object/array. |
+  | l, }, or ] | json-par-up-forward                | To the end of the containing object/array.       |
+  | a          | json-par-beginning-of-member       | To the beginning of the member.                  |
+  | e          | json-par-end-of-member             | To the end of the member.                        |
+  | v          | json-par-beginning-of-object-value | To the beginning of the value.                   |
+  | J          | json-par-backward-record           | To the same key in the previous object.          |
+  | K          | json-par-forward-record            | To the same key in the next object.              |
+  | A          | json-par-beginning-of-list         | To the beginning of the first member.            |
+  | E          | json-par-end-of-list               | To the end of the last member.                   |
+
+#+begin_src emacs-lisp
+  (use-package json-par
+    :ensure t
+    :after json-mode
+    :defer t
+    :hook (json-mode . (lambda () (json-par-mode 1))))
+#+end_src
+
+** CSV
+
+In CSV mode, the following commands are available:
+
+- C-c C-s (`csv-sort-fields') and C-c C-n (`csv-sort-numeric-fields')
+  respectively sort lexicographically and numerically on a
+  specified field or column.
+
+- C-c C-r (`csv-reverse-region') reverses the order.  (These
+  commands are based closely on, and use, code in `sort.el'.)
+
+- C-c C-k (`csv-kill-fields') and C-c C-y (`csv-yank-fields') kill
+  and yank fields or columns, although they do not use the normal
+  kill ring.  C-c C-k can kill more than one field at once, but
+  multiple killed fields can be yanked only as a fixed group
+  equivalent to a single field.
+
+- `csv-align-mode' keeps fields visually aligned, on-the-fly.
+  It truncates fields to a maximum width that can be changed per-column
+  with `csv-align-set-column-width'.
+  Alternatively, C-c C-a (`csv-align-fields') aligns fields into columns
+  and C-c C-u (`csv-unalign-fields') undoes such alignment;
+  separators can be hidden within aligned records (controlled by
+  `csv-invisibility-default' and `csv-toggle-invisibility').
+
+- C-c C-t (`csv-transpose') interchanges rows and columns.  For
+  details, see the documentation for the individual commands.
+
+#+begin_src emacs-lisp
+  (use-package csv-mode
+    :ensure t
+    :defer t
+    :hook (csv-mode . csv-align-mode))
+#+end_src
+
+** LaTeX
+
+There's an LSP server, [[https://github.com/latex-lsp/texlab][texlab]], for LaTeX, etc. The actual LSP client
+is [[https://github.com/ROCKTAKEY/lsp-latex][lsp-latex]].
 
 * Org mode
 
@@ -843,7 +973,8 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
     (require 'org-tempo)
     (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist '("py" . "src python")))
+    (add-to-list 'org-structure-template-alist '("py" . "src python"))
+    (add-to-list 'org-structure-template-alist '("rc" . "src restclient")))
 #+end_src
 
 ** LaTeX
@@ -873,9 +1004,31 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
             org-tufte-embed-images nil))
 #+end_src
 
+I don't know if this is needed for export with =pandoc=, but here it is.
+#+begin_src emacs-lisp :tangle no
+  (use-package ox-pandoc
+    :ensure t
+    :defer t)
+#+end_src
+
 ** Blogging
 
 Note: A possibly interesting setup using Hugo, [[https://andreyorst.gitlab.io/posts/2022-10-16-my-blogging-setup-with-emacs-and-org-mode/][here]].
+
+** REST client
+
+Execute REST API calls in src blocks. From [[https://gitlab.com/gSwag/emacs-configuration/-/blob/master/.emacs-config.org][here]]. Its repo is [[https://github.com/alf/ob-restclient.el][here]].
+Uses [[https://github.com/pashky/restclient.el][restclient.el]] under the hood.
+#+begin_src emacs-lisp :tangle no
+  (use-package ob-restclient
+    :ensure t
+    :defer t
+    :hook
+    (org-mode . (lambda () (interactive)
+                  (org-babel-do-load-languages
+                   'org-babel-load-languages
+                   '((restclient . t))))))
+#+end_src
 
 ** Junkyard
 
@@ -1696,6 +1849,44 @@ Make the gutter show added/deleted/modified code blocks ([[https://ianyepan.gith
     (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 #+end_src
 
+* Web access
+
+#+begin_src emacs-lisp
+(message "starting web access")
+#+end_src
+
+** Search engines
+
+Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
+#+begin_src emacs-lisp
+  (use-package engine-mode
+    :ensure t
+    :bind-keymap ("C-c s" . engine-mode-prefixed-map)
+    :config
+    (defengine google
+               "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+               :keybinding "g")
+    (defengine wikipedia
+               "https://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+               :keybinding "w")
+    (defengine stack-overflow
+               "https://stackoverflow.com/search?q=%s"
+               :keybinding "s")
+    (defengine emacs-stack-exchange
+               "https://emacs.stackexchange.com/search?q=%s"
+               :keybinding "e")
+    (defengine python-stack-exchange
+               "https://python.stackexchange.com/search?q=%s"
+               :keybinding "p")
+    (defengine github
+               "https://github.com/search?ref=simplesearch&q=%s"
+               :keybinding "h")
+    (defengine wolfram-alpha
+               "https://www.wolframalpha.com/input/?i=%s"
+               :keybinding "a")
+    (engine-mode t))
+#+end_src
+
 * Programming
 
 #+begin_src emacs-lisp
@@ -1703,6 +1894,11 @@ Make the gutter show added/deleted/modified code blocks ([[https://ianyepan.gith
 #+end_src
 
 ** Notes
+
+The package [[https://github.com/radian-software/apheleia][apheleia]] handles code formatters like [[https://github.com/psf/black][Black]] for Python or
+[[https://clang.llvm.org/docs/ClangFormat.html][clang-format]] for C/C++ in a language-independent way. See an example
+configuration [[https://gitlab.com/gSwag/emacs-configuration/-/blob/master/.emacs-config.org][here]]. There's a convenient web app to set =clang-format=
+options [[https://clang.llvm.org/docs/ClangFormat.html][here]].
 
 ** Projects
 
@@ -2053,6 +2249,9 @@ Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
 
 ** LSP mode (disabled)
 
+Note: Another [[https://gitlab.com/gSwag/emacs-configuration/-/blob/master/.emacs-config.org][configuration]] for LSP might work better than the one
+below (maybe?). Hope springs eternal.
+
 #+begin_src emacs-lisp :tangle no
   (defun my-workspace-folders (added removed)
     (message "--- Running my-workspace-folders")
@@ -2300,7 +2499,7 @@ Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/ques
 
 Close the IPython window and kill the IPython buffer when IPython
 exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]]. A blog post with
-a much much complex method is [[https://www.eigenbahn.com/2020/05/13/emacs-comint-buffer-auto-close][Auto-close Emacs interpreter buffers]].
+a much more complex method is [[https://www.eigenbahn.com/2020/05/13/emacs-comint-buffer-auto-close][Auto-close Emacs interpreter buffers]].
 #+begin_src emacs-lisp
   (defun my-add-kill-buffer-sentinel ()
     "Set a process sentinel that kills the buffer when the process exits."
@@ -2757,6 +2956,51 @@ A possibly useful blog post: [[https://www.eigenbahn.com/2020/01/21/painless-ema
 
 A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/comments/n8jd7z/emacs_msys2_windows_task_scheduler_a_love_story/][here]]. (Also has daemon setup.)
 
+** Shell
+
+[[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation. Mastering Emacs has a nice
+[[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells.
+
+#+begin_src emacs-lisp
+  (use-package shell
+    :defer t
+    :preface
+    (defun my-bash-shell-mode-setup ()
+      (setq-local comint-process-echoes t))
+    :config
+    (setq explicit-shell-file-name
+          (expand-file-name
+           (concat
+            (file-name-directory my-git-dir) "usr/bin/bash.exe")))
+    (setq shell-file-name "bash")
+    (setq explicit-bash-args '("--login" "--interactive"))
+    :hook
+    ((shell-mode . my-bash-shell-mode-setup)
+     (shell-mode . my-add-kill-buffer-sentinel)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (setq explicit-shell-file-name "/usr/bin/zsh")
+  (setq shell-file-name "zsh")
+  (setq explicit-zsh-args '("--login" "--interactive"))
+  ;; (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+  ;; (setq shell-prompt-pattern ...)
+  (defun zsh-shell-mode-setup ()
+    (setq-local comint-process-echoes t))
+  (add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (setq explicit-shell-file-name "/usr/bin/zsh")
+  (setq shell-file-name "zsh")
+  (setq explicit-zsh-args '("--login" "--interactive"))
+  ;; (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+  ;; (setq shell-prompt-pattern ...)
+  (defun zsh-shell-mode-setup ()
+    (setq-local comint-process-echoes t))
+  (add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
+#+end_src
+
 ** Vterm
 
 Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].
@@ -2779,6 +3023,36 @@ Support jumping to prompts in eshell ([[https://github.com/minad/consult/wiki#co
       (setq outline-regexp eshell-prompt-regexp))
     :hook (eshell-mode . my-set-eshell-regexp))
 #+end_src
+
+** Powershell
+
+Github repo [[https://github.com/jschaf/powershell.el][here]]. Run =M-x powershell= to get a shell.
+#+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+    (use-package powershell
+      :ensure t
+      :defer t
+      :hook
+      ((powershell-mode . my-add-kill-buffer-sentinel))))
+#+end_src
+
+Close the powershell window without killing its buffer.
+#+begin_src emacs-lisp
+  (defun my-close-powershell-window ()
+    (interactive)
+    (let ((buffer (current-buffer))
+          (window (get-buffer-window buffer)))
+      ;; Borrowed from popper.el
+      (when (window-valid-p window)
+        (cond
+         ((window-parent window)
+          (if (window-parameter window 'window-side)
+              (delete-window window)
+            (quit-window nil window)))
+         ((frame-parent) (delete-frame))
+         (t (quit-window nil window))))))
+#+end_src
+
 * Social media
 
 ** Mastodon
@@ -2795,4 +3069,12 @@ The psychology of bad habits, [[https://iai.tv/video/the-psychology-of-bad-habit
 
 Look for the section "space as control key" in this guy's [[https://github.com/svend/dot-emacsd][config]].
 Might be a way to circumvent browser's nasty habit of stealing key
-strokes.
+strokes. Also, see "custom hook for all major modes":
+#+begin_src emacs-lisp :tangle no
+(defun my/run-local-vars-mode-hook ()
+  "Run a hook for the `major-mode` after the local variables have been processed."
+  (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
+(add-hook 'hack-local-variables-hook 'my/run-local-vars-mode-hook)
+#+end_src
+
+Make your blog look like the [[https://github.com/moble/www_black-holes_org][black-holes.org]] website.
