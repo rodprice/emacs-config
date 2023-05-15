@@ -2962,6 +2962,26 @@ A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/commen
 [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells.
 
 #+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+    (use-package shell
+      :defer t
+      :preface
+      (defun my-fix-shell-prompt-colors ()
+        (face-remap-set-base 'comint-highlight-prompt :inherit nil))
+      :config
+      (setq explicit-shell-file-name
+            (expand-file-name
+             (concat
+              (file-name-directory my-mingw-dir) "usr/bin/bash.exe")))
+      (setq shell-file-name "bash")
+      (setq explicit-bash.exe-args
+            (list "-i" "-l"))
+      :hook
+      ((shell-mode . my-add-kill-buffer-sentinel)
+       (shell-mode . my-fix-shell-prompt-colors))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
   (use-package shell
     :defer t
     :preface
