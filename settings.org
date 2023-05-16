@@ -699,6 +699,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "^\\*eldoc"
             "\\*xref\\*"
             "\\*wclock\\*"
+            "\\*shell\\*"
             "\\*PowerShell\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
@@ -3012,49 +3013,47 @@ has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-over
       (setq explicit-bash.exe-args
             (list "-i" "-l"))
       (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+      :bind
+      (("<f6>" . shell)
+       (:map shell-mode-map
+             ("<f6>" . my-close-shell-window)))
       :hook
       ((shell-mode . my-add-kill-buffer-sentinel)
        (shell-mode . my-fix-shell-prompt-colors))))
 #+end_src
 
+Close the shell window without killing its buffer or process.
+#+begin_src emacs-lisp
+  (defun my-close-shell-window ()
+    (interactive)
+    (let ((buffer (current-buffer)))
+      (unless (eq
+               (alist-get'major-mode (buffer-local-variables buffer))
+               'shell-mode)
+        (user-error "Buffer '%s' is not running a shell." buffer))
+      (let ((window (get-buffer-window buffer)))
+        ;; Borrowed from popper.el
+        (when (window-valid-p window)
+          (cond
+           ((window-parent window)
+            (if (window-parameter window 'window-side)
+                (delete-window window)
+              (quit-window nil window)))
+           ((frame-parent) (delete-frame))
+           (t (quit-window nil window)))))))
+#+end_src
+
+TODO: Set this up like the Windows version above.
 #+begin_src emacs-lisp :tangle no
-  (use-package shell
-    :defer t
-    :preface
-    (defun my-bash-shell-mode-setup ()
+  (unless (eq system-type 'windows-nt)
+    (setq explicit-shell-file-name "/usr/bin/zsh")
+    (setq shell-file-name "zsh")
+    (setq explicit-zsh-args '("--login" "--interactive"))
+    ;; (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+    ;; (setq shell-prompt-pattern ...)
+    (defun zsh-shell-mode-setup ()
       (setq-local comint-process-echoes t))
-    :config
-    (setq explicit-shell-file-name
-          (expand-file-name
-           (concat
-            (file-name-directory my-git-dir) "usr/bin/bash.exe")))
-    (setq shell-file-name "bash")
-    (setq explicit-bash-args '("--login" "--interactive"))
-    :hook
-    ((shell-mode . my-bash-shell-mode-setup)
-     (shell-mode . my-add-kill-buffer-sentinel)))
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (setq explicit-shell-file-name "/usr/bin/zsh")
-  (setq shell-file-name "zsh")
-  (setq explicit-zsh-args '("--login" "--interactive"))
-  ;; (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
-  ;; (setq shell-prompt-pattern ...)
-  (defun zsh-shell-mode-setup ()
-    (setq-local comint-process-echoes t))
-  (add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (setq explicit-shell-file-name "/usr/bin/zsh")
-  (setq shell-file-name "zsh")
-  (setq explicit-zsh-args '("--login" "--interactive"))
-  ;; (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
-  ;; (setq shell-prompt-pattern ...)
-  (defun zsh-shell-mode-setup ()
-    (setq-local comint-process-echoes t))
-  (add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
+    (add-hook 'shell-mode-hook #'zsh-shell-mode-setup))
 #+end_src
 
 ** Vterm
