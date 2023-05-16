@@ -316,69 +316,72 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
 
 
 #+begin_src emacs-lisp
-    (use-package vscode-dark-plus-theme
-      :ensure t
-      :config
-      (load-theme 'vscode-dark-plus t)
-      (setq face-remapping-alist
-            `((show-paren-match
-               . (:weight bold
-                  :foreground "#ecbc9c"))
-              (show-paren-mismatch
-               . (:strike-through t
-                  :foreground "#cc6666"))
-              (sp-show-pair-match-face
-               . (:weight bold
-                  :foreground "#ecbc9c"))
-              (sp-show-pair-mismatch-face
-               . (:strike-through t
-                  :foreground "#cc6666"))
-              (font-lock-function-name-face
-               . (:foreground "#4ec9b0"
-                  :weight normal))
-              (font-lock-keyword-face
-               . (:foreground "cornflower blue"
-                  :weight normal))
-              (font-lock-variable-name-face
-               . (:foreground "#f0c674"))
-              (lsp-face-highlight-read
-               . (:underline t
-                  :background nil
-                  :foreground nil))
-              (lsp-face-highlight-textual
-               . (:underline t
-                  :background nil
-                  :foreground nil))
-              (lsp-face-highlight-write
-               . (:underline t
-                  :background nil
-                  :foreground nil))
-              (lsp-ui-peek-highlight
-               . (:inherit nil
-                  :background nil
-                  :foreground nil
-                  :weight semi-bold
-                  :box (:line-width -1)))
-              (org-block
-               . (:extend t
-                  :background "gray12"
-                  :foreground "#e8e8e8"))
-              (org-block-begin-line
-               . (:extend t
-                  :background "gray12"
-                  :foreground "gray40"))
-              (org-tree-slide-heading-level-1
-               . (:height 1.8
-                  :weight bold))
-              (org-tree-slide-heading-level-2
-               . (:height 1.5
-                  :weight bold))
-              (org-tree-slide-heading-level-3
-               . (:height 1.5
-                  :weight bold))
-              (org-tree-slide-heading-level-4
-               . (:height 1.5
-                  :weight bold)))))
+  (use-package vscode-dark-plus-theme
+    :ensure t
+    :config
+    (load-theme 'vscode-dark-plus t)
+    (setq face-remapping-alist
+          `((show-paren-match
+             . (:weight bold
+                :foreground "#ecbc9c"))
+            (show-paren-mismatch
+             . (:strike-through t
+                :foreground "#cc6666"))
+            (sp-show-pair-match-face
+             . (:weight bold
+                :foreground "#ecbc9c"))
+            (sp-show-pair-mismatch-face
+             . (:strike-through t
+                :foreground "#cc6666"))
+            (comint-highlight-input
+             . (:foreground "cornflower blue"
+                :weight normal))
+            (font-lock-function-name-face
+             . (:foreground "#4ec9b0"
+                :weight normal))
+            (font-lock-keyword-face
+             . (:foreground "cornflower blue"
+                :weight normal))
+            (font-lock-variable-name-face
+             . (:foreground "#f0c674"))
+            (lsp-face-highlight-read
+             . (:underline t
+                :background nil
+                :foreground nil))
+            (lsp-face-highlight-textual
+             . (:underline t
+                :background nil
+                :foreground nil))
+            (lsp-face-highlight-write
+             . (:underline t
+                :background nil
+                :foreground nil))
+            (lsp-ui-peek-highlight
+             . (:inherit nil
+                :background nil
+                :foreground nil
+                :weight semi-bold
+                :box (:line-width -1)))
+            (org-block
+             . (:extend t
+                :background "gray12"
+                :foreground "#e8e8e8"))
+            (org-block-begin-line
+             . (:extend t
+                :background "gray12"
+                :foreground "gray40"))
+            (org-tree-slide-heading-level-1
+             . (:height 1.8
+                :weight bold))
+            (org-tree-slide-heading-level-2
+             . (:height 1.5
+                :weight bold))
+            (org-tree-slide-heading-level-3
+             . (:height 1.5
+                :weight bold))
+            (org-tree-slide-heading-level-4
+             . (:height 1.5
+                :weight bold)))))
 #+end_src
 
 * Editing
@@ -2956,10 +2959,41 @@ A possibly useful blog post: [[https://www.eigenbahn.com/2020/01/21/painless-ema
 
 A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/comments/n8jd7z/emacs_msys2_windows_task_scheduler_a_love_story/][here]]. (Also has daemon setup.)
 
+This code is in my =.bash_profile=, defining the =bash= prompt. The
+=myprompt= function, together with =PROMPT_COMMAND=, enables directory
+tracking, per this [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][article]].
+#+begin_src shell :tangle no
+    # printf "\x1b[38;2;40;177;249mTRUECOLOR\x1b[0m\n"
+    # printf "\x1b[38;2;197;134;192mVIOLET\x1b[0m\n"
+    # printf "\x1b[38;2;78;201;176mGREEN\x1b[0m\n"
+    # printf "\x1b[38;2;255;195;0mYELLOW\x1b[0m\n"
+    if [ -n "$INSIDE_EMACS" ]; then
+        CONDAENV="\033[38;2;78;201;176m$(parse_conda_env)\033[0m"
+        DIRNAME="\033[38;2;255;195;0m\w\033[0m"
+        GITSTATUS="\033[38;2;197;134;192m$(__git_ps1)\033[0m"
+        if [ ! -z "$FOUND_GIT_PROMPT_SH" ];then
+            export PS1="${CONDAENV}${DIRNAME}${GITSTATUS} $ "
+        else
+            export PS1="${CONDAENV}${DIRNAME} $ "
+        fi
+        unset CONDAENV DIRNAME GITSTATUS
+#+end_src
+
+This guy [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][says]] the following is needed in =.bash_profile=. He's wrong.
+#+begin_src shell :tangle no
+        function myprompt () {
+            printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
+        }
+        PROMPT_COMMAND=myprompt
+    fi
+#+end_src
+
+A useful StackExchange answer about ANSI color escape codes is [[https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences][here]].
+
 ** Shell
 
-[[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation. Mastering Emacs has a nice
-[[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells.
+[[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
+has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells.
 
 #+begin_src emacs-lisp
   (when (eq system-type 'windows-nt)
@@ -2967,6 +3001,7 @@ A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/commen
       :defer t
       :preface
       (defun my-fix-shell-prompt-colors ()
+        "Leave comint buffer background in the prompt alone."
         (face-remap-set-base 'comint-highlight-prompt :inherit nil))
       :config
       (setq explicit-shell-file-name
@@ -2976,6 +3011,7 @@ A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/commen
       (setq shell-file-name "bash")
       (setq explicit-bash.exe-args
             (list "-i" "-l"))
+      (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
       :hook
       ((shell-mode . my-add-kill-buffer-sentinel)
        (shell-mode . my-fix-shell-prompt-colors))))
