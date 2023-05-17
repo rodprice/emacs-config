@@ -575,10 +575,11 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
     (setq which-key-idle-delay 1))
 #+end_src
 
-** Drag-stuff package
+** Drag-stuff package (disabled)
 
-[[https://github.com/rejeep/drag-stuff.el][drag-stuff]] lets you drag lines and regions around.
-#+begin_src emacs-lisp
+[[https://github.com/rejeep/drag-stuff.el][drag-stuff]] lets you drag lines and regions around. Doesn't seem to
+play well with =whole-line-or-region=.
+#+begin_src emacs-lisp :tangle no
   (use-package drag-stuff
     :ensure t
     :custom
@@ -701,6 +702,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*wclock\\*"
             "\\*shell\\*"
             "\\*PowerShell\\*"
+            "\\*Tidy Error Buffer\\*"
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
@@ -1859,6 +1861,12 @@ Make the gutter show added/deleted/modified code blocks ([[https://ianyepan.gith
 (message "starting web access")
 #+end_src
 
+** Mastodon
+
+From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mastodon][here]].
+#+begin_src emacs-lisp
+#+end_src
+
 ** Search engines
 
 Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
@@ -2529,7 +2537,7 @@ Close the IPython window without killing its buffer.
       (unless (eq
                (alist-get'major-mode (buffer-local-variables buffer))
                'inferior-python-mode)
-        (user-error "Buffer '%s' does not have a Python interpreter." buffer))
+        (user-error "Buffer '%s' is not running a Python interpreter." buffer))
       (let ((window (get-buffer-window buffer)))
         ;; Borrowed from popper.el
         (when (window-valid-p window)
@@ -2945,6 +2953,34 @@ Note: The package =emacs-jupyter= is [[https://github.com/nnicandro/emacs-jupyte
     :ensure t)
 #+end_src
 
+* Web programming
+
+** HTML
+
+Tidy up the HTML in the region. Adapted from this Mastering Emacs
+[[https://www.masteringemacs.org/article/executing-shell-commands-emacs][article]].
+#+begin_src emacs-lisp
+  (defun tidy-html ()
+    "Tidies the HTML content in the buffer using `tidy'"
+    (interactive)
+    (unless (executable-find "tidy")
+      (user-error "Can't find executable for 'tidy'."))
+    (shell-command-on-region
+     ;; beginning and end of buffer
+     (point-min)
+     (point-max)
+     ;; command and parameters
+     "tidy -i -w 120 -q"
+     ;; output buffer
+     (current-buffer)
+     ;; replace?
+     t
+     ;; name of the error buffer
+     "*Tidy Error Buffer*"
+     ;; show error buffer?
+     t))
+#+end_src
+
 * Shell modes
 
 #+begin_src emacs-lisp
@@ -3106,14 +3142,6 @@ Close the powershell window without killing its buffer.
             (quit-window nil window)))
          ((frame-parent) (delete-frame))
          (t (quit-window nil window))))))
-#+end_src
-
-* Social media
-
-** Mastodon
-
-From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mastodon][here]].
-#+begin_src emacs-lisp
 #+end_src
 
 * Notes
