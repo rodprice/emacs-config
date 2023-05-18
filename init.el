@@ -67,6 +67,7 @@
 ;; Load the various settings files
 ;; (org-babel-jupyter-override-src-block 'python)
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-theme.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-global.org"))

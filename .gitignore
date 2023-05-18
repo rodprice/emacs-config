@@ -27,6 +27,7 @@ ido.last
 ac-comphist.dat
 bookmarks
 settings.el
+quote-of-the-day.el
 .geometry
 .authinfo
 .lsp-session*
