@@ -702,7 +702,9 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*wclock\\*"
             "\\*shell\\*"
             "\\*PowerShell\\*"
+            "\\*Shell Errors\\*"
             "\\*Tidy Error Buffer\\*"
+            ("\\*Compile-Log\\*" . hide)
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
@@ -1748,6 +1750,8 @@ Show all buffers currently displayed in windows in all frames
 
 * Remote
 
+** Tramp
+
 Note: A possibly useful blog post: [[https://www.eigenbahn.com/2020/07/08/painless-emacs-remote-shells][Painless Emacs remote shells]].
 
 #+begin_src emacs-lisp
@@ -1800,6 +1804,17 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
     ;; 	     (file-directory-p my-putty-directory))
     ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
     ;;     (add-to-list 'exec-path my-putty-directory)))
+#+end_src
+
+** Docker
+
+Notes: Run Emacs from inside Docker; instructions [[https://github.com/JAremko/docker-emacs][here]]. Someone else
+is running what he says is an Emacs Python IDE using Docker, [[https://rebeja.eu/posts/python-ide-with-emacs-and-docker/][here]].
+
+Emacs Docker package [[https://github.com/Silex/docker.el][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package docker
+    :ensure t)
 #+end_src
 
 * Version control
@@ -3029,38 +3044,56 @@ A useful StackExchange answer about ANSI color escape codes is [[https://stackov
 
 ** Shell
 
-[[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
-has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells.
+Notes: [[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
+has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells. The configuration below starts
+with error message "no job control in this shell"; there's a discussion on
+[[https://emacs.stackexchange.com/questions/71487/mingw-shell-in-emacs][StackExchange]]. Another possible hint involving =system-uses-terminfo= [[https://stackoverflow.com/questions/39761234/git-bash-for-windows-not-working-lein-repl-command][here]].
 
 #+begin_src emacs-lisp
-  (when (eq system-type 'windows-nt)
-    (use-package shell
-      :defer t
-      :preface
-      (defun my-fix-shell-prompt-colors ()
-        "Leave comint buffer background in the prompt alone."
-        (face-remap-set-base 'comint-highlight-prompt :inherit nil))
-      :config
-      (setq explicit-shell-file-name
-            (expand-file-name
-             (concat
-              (file-name-directory my-mingw-dir) "usr/bin/bash.exe")))
-      (setq shell-file-name "bash")
-      (setq explicit-bash.exe-args
-            (list "-i" "-l"))
-      (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
-      :bind
-      (("<f6>" . shell)
-       (:map shell-mode-map
-             ("<f6>" . my-close-shell-window)))
-      :hook
-      ((shell-mode . my-add-kill-buffer-sentinel)
-       (shell-mode . my-fix-shell-prompt-colors))))
+  (defun get-shell-file-name (&optional shell-name)
+    "Return the explicit path to SHELL-NAME, based on `system-type'
+and the variables defined in the `site/<hostname>-preload.el' file.
+If SHELL-NAME is nil, use \"bash\"."
+      (let ((shell-name (or shell-name "bash")))
+        (cond ((eq system-type 'windows-nt)
+               (if (bound-and-true-p my-mingw-dir)
+                   (expand-file-name
+                    (concat
+                     (file-name-directory my-mingw-dir)
+                     (format "usr/bin/%s.exe" shell-name)))
+                 (user-error "Site-specific variable 'my-mingw-dir is undefined.")))
+              (t
+               (executable-find shell-name)))))
 #+end_src
 
-Close the shell window without killing its buffer or process.
+#+begin_src emacs-lisp
+  (use-package shell
+    :defer t
+    :preface
+    (defun my-fix-shell-prompt-colors ()
+      "Leave comint buffer background in the prompt alone."
+      (face-remap-set-base 'comint-highlight-prompt :inherit nil))
+    :custom
+    (shell-command-default-error-buffer "*Shell Errors*")
+    :config
+    (setq explicit-shell-file-name (get-shell-file-name))
+    (setq shell-file-name explicit-shell-file-name)
+    (setenv "SHELL" explicit-shell-file-name)
+    (setq explicit-bash.exe-args (list "-i" "-l"))
+    (setq system-uses-terminfo t)  ;; has no effect, apparently
+    (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+    :bind
+    (("<f6>" . shell)
+     (:map shell-mode-map
+           ("<f6>" . my-close-shell-window)))
+    :hook
+    ((shell-mode . my-add-kill-buffer-sentinel)
+     (shell-mode . my-fix-shell-prompt-colors)))
+#+end_src
+
 #+begin_src emacs-lisp
   (defun my-close-shell-window ()
+    "Close the shell window without killing its buffer or process."
     (interactive)
     (let ((buffer (current-buffer)))
       (unless (eq
@@ -3077,19 +3110,6 @@ Close the shell window without killing its buffer or process.
               (quit-window nil window)))
            ((frame-parent) (delete-frame))
            (t (quit-window nil window)))))))
-#+end_src
-
-TODO: Set this up like the Windows version above.
-#+begin_src emacs-lisp :tangle no
-  (unless (eq system-type 'windows-nt)
-    (setq explicit-shell-file-name "/usr/bin/zsh")
-    (setq shell-file-name "zsh")
-    (setq explicit-zsh-args '("--login" "--interactive"))
-    ;; (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
-    ;; (setq shell-prompt-pattern ...)
-    (defun zsh-shell-mode-setup ()
-      (setq-local comint-process-echoes t))
-    (add-hook 'shell-mode-hook #'zsh-shell-mode-setup))
 #+end_src
 
 ** Vterm
@@ -3161,3 +3181,5 @@ strokes. Also, see "custom hook for all major modes":
 #+end_src
 
 Make your blog look like the [[https://github.com/moble/www_black-holes_org][black-holes.org]] website.
+
+Installing Doom Emacs through =git-bash=, [[https://earvingad.github.io/posts/doom_emacs_windows/][here]].

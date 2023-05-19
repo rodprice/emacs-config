@@ -21,6 +21,26 @@ following line into =init.el=:
 
 * Quotations
 
+** Sunday
+
+#+begin_src emacs-lisp
+  (defvar quotes-of-the-day-sunday
+    '(("The individual who says it is not possible should move out of the way of those doing it." . "Tricia Cunningham")
+      ("The true meaning of life is to plant trees under whose shade you do not expect to sit." . "Nelson Henderson")
+      ("Success is where preparation and opportunity meet." . "Bobby Unser")
+      ("Success is the sum of small efforts repeated day in and day out." . "Robert Collier")
+      ("Before I started, I decided that I'd only pursue this career if my self-worth was dependent on more than celebrity success." . "Beyonce")
+      ("People get scared when you try to do something, especially when it looks like you're succeeding. People do not get scared when you're failing. It calms them. But when you're winning, it makes them feel like they're losing or, worse yet, that maybe they should've tried to do something too, but now it's too late. And since they didn't, they want to stop you. You can't let them.". "Mindy Kaling")
+      ("Success is liking yourself, liking what you do, and liking how you do it." . "Maya Angelou")
+      ("Success is a state of mind. If you want success, start thinking of yourself as a success." . "Joyce Brothers")
+      ("Don't aim for success if you want it, just do what you love and believe in and it will come naturally." . "David Frost")
+      ("Whether I fail or succeed, it's the going for it." . "Jonathan Van Ness")
+      ("Success only comes to those who dare to attempt." . "Mallika Tripathi")
+      ("People rarely succeed unless they have fun in what they are doing." . "Dale Carnegie")
+      ("Always work hard and have fun in what you do because I think that's when you're more successful. You have to choose to do it." . "Simone Biles")
+      ("Don't trust any one story of how to become successful." . "Mindy Kaling")))
+#+end_src
+
 ** Monday
 
 #+begin_src emacs-lisp
@@ -146,37 +166,17 @@ following line into =init.el=:
       ("Don't ever confuse the two, your life and your work. The second is only part of the first." . "Anna Quindlen")))
 #+end_src
 
-** Sunday
-
-#+begin_src emacs-lisp
-  (defvar quotes-of-the-day-sunday
-    '(("The individual who says it is not possible should move out of the way of those doing it." . "Tricia Cunningham")
-      ("The true meaning of life is to plant trees under whose shade you do not expect to sit." . "Nelson Henderson")
-      ("Success is where preparation and opportunity meet." . "Bobby Unser")
-      ("Success is the sum of small efforts repeated day in and day out." . "Robert Collier")
-      ("Before I started, I decided that I'd only pursue this career if my self-worth was dependent on more than celebrity success." . "Beyonce")
-      ("People get scared when you try to do something, especially when it looks like you're succeeding. People do not get scared when you're failing. It calms them. But when you're winning, it makes them feel like they're losing or, worse yet, that maybe they should've tried to do something too, but now it's too late. And since they didn't, they want to stop you. You can't let them.". "Mindy Kaling")
-      ("Success is liking yourself, liking what you do, and liking how you do it." . "Maya Angelou")
-      ("Success is a state of mind. If you want success, start thinking of yourself as a success." . "Joyce Brothers")
-      ("Don't aim for success if you want it, just do what you love and believe in and it will come naturally." . "David Frost")
-      ("Whether I fail or succeed, it's the going for it." . "Jonathan Van Ness")
-      ("Success only comes to those who dare to attempt." . "Mallika Tripathi")
-      ("People rarely succeed unless they have fun in what they are doing." . "Dale Carnegie")
-      ("Always work hard and have fun in what you do because I think that's when you're more successful. You have to choose to do it." . "Simone Biles")
-      ("Don't trust any one story of how to become successful." . "Mindy Kaling")))
-#+end_src
-
 * Code
 
 #+begin_src emacs-lisp
   (defvar quotes-of-the-day
-    (list quotes-of-the-day-monday
+    (list quotes-of-the-day-sunday
+          quotes-of-the-day-monday
           quotes-of-the-day-tuesday
           quotes-of-the-day-wednesday
           quotes-of-the-day-thursday
           quotes-of-the-day-friday
-          quotes-of-the-day-saturday
-          quotes-of-the-day-sunday)
+          quotes-of-the-day-saturday)
     "List of list of quotes of the day, one list per day of the week.")
 #+end_src
 
@@ -206,7 +206,8 @@ following line into =init.el=:
     (let ((buffer (or buffer "*scratch*"))
           (quotes-list (or quotes-list quotes-of-the-day))
           (day (calendar-day-of-week (calendar-current-date))))
-      (insert-random-quote (nth day quotes-list))))
+      (insert-random-quote (nth day quotes-list))
+      (goto-char (point-max))))
 #+end_src
 
 #+begin_src emacs-lisp

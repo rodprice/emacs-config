@@ -1,0 +1,55 @@
+#+title: Set up a local package archive
+#+startup: indent overview
+
+
+I set up a local package archive (Emacs 24.5) using =package.el= by
+first creating two directories, =pkgs= and =local=. (The names don't
+matter.) The files comprising your packages go in =pkgs=, and =local=
+will end up holding your archive. If you want to make an archive
+available to others, you can expose =local= using a web server, but
+the process is the same as building a local archive.
+
+I put the following in my =init.el= file:
+
+#+begin_src emacs-lisp :tangle no
+  (require 'package)
+  (setq package-enable-at-startup nil)
+
+  (require 'package-x)
+  (defvar local-archive
+    (expand-file-name "local/" user-emacs-directory)
+    "Location of the package archive.")
+  (setq package-archive-upload-base local-archive)
+  (add-to-list 'package-archives `("local" . ,local-archive) t)
+
+  (package-initialize)
+#+end_src
+
+I put my archive in my =.emacs.d= directory (hence the
+=user-emacs-directory= in the =expand-file-name= form) but you can put
+it anywhere you like.
+
+Once this is evaluated, execute =M-x package-upload-file= and enter the
+file name of your package to be installed. This will generate a new
+package in =local=. You will see three new files in there,
+=archive-contents=, =yourpackagename-version.el=, and
+=yourpackagename-readme.txt=. Now you should be able to do =M-x
+package-list-packages= and see your package listed. With luck, they'll
+be at the top marked "new". You can install the package as usual, and
+you will see it show up in your =.emacs.d/elpa= directory just like any
+other package.
+
+This should work out of the box for Emacs 24. I'm not sure about
+earlier versions. Your users can access your package in the usual way
+by including
+
+    (require 'package)
+    (setq package-enable-at-startup nil)
+    (add-to-list 'package-archives
+      '("archive" . "http://yourdomain.com/path-to-local-dir/"))
+    (package-initialize)
+
+in their =init.el= file.
+
+For information on how to write a package, see [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html#Packaging][Preparing Lisp code for
+distribution]] in the GNU Emacs Lisp manual.
