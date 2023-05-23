@@ -77,7 +77,6 @@ following line into =init.el=:
       ("People talk about confidence without ever bringing up hard work. That's a mistake. I know I sound like some dour older spinster on Downton Abbey who has never felt a man's touch and whose heart has turned to stone, but I don't understand how you could have self-confidence if you don't do the work. Because confidence is like respect; you have to earn it." . "Mindy Kaling")
       ("Real courage is when you know you're licked before you begin, but you begin anyway and see it through no matter what." . "Harper Lee")
       ("You get to decide where your time goes. You can either spend it moving forward, or you can spend it putting out fires. You decide. And if you don't decide, others will decide for you." . "Tony Morgan")
-      ("Don't sit down and wait for the opportunities to come. Get up and make them." . "Madam C.J Walker")
       ("The key is not to prioritize what's on your schedule, but to schedule your priorities." . "Stephen Covey")
       ("Imagining something may be the first step in making it happen, but it takes the real time and real efforts of real people to learn things, make things, turn thoughts into deeds or visions into inventions." . "Mr. Rogers")))
 #+end_src

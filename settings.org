@@ -253,6 +253,27 @@ Display buffer information in frame titles. ([[https://github.com/malb/emacs.d/b
   (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
+** Visual bell
+
+Use visual bell.
+#+begin_src emacs-lisp
+  (setq visual-bell t)
+#+end_src
+
+Don't ring the bell for these common events.
+#+begin_src emacs-lisp
+  (setq ring-bell-function
+        (lambda ()
+          (unless
+              (memq this-command
+                    '(abort-recursive-edit
+                      isearch-abort
+                      isearch-printing-char
+                      keyboard-quit
+                      nil))
+            (ding))))
+#+end_src
+
 * Fonts
 
 #+begin_src emacs-lisp
