@@ -11,6 +11,10 @@
 ;; Load the site-specific preload file.
 (load (concat (car (split-string (system-name) "\\.")) "-preload") 'noerror)
 
+;; Turn off annoying, useless warnings
+(require 'warnings)
+(setq warning-minimum-level :error)
+
 ;; Have this available just in case
 (setq confirm-kill-emacs 'y-or-n-p)
 (defun server-shutdown ()
