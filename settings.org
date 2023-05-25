@@ -1935,6 +1935,197 @@ Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
     (engine-mode t))
 #+end_src
 
+* Shell modes
+
+#+begin_src emacs-lisp
+(message "starting shell modes")
+#+end_src
+
+** Notes
+
+Installation [[https://github.com/akermu/emacs-libvterm/#requirements][instructions]] for [[https://github.com/akermu/emacs-libvterm][emacs-libvterm]]. Doesn't work for Windows.
+Toggle between a buffer and vterm ([[https://github.com/akermu/emacs-libvterm/#requirements][vterm-toggle]]).
+
+A possibly useful blog post: [[https://www.eigenbahn.com/2020/01/21/painless-emacs-interactive-shells][Painless Emacs interactive shells]].
+
+A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/comments/n8jd7z/emacs_msys2_windows_task_scheduler_a_love_story/][here]]. (Also has daemon setup.)
+
+This code is in my =.bash_profile=, defining the =bash= prompt. The
+=myprompt= function, together with =PROMPT_COMMAND=, enables directory
+tracking, per this [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][article]].
+#+begin_src shell :tangle no
+    # printf "\x1b[38;2;40;177;249mTRUECOLOR\x1b[0m\n"
+    # printf "\x1b[38;2;197;134;192mVIOLET\x1b[0m\n"
+    # printf "\x1b[38;2;78;201;176mGREEN\x1b[0m\n"
+    # printf "\x1b[38;2;255;195;0mYELLOW\x1b[0m\n"
+    if [ -n "$INSIDE_EMACS" ]; then
+        CONDAENV="\033[38;2;78;201;176m$(parse_conda_env)\033[0m"
+        DIRNAME="\033[38;2;255;195;0m\w\033[0m"
+        GITSTATUS="\033[38;2;197;134;192m$(__git_ps1)\033[0m"
+        if [ ! -z "$FOUND_GIT_PROMPT_SH" ];then
+            export PS1="${CONDAENV}${DIRNAME}${GITSTATUS} $ "
+        else
+            export PS1="${CONDAENV}${DIRNAME} $ "
+        fi
+        unset CONDAENV DIRNAME GITSTATUS
+#+end_src
+
+This guy [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][says]] the following is needed in =.bash_profile=. He's wrong.
+#+begin_src shell :tangle no
+        function myprompt () {
+            printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
+        }
+        PROMPT_COMMAND=myprompt
+    fi
+#+end_src
+
+A useful StackExchange answer about ANSI color escape codes is [[https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences][here]].
+
+** Comint processes
+
+Close the window containing the interpreter and kill its buffer when
+the interpreter exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]].
+#+begin_src emacs-lisp
+  (defun my-add-kill-buffer-sentinel ()
+    "Set a process sentinel that kills the buffer when the process exits."
+    (let* ((process (get-buffer-process (current-buffer)))
+           (sentinel (process-sentinel process)))
+      (set-process-sentinel
+       process
+       `(lambda (process signal)
+          ;; Call the original process sentinel first.
+          (funcall #',sentinel process signal)
+          ;; Kill the buffer on an exit signal.
+          (when (memq (process-status process) '(exit signal))
+            (let ((buffer (process-buffer process)))
+              (when (buffer-live-p buffer)
+                (quit-window t (get-buffer-window buffer)))))))))
+#+end_src
+
+** Shell
+
+Notes: [[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
+has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells. The configuration below starts
+with error message "no job control in this shell"; there's a discussion on
+[[https://emacs.stackexchange.com/questions/71487/mingw-shell-in-emacs][StackExchange]]. Another possible hint involving =system-uses-terminfo= [[https://stackoverflow.com/questions/39761234/git-bash-for-windows-not-working-lein-repl-command][here]].
+
+#+begin_src emacs-lisp
+  (defun get-shell-file-name (&optional shell-name)
+    "Return the explicit path to SHELL-NAME, based on `system-type'
+and the variables defined in the `site/<hostname>-preload.el' file.
+If SHELL-NAME is nil, use \"bash\"."
+      (let ((shell-name (or shell-name "bash")))
+        (cond ((eq system-type 'windows-nt)
+               (if (bound-and-true-p my-mingw-dir)
+                   (expand-file-name
+                    (concat
+                     (file-name-directory my-mingw-dir)
+                     (format "usr/bin/%s.exe" shell-name)))
+                 (user-error "Site-specific variable 'my-mingw-dir is undefined.")))
+              (t
+               (executable-find shell-name)))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-close-shell-window ()
+    "Close the shell window without killing its buffer or process."
+    (interactive)
+    (let ((buffer (current-buffer)))
+      (unless (eq
+               (alist-get'major-mode (buffer-local-variables buffer))
+               'shell-mode)
+        (user-error "Buffer '%s' is not running a shell." buffer))
+      (let ((window (get-buffer-window buffer)))
+        ;; Borrowed from popper.el
+        (when (window-valid-p window)
+          (cond
+           ((window-parent window)
+            (if (window-parameter window 'window-side)
+                (delete-window window)
+              (quit-window nil window)))
+           ((frame-parent) (delete-frame))
+           (t (quit-window nil window)))))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-fix-shell-prompt-colors ()
+    "Leave comint buffer background in the prompt alone."
+    (face-remap-set-base 'comint-highlight-prompt :inherit nil))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package shell
+    :defer t
+    :custom
+    (shell-command-default-error-buffer "*Shell Errors*")
+    :config
+    (setq explicit-shell-file-name (get-shell-file-name))
+    (setq shell-file-name explicit-shell-file-name)
+    (setenv "SHELL" explicit-shell-file-name)
+    (setq explicit-bash.exe-args (list "-i" "-l"))
+    (setq system-uses-terminfo t)  ;; has no effect, apparently
+    (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+    :bind
+    (("<f6>" . shell)
+     (:map shell-mode-map
+           ("<f6>" . my-close-shell-window)))
+    :hook
+    ((shell-mode . my-add-kill-buffer-sentinel)
+     (shell-mode . my-fix-shell-prompt-colors)))
+#+end_src
+
+** Vterm
+
+Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].
+#+begin_src emacs-lisp
+  (unless (eq system-type 'windows-nt)
+    (add-to-list 'display-buffer-alist
+                 '("\\*vterm\\*" display-buffer-reuse-mode-window
+                   ;; change to `t' to not reuse same window
+                   (inhibit-same-window . nil)
+                   (mode vterm-mode vterm-copy-mode))))
+#+end_src
+
+** Eshell
+
+Support jumping to prompts in eshell ([[https://github.com/minad/consult/wiki#consult-outline-support-for-eshell-prompts][Consult wiki]]).
+#+begin_src emacs-lisp
+  (use-package eshell
+    :preface
+    (defun my-set-eshell-regexp ()
+      (setq outline-regexp eshell-prompt-regexp))
+    :hook (eshell-mode . my-set-eshell-regexp))
+#+end_src
+
+** Powershell
+
+Github repo [[https://github.com/jschaf/powershell.el][here]]. Run =M-x powershell= to get a shell.
+#+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+    (use-package powershell
+      :ensure t
+      :defer t
+      :hook
+      ((powershell-mode . my-add-kill-buffer-sentinel))))
+#+end_src
+
+Close the powershell window without killing its buffer.
+#+begin_src emacs-lisp
+  (defun my-close-powershell-window ()
+    (interactive)
+    (let ((buffer (current-buffer))
+          (window (get-buffer-window buffer)))
+      ;; Borrowed from popper.el
+      (when (window-valid-p window)
+        (cond
+         ((window-parent window)
+          (if (window-parameter window 'window-side)
+              (delete-window window)
+            (quit-window nil window)))
+         ((frame-parent) (delete-frame))
+         (t (quit-window nil window))))))
+#+end_src
+
 * Programming
 
 #+begin_src emacs-lisp
@@ -2545,26 +2736,6 @@ Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/ques
         (python-shell-switch-to-shell))))
 #+end_src
 
-Close the IPython window and kill the IPython buffer when IPython
-exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]]. A blog post with
-a much more complex method is [[https://www.eigenbahn.com/2020/05/13/emacs-comint-buffer-auto-close][Auto-close Emacs interpreter buffers]].
-#+begin_src emacs-lisp
-  (defun my-add-kill-buffer-sentinel ()
-    "Set a process sentinel that kills the buffer when the process exits."
-    (let* ((process (get-buffer-process (current-buffer)))
-           (sentinel (process-sentinel process)))
-      (set-process-sentinel
-       process
-       `(lambda (process signal)
-          ;; Call the original process sentinel first.
-          (funcall #',sentinel process signal)
-          ;; Kill the buffer on an exit signal.
-          (when (memq (process-status process) '(exit signal))
-            (let ((buffer (process-buffer process)))
-              (when (buffer-live-p buffer)
-                (quit-window t (get-buffer-window buffer)))))))))
-#+end_src
-
 Close the IPython window without killing its buffer.
 #+begin_src emacs-lisp
   (defun my-close-ipython-window ()
@@ -3023,174 +3194,6 @@ A popular interactive JavaScript IDE, with documentation [[https://indium.readth
 #+begin_src emacs-lisp :tangle no
   (use-package indium
     :ensure t)
-#+end_src
-
-* Shell modes
-
-#+begin_src emacs-lisp
-(message "starting shell modes")
-#+end_src
-
-** Notes
-
-Installation [[https://github.com/akermu/emacs-libvterm/#requirements][instructions]] for [[https://github.com/akermu/emacs-libvterm][emacs-libvterm]]. Doesn't work for Windows.
-Toggle between a buffer and vterm ([[https://github.com/akermu/emacs-libvterm/#requirements][vterm-toggle]]).
-
-A possibly useful blog post: [[https://www.eigenbahn.com/2020/01/21/painless-emacs-interactive-shells][Painless Emacs interactive shells]].
-
-A guy who says he uses =zsh= on Windows, [[https://www.reddit.com/r/emacs/comments/n8jd7z/emacs_msys2_windows_task_scheduler_a_love_story/][here]]. (Also has daemon setup.)
-
-This code is in my =.bash_profile=, defining the =bash= prompt. The
-=myprompt= function, together with =PROMPT_COMMAND=, enables directory
-tracking, per this [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][article]].
-#+begin_src shell :tangle no
-    # printf "\x1b[38;2;40;177;249mTRUECOLOR\x1b[0m\n"
-    # printf "\x1b[38;2;197;134;192mVIOLET\x1b[0m\n"
-    # printf "\x1b[38;2;78;201;176mGREEN\x1b[0m\n"
-    # printf "\x1b[38;2;255;195;0mYELLOW\x1b[0m\n"
-    if [ -n "$INSIDE_EMACS" ]; then
-        CONDAENV="\033[38;2;78;201;176m$(parse_conda_env)\033[0m"
-        DIRNAME="\033[38;2;255;195;0m\w\033[0m"
-        GITSTATUS="\033[38;2;197;134;192m$(__git_ps1)\033[0m"
-        if [ ! -z "$FOUND_GIT_PROMPT_SH" ];then
-            export PS1="${CONDAENV}${DIRNAME}${GITSTATUS} $ "
-        else
-            export PS1="${CONDAENV}${DIRNAME} $ "
-        fi
-        unset CONDAENV DIRNAME GITSTATUS
-#+end_src
-
-This guy [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][says]] the following is needed in =.bash_profile=. He's wrong.
-#+begin_src shell :tangle no
-        function myprompt () {
-            printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
-        }
-        PROMPT_COMMAND=myprompt
-    fi
-#+end_src
-
-A useful StackExchange answer about ANSI color escape codes is [[https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences][here]].
-
-** Shell
-
-Notes: [[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
-has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells. The configuration below starts
-with error message "no job control in this shell"; there's a discussion on
-[[https://emacs.stackexchange.com/questions/71487/mingw-shell-in-emacs][StackExchange]]. Another possible hint involving =system-uses-terminfo= [[https://stackoverflow.com/questions/39761234/git-bash-for-windows-not-working-lein-repl-command][here]].
-
-#+begin_src emacs-lisp
-  (defun get-shell-file-name (&optional shell-name)
-    "Return the explicit path to SHELL-NAME, based on `system-type'
-and the variables defined in the `site/<hostname>-preload.el' file.
-If SHELL-NAME is nil, use \"bash\"."
-      (let ((shell-name (or shell-name "bash")))
-        (cond ((eq system-type 'windows-nt)
-               (if (bound-and-true-p my-mingw-dir)
-                   (expand-file-name
-                    (concat
-                     (file-name-directory my-mingw-dir)
-                     (format "usr/bin/%s.exe" shell-name)))
-                 (user-error "Site-specific variable 'my-mingw-dir is undefined.")))
-              (t
-               (executable-find shell-name)))))
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package shell
-    :defer t
-    :preface
-    (defun my-fix-shell-prompt-colors ()
-      "Leave comint buffer background in the prompt alone."
-      (face-remap-set-base 'comint-highlight-prompt :inherit nil))
-    :custom
-    (shell-command-default-error-buffer "*Shell Errors*")
-    :config
-    (setq explicit-shell-file-name (get-shell-file-name))
-    (setq shell-file-name explicit-shell-file-name)
-    (setenv "SHELL" explicit-shell-file-name)
-    (setq explicit-bash.exe-args (list "-i" "-l"))
-    (setq system-uses-terminfo t)  ;; has no effect, apparently
-    (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
-    :bind
-    (("<f6>" . shell)
-     (:map shell-mode-map
-           ("<f6>" . my-close-shell-window)))
-    :hook
-    ((shell-mode . my-add-kill-buffer-sentinel)
-     (shell-mode . my-fix-shell-prompt-colors)))
-#+end_src
-
-#+begin_src emacs-lisp
-  (defun my-close-shell-window ()
-    "Close the shell window without killing its buffer or process."
-    (interactive)
-    (let ((buffer (current-buffer)))
-      (unless (eq
-               (alist-get'major-mode (buffer-local-variables buffer))
-               'shell-mode)
-        (user-error "Buffer '%s' is not running a shell." buffer))
-      (let ((window (get-buffer-window buffer)))
-        ;; Borrowed from popper.el
-        (when (window-valid-p window)
-          (cond
-           ((window-parent window)
-            (if (window-parameter window 'window-side)
-                (delete-window window)
-              (quit-window nil window)))
-           ((frame-parent) (delete-frame))
-           (t (quit-window nil window)))))))
-#+end_src
-
-** Vterm
-
-Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].
-#+begin_src emacs-lisp
-  (unless (eq system-type 'windows-nt)
-    (add-to-list 'display-buffer-alist
-                 '("\\*vterm\\*" display-buffer-reuse-mode-window
-                   ;; change to `t' to not reuse same window
-                   (inhibit-same-window . nil)
-                   (mode vterm-mode vterm-copy-mode))))
-#+end_src
-
-** Eshell
-
-Support jumping to prompts in eshell ([[https://github.com/minad/consult/wiki#consult-outline-support-for-eshell-prompts][Consult wiki]]).
-#+begin_src emacs-lisp
-  (use-package eshell
-    :preface
-    (defun my-set-eshell-regexp ()
-      (setq outline-regexp eshell-prompt-regexp))
-    :hook (eshell-mode . my-set-eshell-regexp))
-#+end_src
-
-** Powershell
-
-Github repo [[https://github.com/jschaf/powershell.el][here]]. Run =M-x powershell= to get a shell.
-#+begin_src emacs-lisp
-  (when (eq system-type 'windows-nt)
-    (use-package powershell
-      :ensure t
-      :defer t
-      :hook
-      ((powershell-mode . my-add-kill-buffer-sentinel))))
-#+end_src
-
-Close the powershell window without killing its buffer.
-#+begin_src emacs-lisp
-  (defun my-close-powershell-window ()
-    (interactive)
-    (let ((buffer (current-buffer))
-          (window (get-buffer-window buffer)))
-      ;; Borrowed from popper.el
-      (when (window-valid-p window)
-        (cond
-         ((window-parent window)
-          (if (window-parameter window 'window-side)
-              (delete-window window)
-            (quit-window nil window)))
-         ((frame-parent) (delete-frame))
-         (t (quit-window nil window))))))
 #+end_src
 
 * Notes
