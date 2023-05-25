@@ -3017,6 +3017,14 @@ Tidy up the HTML in the region. Adapted from this Mastering Emacs
      t))
 #+end_src
 
+** JavaScript
+
+A popular interactive JavaScript IDE, with documentation [[https://indium.readthedocs.io/en/latest/index.html][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package indium
+    :ensure t)
+#+end_src
+
 * Shell modes
 
 #+begin_src emacs-lisp
@@ -3204,3 +3212,5 @@ strokes. Also, see "custom hook for all major modes":
 Make your blog look like the [[https://github.com/moble/www_black-holes_org][black-holes.org]] website.
 
 Installing Doom Emacs through =git-bash=, [[https://earvingad.github.io/posts/doom_emacs_windows/][here]].
+
+Really irritating name, [[https://github.com/p3r7/awesome-elisp][Awesome Elisp]], but a useful cookbook guide.
