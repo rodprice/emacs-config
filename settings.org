@@ -2320,17 +2320,29 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
 
 ** Man pages
 
-Broken on Windows, due to MSYS2 issues.
-#+begin_src emacs-lisp :tangle no
-  (use-package man
+#+begin_src emacs-lisp
+  (defun my-prefix (path &optional prefix)
+    "Make PATH an absolute path using PREFIX."
+    (let ((prefix (or prefix my-msys2-dir)))
+      (expand-file-name path prefix)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defvar my-man-paths
+    (mapcar
+     #'my-prefix
+     '("mingw64/local/man/"
+       "mingw64/share/man/"
+       "usr/local/man/"
+       "usr/share/man/"
+       "usr/man/"
+       "share/man/")))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package woman
     :custom
-    (Man-header-file-path '("c:/Users/rdprice/Apps/msys64/usr/include/"
-                            "c:/Users/rdprice/Apps/msys64/usr/local/include/"))
-    (manual-program "c:/Users/rdprice/Apps/msys64/usr/bin/man.exe")
-    (Man-untabify-command "c:/Users/rdprice/Apps/msys64/usr/bin/pr.exe")
-    (Man-sed-command "c:/Users/rdprice/Apps/msys64/usr/bin/sed.exe")
-    (Man-awk-command "c:/Users/rdprice/Apps/msys64/usr/bin/awk.exe")
-  )
+    (woman-manpath my-man-paths))
 #+end_src
 
 ** Linting
