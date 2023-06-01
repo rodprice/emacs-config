@@ -566,12 +566,13 @@ Correct typos automatically. See [[https://www.masteringemacs.org/article/correc
 
 ** Regions
 
-Kill or yank entire lines
+Kill or yank entire lines. Github repo [[https://github.com/purcell/whole-line-or-region][here]].
 #+begin_src emacs-lisp
   (use-package whole-line-or-region
     :ensure t
-    :bind (("C-w" . whole-line-or-region-kill-region)
-           ("M-w" . whole-line-or-region-copy-region-as-kill)))
+    :hook (emacs-startup . whole-line-or-region-global-mode))
+    ;; :bind (("C-w" . whole-line-or-region-kill-region)
+    ;;        ("M-w" . whole-line-or-region-copy-region-as-kill)))
 #+end_src
 
 Expand or contract the region by sexp ([[https://github.com/magnars/expand-region.el][expand-region.el]])
@@ -725,6 +726,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*PowerShell\\*"
             "\\*Shell Errors\\*"
             "\\*Tidy Error Buffer\\*"
+            "\\*Pyinspect:"
             ("\\*Compile-Log\\*" . hide)
             ("\\*Warnings\\*" . hide)
             help-mode
@@ -1830,7 +1832,8 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
 ** Docker
 
 Notes: Run Emacs from inside Docker; instructions [[https://github.com/JAremko/docker-emacs][here]]. Someone else
-is running what he says is an Emacs Python IDE using Docker, [[https://rebeja.eu/posts/python-ide-with-emacs-and-docker/][here]].
+is running what he says is an Emacs Python IDE using Docker, [[https://rebeja.eu/posts/python-ide-with-emacs-and-docker/][here]]. Yet
+another way to run Docker, a Python script called [[https://github.com/jkitchin/devcontainer][devcontainer]].
 
 Emacs Docker package [[https://github.com/Silex/docker.el][here]].
 #+begin_src emacs-lisp :tangle no
@@ -2769,6 +2772,15 @@ Close the IPython window without killing its buffer.
            (t (quit-window nil window)))))))
 #+end_src
 
+Inspect values in the IPython buffer. Github repo [[https://github.com/it-is-wednesday/pyinspect.el][here]].
+#+begin_src emacs-lisp
+  (use-package pyinspect
+    :ensure t
+    :bind
+    (:map inferior-python-mode-map
+          ("C-c i" . pyinspect-inspect-at-point)))
+#+end_src
+
 ** Environment variables
 
 See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
@@ -3229,3 +3241,6 @@ Make your blog look like the [[https://github.com/moble/www_black-holes_org][bla
 Installing Doom Emacs through =git-bash=, [[https://earvingad.github.io/posts/doom_emacs_windows/][here]].
 
 Really irritating name, [[https://github.com/p3r7/awesome-elisp][Awesome Elisp]], but a useful cookbook guide.
+
+Reproducible research and other things through [[https://github.com/jkitchin/scimax][Scimax]]. Python code
+from the same author to work with org-mode, etc, called [[https://github.com/jkitchin/pycse][pycse]].
