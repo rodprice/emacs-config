@@ -43,6 +43,7 @@ tramp
 NUL
 .emacs.desktop
 .emacs.desktop.lock
+emacs_backtrace.txt
 *.html
 .cache
 .dap*

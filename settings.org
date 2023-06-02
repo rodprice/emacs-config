@@ -2413,14 +2413,30 @@ Make flycheck play nice with eldoc. From
 
 *** Origami mode
 
-A code folding package that works with =lsp-mode=, found [[https://github.com/gregsexton/origami.el][here]].
+A code folding package, found [[https://github.com/gregsexton/origami.el][here]].
 #+begin_src emacs-lisp
   (use-package origami
     :ensure t
     :bind (:map origami-mode-map
-                (("C-<tab>" . origami-recursively-toggle-node)
-                 ("S-C-<tab>" . origami-toggle-all-nodes)))
+                ("C-+" . my-origami-toggle-nodes))
     :hook (origami-mode . my-add-origami-emacs-lisp-parser))
+#+end_src
+
+C-<tab> and C-S-<tab> are stolen by other apps in some environments,
+so I use the key binding C-+ and some prefix arguments instead.
+#+begin_src emacs-lisp
+  (defun my-origami-toggle-nodes (arg)
+    "Toggle the code fold around point."
+    (interactive "P")
+    (cond
+     ((null arg)
+      (call-interactively #'origami-recursively-toggle-node))
+     ((equal arg '(4))
+      (call-interactively #'origami-toggle-all-nodes))
+     ((equal arg '(16))
+      (call-interactively #'origami-show-only-node))
+     (t
+      (call-interactively #'origami-reset))))
 #+end_src
 
 *** Hide-show package (disabled)
