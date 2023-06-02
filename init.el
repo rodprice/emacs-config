@@ -11,6 +11,23 @@
 ;; Load the site-specific preload file.
 (load (concat (car (split-string (system-name) "\\.")) "-preload") 'noerror)
 
+(defvar my-emacs-base-dir
+  (file-name-as-directory
+   (expand-file-name
+    (concat invocation-directory "..")))
+  "Base directory of Emacs installation.")
+
+;; Decide whether to turn on debugging for use-package
+;; From https://github.com/jwiegley/use-package/issues/768
+(defvar init-file-debug t)
+(if init-file-debug
+    (setq use-package-verbose t
+          use-package-expand-minimally nil
+          use-package-compute-statistics t
+          debug-on-error t)
+  (setq use-package-verbose nil
+        use-package-expand-minimally t))
+
 ;; Turn off annoying, useless warnings
 (require 'warnings)
 (setq warning-minimum-level :error)
@@ -69,9 +86,10 @@
   ;;    (jupyter . t)))
 
 ;; Load the various settings files
-;; (org-babel-jupyter-override-src-block 'python)
+(require 'my-functions)
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
+;; (org-babel-jupyter-override-src-block 'python)
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-theme.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-global.org"))

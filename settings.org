@@ -112,11 +112,12 @@ Info directory locations. On Windows, for no apparent reason, the
 Emacs manual and all the other defaults vanished from the top-level
 info node. This puts the defaults back in.
 #+begin_src emacs-lisp
-  (use-package info
-    :init
-    (dolist (dir (Info-default-dirs))
-      (when (file-directory-p dir)
-        (add-to-list 'Info-directory-list dir t))))
+  (when (eq system-type 'windows-nt)
+    (use-package info
+      :init
+      (dolist (dir (Info-default-dirs))
+        (when (file-directory-p dir)
+          (add-to-list 'Info-directory-list dir t)))))
 #+end_src
 
 ** Buffer defaults
@@ -409,12 +410,6 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
 
 #+begin_src emacs-lisp
 (message "starting editing")
-#+end_src
-
-** Prerequisites
-
-#+begin_src emacs-lisp
-  (require 'my-functions)
 #+end_src
 
 ** Search
@@ -2350,25 +2345,32 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
 
 ** Linting
 
-Documentation for flycheck [[https://www.flycheck.org][here]].
 #+begin_src emacs-lisp
   (use-package flycheck
     :ensure t
-    :preface
-    (defun mp-flycheck-prefer-eldoc ()
-      (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
-      (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-      (setq flycheck-display-errors-function nil)
-      (setq flycheck-help-echo-function nil))
-    :init
-    (setq flycheck-highlighting-mode 'symbols
-          flycheck-indication-mode 'left-fringe
-          flycheck-standard-error-navigation t)
-    (global-flycheck-mode)
-    :bind (("M-n" . flycheck-next-error)
-           ("M-p" . flycheck-previous-error)
-           ("M-l" . flycheck-list-errors))
-    :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)))
+    :config (global-flycheck-mode))
+#+end_src
+
+Documentation for flycheck [[https://www.flycheck.org][here]].
+#+begin_src emacs-lisp :tangle no
+    (use-package flycheck
+      :ensure t
+      :demand
+      :preface
+      (defun mp-flycheck-prefer-eldoc ()
+        (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
+        (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+        (setq flycheck-display-errors-function nil)
+        (setq flycheck-help-echo-function nil))
+      :init
+      (setq flycheck-highlighting-mode 'symbols
+            flycheck-indication-mode 'left-fringe
+            flycheck-standard-error-navigation t)
+      :bind (("M-n" . flycheck-next-error)
+             ("M-p" . flycheck-previous-error)
+             ("M-l" . flycheck-list-errors))
+      :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)))
+  ;;           (after-init . global-flycheck-mode)))
 #+end_src
 
 Make flycheck play nice with eldoc. From
@@ -2395,9 +2397,6 @@ Make flycheck play nice with eldoc. From
 #+end_src
 
 #+begin_src emacs-lisp
-#+end_src
-
-#+begin_src emacs-lisp
   (use-package eldoc
     :preface
      (add-to-list 'display-buffer-alist
@@ -2418,12 +2417,23 @@ A code folding package, found [[https://github.com/gregsexton/origami.el][here]]
   (use-package origami
     :ensure t
     :bind (:map origami-mode-map
+                ("C-<tab>" . origami-recursively-toggle-node)
+                ("C-S-<tab>" . origami-toggle-all-nodes))
+    :hook (origami-mode . my-add-origami-emacs-lisp-parser))
+#+end_src
+
+*** Junkyard
+
+C-<tab> and C-S-<tab> are stolen by other apps in some environments,
+so I use the key binding C-+ and some prefix arguments instead.
+#+begin_src emacs-lisp :tangle no
+  (use-package origami
+    :ensure t
+    :bind (:map origami-mode-map
                 ("C-+" . my-origami-toggle-nodes))
     :hook (origami-mode . my-add-origami-emacs-lisp-parser))
 #+end_src
 
-C-<tab> and C-S-<tab> are stolen by other apps in some environments,
-so I use the key binding C-+ and some prefix arguments instead.
 #+begin_src emacs-lisp
   (defun my-origami-toggle-nodes (arg)
     "Toggle the code fold around point."
@@ -2942,39 +2952,6 @@ on Windows.
       (if arg
           (call-interactively #'pytest-pdb-one)
         (call-interactively #'pytest-one))))
-#+end_src
-
-*** Functions to manipulate alists
-
-Returns a modified version of an association list.
-#+begin_src emacs-lisp
-  (defun alist-modify (alist key value)
-    "If KEY is found in ALIST, replace the old value for KEY with
-  VALUE. If KEY is not found in ALIST, add KEY,VALUE to the result."
-    (if (assq key alist)
-        (mapcar
-         (lambda (pair)
-           (if (not (eq key (car pair))) pair (cons key value)))
-         alist)
-      (cons (cons key value) alist)))
-#+end_src
-
-Returns a new alist with matching keys removed.
-#+begin_src emacs-lisp
-  (defun alist-remove (alist key)
-    "Return ALIST with KEY removed."
-    (seq-filter
-     (lambda (pair) (not (eq key (car pair))))
-     alist))
-#+end_src
-
-Pop the value matching key, then remove key from alist.
-#+begin_src emacs-lisp
-  (defmacro alist-pop (alist key)
-    "Pop the value matching KEY, then remove KEY from ALIST."
-    `(prog1
-         (cdr (assq ,key ,alist))
-       (setq ,alist (alist-remove ,alist ,key))))
 #+end_src
 
 *** Find monitor and frame attributes

@@ -6,6 +6,31 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Functions to manipulate alists
+
+(defun alist-modify (alist key value)
+  "If KEY is found in ALIST, replace the old value for KEY with
+VALUE. If KEY is not found in ALIST, add KEY,VALUE to the result."
+  (if (assq key alist)
+      (mapcar
+       (lambda (pair)
+         (if (not (eq key (car pair))) pair (cons key value)))
+       alist)
+    (cons (cons key value) alist)))
+
+(defun alist-remove (alist key)
+  "Return ALIST with KEY removed."
+  (seq-filter
+   (lambda (pair) (not (eq key (car pair))))
+   alist))
+
+(defmacro alist-pop (alist key)
+  "Pop the value matching KEY, then remove KEY from ALIST."
+  `(prog1
+       (cdr (assq ,key ,alist))
+     (setq ,alist (alist-remove ,alist ,key))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Manipulate project data and files
 
 (defun my-safe-append (var objs)
@@ -22,7 +47,6 @@ contains a list. Otherwise do nothing."
 (defun my-list-of-strings-p (value)
   "Test whether VALUE is a list of strings."
   (cl-every #'stringp value))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monkey around with exec-path and env variable PATH
@@ -54,7 +78,6 @@ such that all directories in \\Apps come first."
          (apps (my-filter-paths "/Apps" stdpaths))
          (others (cl-set-difference stdpaths apps :test #'string=)))
     (append apps others dots)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions to print lists in readable form
@@ -142,7 +165,6 @@ non-nil, split a string containing paths into lists for display."
   (if (listp objs) (princ "'"))
   (pprint--strings (pprint--stringify objs show-paths))
   nil)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement of cursor
@@ -355,7 +377,6 @@ Version 2016-06-15"
 ;; Change CamelCase to camel_case and vice versa
 ;; https://stackoverflow.com/questions/9288181/converting-from-camelcase-to-in-emacs
 
-
 (defun toggle-camelcase-underscores ()
   "Toggle between camelcase and underscore notation for the symbol at point."
   (interactive)
@@ -373,7 +394,6 @@ Version 2016-06-15"
         (replace-regexp "\\([A-Z]\\)" "_\\1" nil (1+ start) end)
         (downcase-region start (cdr (bounds-of-thing-at-point 'symbol)))))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clean up the mode matching mechanism
 
@@ -389,7 +409,6 @@ with matching entries removed."
         (remove-all-matches-from-alist name
          (remove (rassoc mode alist) alist))
       alist)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use git grep for the grep command. This code is adapted from `vc-git-grep'.
