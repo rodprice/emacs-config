@@ -2345,32 +2345,26 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
 
 ** Linting
 
+Documentation for flycheck [[https://www.flycheck.org][here]].
 #+begin_src emacs-lisp
   (use-package flycheck
     :ensure t
-    :config (global-flycheck-mode))
-#+end_src
-
-Documentation for flycheck [[https://www.flycheck.org][here]].
-#+begin_src emacs-lisp :tangle no
-    (use-package flycheck
-      :ensure t
-      :demand
-      :preface
-      (defun mp-flycheck-prefer-eldoc ()
-        (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
-        (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-        (setq flycheck-display-errors-function nil)
-        (setq flycheck-help-echo-function nil))
-      :init
-      (setq flycheck-highlighting-mode 'symbols
-            flycheck-indication-mode 'left-fringe
-            flycheck-standard-error-navigation t)
-      :bind (("M-n" . flycheck-next-error)
-             ("M-p" . flycheck-previous-error)
-             ("M-l" . flycheck-list-errors))
-      :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)))
-  ;;           (after-init . global-flycheck-mode)))
+    :demand
+    :preface
+    (defun mp-flycheck-prefer-eldoc ()
+      (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
+      (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+      (setq flycheck-display-errors-function nil)
+      (setq flycheck-help-echo-function nil))
+    :init
+    (setq flycheck-highlighting-mode 'symbols
+          flycheck-indication-mode 'left-fringe
+          flycheck-standard-error-navigation t)
+    :bind (("M-n" . flycheck-next-error)
+           ("M-p" . flycheck-previous-error)
+           ("M-l" . flycheck-list-errors))
+    :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)
+           (after-init . global-flycheck-mode)))
 #+end_src
 
 Make flycheck play nice with eldoc. From
@@ -3025,7 +3019,6 @@ matching name.
 #+end_src
 
 *** Modify =popper='s display function
-
 
 #+begin_src emacs-lisp
     (defun my-pytest-popper-display-frame (buffer &optional alist)
