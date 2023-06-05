@@ -114,6 +114,7 @@ info node. This puts the defaults back in.
 #+begin_src emacs-lisp
   (when (eq system-type 'windows-nt)
     (use-package info
+      :commands Info-default-dirs
       :init
       (dolist (dir (Info-default-dirs))
         (when (file-directory-p dir)

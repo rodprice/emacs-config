@@ -1,7 +1,6 @@
 auto-save-list/
 backup/
 eln-cache/
-elpa/
 eshell/
 indium-chrome-profile/
 ltximg/
@@ -12,6 +11,7 @@ junkyard/
 pkgs/
 transient/
 url/
+*.elc
 custom.el
 places
 recentf

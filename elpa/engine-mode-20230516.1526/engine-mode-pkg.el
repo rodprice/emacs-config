@@ -1,0 +1,2 @@
+;;; Generated package description from engine-mode.el  -*- no-byte-compile: t -*-
+(define-package "engine-mode" "20230516.1526" "Define and query search engines from within Emacs" '((cl-lib "0.5")) :commit "fae1bd4fdf7d102744505bf2a8f4dc88d5b8f2fd" :authors '(("Harry R. Schwartz" . "hello@harryrschwartz.com")) :maintainers '(("Harry R. Schwartz" . "hello@harryrschwartz.com")) :maintainer '("Harry R. Schwartz" . "hello@harryrschwartz.com") :url "https://github.com/hrs/engine-mode")
