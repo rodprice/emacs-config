@@ -6,6 +6,24 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helper functions for running shells
+
+(defun my-add-kill-buffer-sentinel ()
+  "Set a process sentinel that kills the buffer when the process exits."
+  (let* ((process (get-buffer-process (current-buffer)))
+         (sentinel (process-sentinel process)))
+    (set-process-sentinel
+     process
+     `(lambda (process signal)
+        ;; Call the original process sentinel first.
+        (funcall #',sentinel process signal)
+        ;; Kill the buffer on an exit signal.
+        (when (memq (process-status process) '(exit signal))
+          (let ((buffer (process-buffer process)))
+            (when (buffer-live-p buffer)
+              (quit-window t (get-buffer-window buffer)))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions to manipulate alists
 
 (defun alist-modify (alist key value)

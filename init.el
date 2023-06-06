@@ -91,6 +91,7 @@
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-markup.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-internet.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-completion.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-shells.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-programming.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-elisp.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))

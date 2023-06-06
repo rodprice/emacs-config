@@ -121,22 +121,6 @@ Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
     (engine-mode t))
 #+end_src
 
-* Chat GPT
-
-See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping Secrets in Emacs]].
-This package can be found on [[https://github.com/xenodium/chatgpt-shell][Github]].
-#+begin_src emacs-lisp
-  (use-package chatgpt-shell
-    :ensure nil
-    :load-path "mode"
-    :custom
-    (auth-sources
-     '((:source "~/.emacs.d/secrets/.authinfo.gpg")))
-    (chatgpt-shell-openai-key
-     (lambda ()
-       (auth-source-pick-first-password :host "api.openai.com"))))
-#+end_src
-
 * Notes
 
 Compiling Emacs 29 on Windows with Msys2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]].
