@@ -233,7 +233,17 @@ Display buffer information in frame titles. ([[https://github.com/malb/emacs.d/b
       (let ((project (project-current)))
         (if (null project)
             ""
-          (format " - Project: %s" (project-name project))))))
+          (format " - Project: %s"
+                  (my-project-name-function project))))))
+
+  ;; Emacs 28 has no function 'project-name. Emacs 29 does.
+  (defun my-project-name-function (project)
+    "A human-readable name for the project."
+    (if (fboundp 'project-name)
+        (project-name project)
+      (file-name-nondirectory
+       (directory-file-name
+        (project-root project)))))
 
   (setq frame-title-format
         '(""

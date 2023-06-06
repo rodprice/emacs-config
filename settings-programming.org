@@ -257,29 +257,31 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
 
 * Man pages
 
-#+begin_src emacs-lisp
-  (defun my-prefix (path &optional prefix)
-    "Make PATH an absolute path using PREFIX."
-    (let ((prefix (or prefix my-msys2-dir)))
-      (expand-file-name path prefix)))
-#+end_src
-
+Probably should put this in the site/*-preload file.
 #+begin_src emacs-lisp
   (defvar my-man-paths
-    (mapcar
-     #'my-prefix
-     '("mingw64/local/man/"
-       "mingw64/share/man/"
-       "usr/local/man/"
-       "usr/share/man/"
-       "usr/man/"
-       "share/man/")))
+    (when (boundp 'my-mysy2-dir)
+      (mapcar
+       #'my-prefix
+       '("mingw64/local/man/"
+         "mingw64/share/man/"
+         "usr/local/man/"
+         "usr/share/man/"
+         "usr/man/"
+         "share/man/"))))
 #+end_src
 
+Windows-only man pages from MSYS2
 #+begin_src emacs-lisp
-  (use-package woman
-    :custom
-    (woman-manpath my-man-paths))
+  (when (boundp 'my-msys2-dir)
+    (use-package woman
+      :preface
+      (defun my-prefix (path &optional prefix)
+        "Make PATH an absolute path using PREFIX."
+        (let ((prefix (or prefix my-msys2-dir)))
+          (expand-file-name path prefix)))
+      :custom
+      (woman-manpath my-man-paths)))
 #+end_src
 
 * Linting
