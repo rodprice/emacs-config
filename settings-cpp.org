@@ -1,0 +1,17 @@
+#+TITLE: Emacs configuration for C/C++
+#+STARTUP: overview indent
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-cpp")
+#+end_src
+
+This configuration requires packages
+
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.

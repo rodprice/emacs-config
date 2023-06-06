@@ -1,0 +1,681 @@
+#+TITLE: Emacs configuration for completion
+#+STARTUP: overview indent
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-completion")
+#+end_src
+
+This configuration requires packages
+
+  - cape
+  - consult
+  - consult-flycheck
+  - corfu
+  - dash
+  - epl
+  - flycheck
+  - marginalia
+  - orderless
+  - pkg-info
+  - vertico
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+* Native emacs completion
+
+Note: A setup using only native emacs [[https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html][here]].
+
+Modify completions to include remote files.
+#+begin_src emacs-lisp
+  (defun basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+
+  (defun basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+
+  (add-to-list
+   'completion-styles-alist
+   '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
+#+end_src
+
+Settings that apply everywhere.
+#+begin_src emacs-lisp :tangle no
+  (setq completion-styles '(basic substring flex))
+  (setq completion-cycle-threshold 10)
+  (setq completion-auto-help 'lazy)
+  (setq completion-ignore-case t)
+  (setq completion-category-overrides '())
+#+end_src
+
+Selecting buffers.
+#+begin_src emacs-lisp :tangle no
+  (setq read-buffer-completion-ignore-case t)
+  (add-to-list 'completion-category-overrides
+               '(buffer
+                 (styles basic)
+                 (cycle . 10)))
+#+end_src
+
+Selecting files.
+#+begin_src emacs-lisp :tangle no
+  (recentf-mode)
+  (setq read-file-name-completion-ignore-case t)
+  (add-to-list 'completion-category-overrides
+               '(file
+                 (styles basic partial-completion)
+                 (cycle . 10)))
+#+end_src
+
+Tab completion in an ordinary buffer.
+#+begin_src emacs-lisp :tangle no
+  (setq tab-always-indent 'complete)
+#+end_src
+
+Use icomplete for the completion UI
+#+begin_src emacs-lisp
+  ;; (icomplete-vertical-mode 1)
+#+end_src
+
+Use FIDO mode for minibuffer completion UI.
+#+begin_src emacs-lisp
+  ;; (fido-mode 1)
+#+end_src
+
+* Orderless package
+
+The [[https://github.com/oantolin/orderless][Orderless]] package enables completion without regard to the order in which
+candidates are entered. [[https://github.com/oantolin/orderless#style-dispatchers][Style dispatchers]] can be used to customize the completion
+behaviors for =M-x= and the =describe-*= commands, for instance.
+#+begin_src emacs-lisp
+  (use-package orderless
+    :ensure t
+    :init
+    (recentf-mode)
+    (setq completion-cycle-threshold 10)
+    (setq completion-auto-help 'lazy)
+    (setq completion-ignore-case t)
+    (setq read-buffer-completion-ignore-case t)
+    (setq read-file-name-completion-ignore-case t)
+    (setq completion-styles '(basic orderless))
+    (setq completion-category-defaults nil)
+    (setq completion-category-overrides
+               '((buffer (cycle . 10))
+                 (file (styles basic partial-completion)
+                       (cycle . 10))))
+    ;; See https://github.com/minad/corfu/issues/136
+    (add-to-list 'completion-category-overrides
+                 '(eglot (styles orderless flex)
+                         (cycle . 10))))
+#+end_src
+
+* Vertico package and friends
+
+Note: [[https://www.reddit.com/r/emacs/comments/ymriwz/can_i_start_executeextendedcommand_with_an/][Can I start "execute-extended-command" with an initial input?]]
+
+Persist history over Emacs restarts. Vertico sorts by history position.
+#+begin_src emacs-lisp
+  (use-package savehist
+    :ensure t
+    :init
+    (savehist-mode))
+#+end_src
+
+Vertico is vertical interactive completion: [[https://github.com/minad/vertico][README]]. This configuration is
+from [[https://github.com/minad/vertico/wiki#make-vertico-and-vertico-directory-behave-more-like-ivyido][here]].
+#+begin_src emacs-lisp
+  (use-package vertico
+    :ensure t
+    :demand
+    :custom
+    (vertico-cycle t)
+    (vertico-preselect 'directory)
+    :bind (:map vertico-map
+                ("<tab>" . vertico-insert)
+                ("C-M-n" . vertico-next-group)
+                ("C-M-p" . vertico-previous-group)
+                ("?"     . minibuffer-completion-help)
+                ("C-M-i" . minibuffer-complete)
+                ("M-RET" . minibuffer-force-complete-and-exit))
+    :init
+    ;; Prefix the current candidate with "» ". From
+    ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
+    ;; (advice-add #'vertico--format-candidate
+    ;;             :around
+    ;;             (lambda (orig cand prefix suffix index _start)
+    ;;               (setq cand (funcall orig cand prefix suffix index _start))
+    ;;               (concat
+    ;;                (if (= vertico--index index)
+    ;;                    (propertize "» " 'face 'vertico-current)
+    ;;                  "  ")
+    ;;                cand)))
+    :config
+    (vertico-mode))
+#+end_src
+
+The [[https://github.com/minad/marginalia][Marginalia]] package adds extra information to minibuffer completions.
+#+begin_src emacs-lisp
+  (use-package marginalia
+    :ensure t
+    :custom
+    (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+    :config (marginalia-mode))
+#+end_src
+
+Mouse integration into Vertico
+#+begin_src emacs-lisp
+  (use-package vertico-mouse
+    :after vertico
+    :ensure nil)
+#+end_src
+
+IDO-like directory navigation
+#+begin_src emacs-lisp
+  (use-package vertico-directory
+    :after vertico
+    :load-path "elpa/vertico-1.2"
+    :ensure nil
+    :demand
+    :bind (:map vertico-map
+                ("RET" . vertico-directory-enter)
+                ("DEL" . vertico-directory-delete-char)
+                ("M-DEL" . vertico-directory-delete-word))
+    ;; Tidy shadowed file names
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+#+end_src
+
+Configure Vertico per command or completion category: [[https://github.com/minad/vertico#configure-vertico-per-command-or-completion-category][README]]; also [[https://github.com/minad/vertico/wiki#annotate-m-x-commands-with-keybindings-in-flatunobtrusive-mode][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package vertico-multiform
+    :after vertico
+    :ensure nil
+    :init
+    ;; Taken from marginalia-annotate-binding
+    (defun +vertico-annotate-binding (command)
+      "Annotate COMMAND with key binding in flat/unobtrusive mode."
+      (if-let* (((or (bound-and-true-p vertico-flat-mode)
+                     (bound-and-true-p vertico-unobtrusive-mode)))
+                (sym (intern-soft command))
+                (key (and (commandp sym) (where-is-internal sym nil 'first-only))))
+          (format #("%s (%s)" 3 7 (face shadow)) command (key-description key))
+        command))
+    (vertico-multiform-mode)
+    (setq vertico-multiform-commands
+          '( ;; ("\\`execute-extended-command" flat +vertico-annotate-binding)
+            (consult-imenu buffer indexed)
+            (describe-variable unobtrusive)
+            (describe-function unobtrusive)))
+    (setq vertico-multiform-categories
+          '((consult-grep buffer))))
+#+end_src
+
+* Consult and friends
+
+** Source for cpp-mode
+
+Consult-buffer source for cpp-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar  cpp-source
+  (list :name     "CPP buffer"
+        :category 'buffer
+        :narrow   ?c
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (cpp-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'cpp-mode))
+                   (buffer-list))))))
+#+end_src
+
+** Source for python-mode
+
+Consult-buffer source for python-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar python-source
+  (list :name     "Python buffer"
+        :category 'buffer
+        :narrow   ?P
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (python-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'python-mode))
+                   (buffer-list))))))
+#+end_src
+
+** Source for emacs-lisp-mode
+
+Consult-buffer source for emacs-lisp-mode.
+#+begin_src emacs-lisp
+(defvar emacs-lisp-source
+  (list :name     "Emacs lisp buffer"
+        :category 'buffer
+        :narrow   ?E
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (emacs-lisp-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'emacs-lisp-mode))
+                   (buffer-list))))))
+#+end_src
+
+** Source for org-mode
+
+Consult-buffer source for org-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar org-source
+  (list :name     "Org buffer"
+        :category 'buffer
+        :narrow   ?o
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (insert "#+title: " name "\n\n")
+            (org-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'org-mode))
+                   (buffer-list))))))
+#+end_src
+
+** Source for vterm
+
+Consult-buffer source for vterm, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar  vterm-source
+  (list :name     "Vterm buffer"
+        :category 'buffer
+        :narrow   ?v
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            ;;(insert "#+title: " name "\n\n")
+            (vterm-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'vterm-mode))
+                   (buffer-list))))))
+#+end_src
+
+** Source for eshell
+
+Consult-buffer source for eshell, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+(defvar  eshell-source
+  (list :name     "Eshell buffer"
+        :category 'buffer
+        :narrow   ?e
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            ;;(insert "#+title: " name "\n\n")
+            (eshell-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'eshell-mode))
+                   (buffer-list))))))
+#+end_src
+
+** Consult package
+
+These buffers will be ignored by the consult-buffer command (C-x b)
+#+begin_src emacs-lisp
+  (defvar my-hidden-buffers '("\\`\\*Compile-Log\\*\\'"
+                              "\\`\\*Async-native-compile-log\\*\\'"
+                              "\\`\\*Flycheck errors\\*\\'"
+                              "\\`\\*Flycheck error messages\\*\\'"
+                              "\\`\\*EGLOT.*\\*\\'"
+                              "\\`\\*Native-compile-Log\\*\\'"
+                              "\\`\\*debug tramp/.*\\*\\'"))
+#+end_src
+
+From the consult wiki, [[https://github.com/minad/consult/wiki#narrowing-which-key-help-without-delay][Narrowing which-key help without delay]].
+#+begin_src emacs-lisp
+(defun immediate-which-key-for-narrow (fun &rest args)
+  (let* ((refresh t)
+         (timer (and consult-narrow-key
+                     (memq :narrow args)
+                     (run-at-time 0.05 0.05
+                                  (lambda ()
+                                    (if (eq last-input-event (elt consult-narrow-key 0))
+                                        (when refresh
+                                          (setq refresh nil)
+                                          (which-key--update))
+                                      (setq refresh t)))))))
+    (unwind-protect
+        (apply fun args)
+      (when timer
+        (cancel-timer timer)))))
+(advice-add #'consult--read :around #'immediate-which-key-for-narrow)
+#+end_src
+
+Simplify the =consult-buffer= command: [[https://github.com/minad/consult/wiki#hide-all-sources-except-normal-buffers-in-consult-buffer-by-default][Consult wiki]]
+Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/yy79pn/how_to_hideignore_orgroam_buffersfiles_when_using/][Reddit]]
+#+begin_src emacs-lisp
+  (use-package consult
+    :ensure t
+    :after vertico
+    :config
+    ;; Make consult-buffer show only buffers initially
+    (dolist (src consult-buffer-sources)
+      (unless (eq src 'consult--source-buffer)
+        (set src (plist-put (symbol-value src) :hidden t))))
+    ;; Filter out unwanted buffers shown by consult-buffer
+    (dolist (buff my-hidden-buffers)
+      (add-to-list 'consult-buffer-filter buff t))
+    ;; Use `consult-completion-in-region' if Vertico is enabled.
+    ;; Otherwise use the default `completion--in-region' function.
+    ;; (setq completion-in-region-function
+    ;;       (lambda (&rest args)
+    ;;         (apply (if vertico-mode
+    ;;                    #'consult-completion-in-region
+    ;;                  #'completion--in-region)
+    ;;                args)))
+    (setq consult-narrow-key "<")
+    (setq consult-widen-key ">")
+    (add-to-list 'consult-buffer-sources 'cpp-source 'append)
+    (add-to-list 'consult-buffer-sources 'python-source 'append)
+    (add-to-list 'consult-buffer-sources 'emacs-lisp-source 'append)
+    (add-to-list 'consult-buffer-sources 'org-source 'append)
+    (add-to-list 'consult-buffer-sources 'eshell-source 'append)
+    (unless (eq system-type 'windows-nt)
+      (add-to-list 'consult-buffer-sources 'vterm-source 'append)))
+  ;; :hook (completion-list-mode . consult-preview-at-point-mode))
+#+end_src
+
+** Consult key bindings
+
+Key bindings for consult package.
+#+begin_src emacs-lisp
+  (use-package consult
+    :after vertico
+    :bind (;; C-c bindings in `mode-specific-map'
+           ("C-c h" . consult-history)
+           ("C-c k" . consult-kmacro)
+           ("C-c m" . consult-man)                   ;; broken on Windows
+           ("C-c i" . consult-info)
+           ([remap Info-search] . consult-info)
+           ;; C-x bindings in `ctl-x-map'
+           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+           ;; M-g bindings in `goto-map'
+           ("M-g e" . consult-compile-error)
+           ("M-g g" . consult-goto-line)             ;; orig. goto-line
+           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ("M-g i" . consult-imenu)
+           ("M-g I" . consult-imenu-multi)
+           ;; M-s bindings in `search-map'
+           ("M-s d" . consult-find)                  ;; broken on Windows
+           ("M-s D" . consult-locate)                ;; broken on Windows
+           ("M-s G" . consult-grep)                  ;; broken on Windows
+           ("M-s g" . consult-git-grep)
+           ("M-s l" . consult-line)                  ;; broken on Windows
+           ("M-s L" . consult-line-multi)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ;; Isearch integration
+           ("M-s e" . consult-isearch-history)
+           :map isearch-mode-map
+           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+           ("M-s L" . consult-line-multi)))          ;; needed by consult-line to detect isearch
+#+end_src
+
+=consult-flycheck= seems to need special treatment.
+#+begin_src emacs-lisp
+  (use-package consult-flycheck
+    :ensure t
+    :after flycheck
+    :bind ("M-g f" . consult-flycheck))
+#+end_src
+
+** Consult customize
+
+Not sure what this does, so it's turned off for now. From [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp :tangle no
+  (consult-customize
+   consult-theme
+   ;; :preview-key '(:debounce 0.2 any)
+   consult-ripgrep
+   consult-git-grep
+   consult-grep
+   consult-bookmark
+   consult-recent-file
+   consult-xref
+   consult--source-recent-file
+   consult--source-project-recent-file
+   consult--source-bookmark
+   :preview-key "C-,"
+   )
+#+end_src
+
+Consult-buffer source for org-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+
+#+end_src
+
+Consult-buffer source for org-mode, from [[https://git.uni-wuppertal.de/firemod_UoW/configs/emacsfire/-/blob/main/.emacs.d_vanilla/04_user_completion.org][here]].
+#+begin_src emacs-lisp
+
+#+end_src
+
+Show all the files accessible to git stash: [[https://github.com/rcj/consult-ls-git][README]]
+#+begin_src emacs-lisp :tangle no
+  (use-package consult-ls-git
+    :ensure t
+    :bind
+    (("C-c g f" . #'consult-ls-git)
+     ("C-c g F" . #'consult-ls-git-other-window)))
+#+end_src
+
+* Corfu and friends
+
+** Notes
+
+Note: [[https://github.com/minad/corfu/issues/136][How to make corfu + orderless work well with eglot + clangd]]
+Note: [[https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot][Configuring corfu for eglot]]
+Note: [[https://github.com/minad/corfu#completing-in-the-eshell-or-shell][Completing in eshell or shell]]
+
+https://www.masteringemacs.org/article/understanding-minibuffer-completion
+https://www.masteringemacs.org/article/introduction-to-ido-mode
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-/") 'hippie-expand)
+#+end_src
+
+Show all buffers currently displayed in windows in all frames
+#+begin_src emacs-lisp
+  ;; (mapcar (lambda (frame) (cons frame (list (window-list frame)))) (frame-list))
+#+end_src
+
+** Corfu package
+
+[[https://github.com/minad/corfu][Corfu]] is a completion UI that makes use of emacs' native completion functions.
+Here I set it up with [[https://github.com/minad/corfu#tab-and-go-completion][tab-and-go completion]]. It could also be used for completion
+in the [[https://github.com/minad/corfu#completing-in-the-minibuffer][minibuffer]].
+#+begin_src emacs-lisp
+  (use-package corfu
+    :ensure t
+    ;; Optional customizations
+    :custom
+    (corfu-cycle t)
+    (corfu-preselect 'prompt)
+
+    ;; Optionally use TAB for cycling, default is `corfu-complete'.
+    :bind (:map corfu-map
+                ("M-SPC"      . corfu-insert-separator)
+                ("TAB"        . corfu-next)
+                ([tab]        . corfu-next)
+                ("S-TAB"      . corfu-previous)
+                ([backtab]    . corfu-previous)
+                ("C-<return>" . corfu-insert)
+                ("RET"        . nil))
+
+    :init
+    (defun corfu-enable-in-eshell ()
+      "Enable completion with corfu in the eshell buffer."
+      (setq-local corfu-quit-at-boundary t
+                  corfu-quit-no-match t
+                  corfu-auto nil)
+      (corfu-mode 1))
+
+    (defun corfu-send-shell (&rest _)
+      "Send completion candidate when inside comint/eshell."
+      (cond
+       ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
+        (eshell-send-input))
+       ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
+        (comint-send-input))))
+
+    (advice-add #'corfu-insert :after #'corfu-send-shell)
+
+    ;; (global-corfu-mode)
+    (corfu-history-mode)
+
+    :config
+    (setq tab-always-indent 'complete)
+    :hook
+    ((prog-mode . corfu-mode)
+     (eshell-mode . corfu-enable-in-eshell)))
+#+end_src
+
+** Cape package
+
+[[https://github.com/minad/cape][Cape]] provides =completion-at-point= extensions.
+#+begin_src emacs-lisp
+  (use-package cape
+    :ensure t
+    ;; Bind dedicated completion commands
+    ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+    :bind (("C-c p p" . completion-at-point) ;; capf
+           ("C-c p t" . complete-tag)        ;; etags
+           ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+           ("C-c p h" . cape-history)
+           ("C-c p f" . cape-file)
+           ("C-c p k" . cape-keyword)
+           ("C-c p s" . cape-symbol)
+           ("C-c p a" . cape-abbrev)
+           ("C-c p i" . cape-ispell)
+           ("C-c p l" . cape-line)
+           ("C-c p w" . cape-dict)
+           ("C-c p \\" . cape-tex)
+           ("C-c p _" . cape-tex)
+           ("C-c p ^" . cape-tex)
+           ("C-c p &" . cape-sgml)
+           ("C-c p r" . cape-rfc1345))
+    :init
+    ;; Add `completion-at-point-functions', used by `completion-at-point'.
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    ;;(add-to-list 'completion-at-point-functions #'cape-history)
+    ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+    ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+    ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+    ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+    ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+    ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+    ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+    ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+    ;;(add-to-list 'completion-at-point-functions #'cape-line)
+
+    (when (< emacs-major-version 29)
+      ;; Silence the pcomplete capf, no errors or messages!
+      (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+      ;; Ensure that pcomplete does not write to the buffer
+      ;; and behaves as a pure `completion-at-point-function'.
+      (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+  )
+#+end_src
+
+** Embark package
+
+#+begin_src emacs-lisp :tangle no
+  (use-package embark
+    :disabled
+    :ensure t
+
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("C-;" . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+    :init
+
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :ensure t
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src

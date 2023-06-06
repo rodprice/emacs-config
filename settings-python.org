@@ -1,288 +1,497 @@
-#+TITLE: Emacs Python mode configuration
+#+TITLE: Emacs configuration for Python
 #+STARTUP: overview indent
 
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-python")
+#+end_src
+
+This configuration requires packages
+
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+* Notes
+
+Here is a [[https://github.com/palantir/python-language-server#develop-against-vs-code][claim]] that the Python language server can be run "against" VS Code.
+Debugger configurations for various languages are [[https://emacs-lsp.github.io/dap-mode/page/configuration/][here]].
+
+I should probably read through the Python page of [[https://wikemacs.org/wiki/Python][WikEmacs]].
+
+A "minimalistic" Python IDE for Emacs, [[https://github.com/abo-abo/lpy][lpy-mode]]. See also [[https://github.com/abo-abo/lispy][lispy]] by the
+same author.
+
+Getting Emacs 29 for MacOS: [[https://www.adventuresinwhy.com/post/compiling-emacs-with-tree-sitter/][Compiling Emacs 29 with Tree-sitter]].
+An Eglot configuration: [[https://www.adventuresinwhy.com/post/eglot/][Eglot+Tree-sitter in Emacs 29]].
+Other useful articles by the same author [[https://www.adventuresinwhy.com/tag/emacs/][here]].
+
+=python-lsp-server= [[https://github.com/python-lsp/python-lsp-server][here]]. Emacs lsp client for python ruff language
+server [[https://github.com/emacs-lsp/lsp-mode/issues/3876][here]]. Ruff docs, such as they are, [[https://beta.ruff.rs/docs/][here]].
+
+* Python mode
+
+Set up Python interpreters, code folding, etc.
+#+begin_src emacs-lisp
+  (use-package python
+    ;; :config
+    ;; (require 'dap-python)
+    :custom
+    (python-indent-guess-indent-offset-verbose nil)
+    ;; (python-indent-trigger-commands #'indent-for-tab-command)
+    ;; (dap-python-executable "python3")
+    ;; (dap-python-debugger 'debugpy)
+    :hook
+    ((python-mode . imenu-add-menubar-index)
+     (python-mode . eldoc-mode)
+     (python-mode . origami-mode)
+     (python-mode . my-origami-local-fold-replacement)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-origami-local-fold-replacement ()
+    (set (make-local-variable 'origami-fold-replacement)
+         "...\n"))
+#+end_src
+
+* Python REPL
+
+Set up the IPython interpreter. Hitting key F5 when the current buffer
+is in =python-mode= pops up an IPython REPL. Hitting key F5 when the
+current buffer is in =inferior-python-mode=, that is, when running the
+REPL, closes the window without killing the REPL. Killing the REPL by
+typing =exit()=, hitting key C-d, or some other means, closes the REPL
+window and kills the REPL buffer.
+
+#+begin_src emacs-lisp
+  (use-package python
+    :after popper
+    :init
+    (add-to-list 'popper-reference-buffers "\\*IPython\\*")
+    (add-to-list 'popper-reference-buffers 'inferior-python-mode)
+    (popper--set-reference-vars)
+    :custom
+    ;; (python-shell-interpreter "python3")
+    ;; (python-shell-completion-native-enable nil)
+    (python-shell-buffer-name "IPython")
+    (python-shell-interpreter "ipython")
+    (python-shell-interpreter-args
+     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
+    :bind
+    ((:map python-mode-map
+           ("<f5>" . my-python-start-or-switch-repl))
+     (:map inferior-python-mode-map
+           ("<f5>" . my-close-ipython-window)))
+    :hook
+    (inferior-python-mode . my-add-kill-buffer-sentinel))
+#+end_src
+
+Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/questions/36520/dedicated-python-shell][StackExchange]].
+#+begin_src emacs-lisp
+  (defun my-python-start-or-switch-repl ()
+    "Start and/or switch to the Python REPL."
+    (interactive)
+    (if (python-shell-get-process)
+        (python-shell-switch-to-shell)
+      (progn
+        (message "Starting %s REPL" python-shell-interpreter)
+        (run-python (python-shell-calculate-command) t t)
+        (python-shell-switch-to-shell))))
+#+end_src
+
+Close the IPython window without killing its buffer.
+#+begin_src emacs-lisp
+  (defun my-close-ipython-window ()
+    (interactive)
+    (let ((buffer (current-buffer)))
+      (unless (eq
+               (alist-get'major-mode (buffer-local-variables buffer))
+               'inferior-python-mode)
+        (user-error "Buffer '%s' is not running a Python interpreter." buffer))
+      (let ((window (get-buffer-window buffer)))
+        ;; Borrowed from popper.el
+        (when (window-valid-p window)
+          (cond
+           ((window-parent window)
+            (if (window-parameter window 'window-side)
+                (delete-window window)
+              (quit-window nil window)))
+           ((frame-parent) (delete-frame))
+           (t (quit-window nil window)))))))
+#+end_src
+
+Inspect values in the IPython buffer. Github repo [[https://github.com/it-is-wednesday/pyinspect.el][here]].
+#+begin_src emacs-lisp
+  (use-package pyinspect
+    :ensure t
+    :bind
+    (:map inferior-python-mode-map
+          ("C-c i" . pyinspect-inspect-at-point)))
+#+end_src
+
+* Environment variables
+
+See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
+#+begin_src emacs-lisp
+  (setenv "PYTHONIOENCODING" "utf-8")
+#+end_src
+
+The [[https://github.com/wbolster/emacs-direnv][direnv]] package maintains a consistent set of environment variables
+depending on which project the current buffer is in. There appears to
+be no Windows-compatible version.
+#+begin_src emacs-lisp
+  (use-package direnv
+    :disabled
+    :ensure t
+    :config
+    (add-to-list 'warning-suppress-types '(direnv)))
+#+end_src
+
 * Virtual environments
+
+Note: Another possibly interesting approach is [[https://github.com/10sr/with-venv-el][with-venv.el]], which
+sets up a macro =(with-venv BODY)= that ensures that =BODY= runs in the
+correct virtual environment. The function =conda-with-env= in conda.el
+claims to do this as well.
+
+Note: Here's an emacs [[https://sqrtminusone.xyz/configs/emacs/#anaconda][config]] that advises conda.el functions to keep
+track of
 
 #+begin_src emacs-lisp
   (use-package pythonic
     :ensure t)
+#+end_src
 
+This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package that works on Windows machines.
+#+begin_src emacs-lisp
   (use-package conda
-     :ensure nil
-     :after pythonic
-     :load-path "lisp"
-     :init
-       (setq conda-anaconda-home my-anaconda-dir)
-       (setq conda-env-home-directory my-anaconda-dir)
-     :config
-       (conda-env-initialize-interactive-shells)
-       (conda-env-initialize-eshell)
-       (conda-env-autoactivate-mode 0)
-       (add-hook 'find-file-hook
-                 (lambda ()
-                   (when (bound-and-true-p conda-project-env-path)
-                     (conda-env-activate-for-buffer)))))
-#+end_src
-
-<OPTIONAL> Use [[https://python-poetry.org/][poetry]] to manage python environments.
-See: https://github.com/galaunay/poetry.el.
-#+begin_src emacs-lisp
-  (use-package poetry
-    :disabled
-    :ensure t
-    :defer t
-    :config
-    ;; Checks for the correct virtualenv. Better strategy IMO because the default
-    ;; one is quite slow.
-    (setq poetry-tracking-strategy 'switch-buffer)
-    :hook (python-mode . poetry-tracking-mode))
-#+end_src
-
-* Linting
-
-Use [[https://github.com/joaotavora/eglot][Eglot]] with Pyright, a language server for Python.
-#+begin_src emacs-lisp
-  (use-package eglot
-    :ensure t
-    :after conda
-    :defer t
-    :hook (python-mode . eglot-ensure))
-#+end_src
-
-Documentation for flycheck [[https://www.flycheck.org][here]].
-#+begin_src emacs-lisp
-  (use-package flycheck
-    :ensure t
-    :init (global-flycheck-mode)
-    :bind (("M-n" . flycheck-next-error)
-           ("M-p" . flycheck-previous-error)
-           ("M-l" . flycheck-list-errors)))
-#+end_src
-
-Instructions [[https://github.com/intramurz/flycheck-eglot][here]].
-#+begin_src emacs-lisp
-(use-package flycheck-eglot
-  :ensure t
-  :after (flycheck eglot)
-  :config (global-flycheck-eglot-mode 1))
-#+end_src
-  
-From Gavinok's [[https://github.com/Gavinok/emacs.d/blob/main/init.el][init.el]]:
-#+begin_src emacs-lisp
-  (use-package flymake
-    :disabled
-    :defer 10
-    :bind (("M-g d"   . flymake-show-buffer-diagnostics)
-           ("M-g M-d" . flymake-show-project-diagnostics)
-           ("M-g M-n" . flymake-goto-next-error)
-           ("M-g M-p" . flymake-goto-prev-error)
-           :repeat-map flymake-repeatmap
-           ("p" . flymake-goto-prev-error)
-           ("n" . flymake-goto-next-error)
-           :map flymake-diagnostics-buffer-mode-map
-           ("?" . flymake-show-diagnostic-here)
-           :map flymake-project-diagnostics-mode-map
-           ("?" . flymake-show-diagnostic-here))
-    :hook (prog-mode . (lambda () (flymake-mode t)))
-    :config
-      (defun flymake-show-diagnostic-here (pos &optional other-window)
-        "Show the full multi-line diagnostic of this error."
-        (interactive (list (point) t))
-        (let* ((id (or (tabulated-list-get-id pos)
-                       (user-error "Nothing at point")))
-               (text (flymake-diagnostic-text (plist-get id :diagnostic))))
-          (message text)))
-      (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
-#+end_src
-
-* Python mode
-
-Reference: Nathan Furnal's [[https://gist.github.com/Nathan-Furnal/b327f14e861f009c014af36c1790ec49][python-setup-init.el]]
-
-Remove "guess indent" python message
-#+begin_src emacs-lisp
-  (use-package python
-    :config
-    (setq python-indent-guess-indent-offset-verbose nil))
-#+end_src
-
-Hide the modeline for inferior python processes.  This is not a necessary
-package but it's helpful to make better use of the screen real-estate at our
-disposal. See: https://github.com/hlissner/emacs-hide-mode-line.
-
-#+begin_src emacs-lisp
-(use-package hide-mode-line
-  :ensure t
-  :defer t
-  :hook (inferior-python-mode . hide-mode-line-mode))
-#+end_src
-
-<OPTIONAL> Buffer formatting on save using black.
-See: https://github.com/pythonic-emacs/blacken.
-#+begin_src emacs-lisp
-  (use-package blacken
-    :ensure t
-    :defer t
-    :custom
-    (blacken-allow-py36 t)
-    (blacken-skip-string-normalization t)
-    :hook (python-mode-hook . blacken-mode))
-#+end_src
-
-<OPTIONAL> Numpy style docstring for Python.  See:
-https://github.com/douglasdavis/numpydoc.el.  There are other packages
-available for docstrings, see: https://github.com/naiquevin/sphinx-doc.el
-#+begin_src emacs-lisp
-  (use-package numpydoc
-    :ensure t
-    :defer t
-    :custom
-    (numpydoc-insert-examples-block nil)
-    (numpydoc-template-long nil)
-    :bind (:map python-mode-map
-                ("C-c C-n" . numpydoc-generate)))
-#+end_src
-
-Provide drop-down completion.
-#+begin_src emacs-lisp
-  (use-package company
-    :disabled
-    :ensure t
-    :defer t
-    :custom
-    ;; Search other buffers with the same modes for completion instead of
-    ;; searching all other buffers.
-    (company-dabbrev-other-buffers t)
-    (company-dabbrev-code-other-buffers t)
-    ;; M-<num> to select an option according to its number.
-    (company-show-numbers t)
-    ;; Only 2 letters required for completion to activate.
-    (company-minimum-prefix-length 3)
-    ;; Do not downcase completions by default.
-    (company-dabbrev-downcase nil)
-    ;; Even if I write something with the wrong case,
-    ;; provide the correct casing.
-    (company-dabbrev-ignore-case t)
-    ;; company completion wait
-    (company-idle-delay 0.2)
-    ;; No company-mode in shell & eshell
-    (company-global-modes '(not eshell-mode shell-mode))
-    ;; Use company with text and programming modes.
-      :hook ((text-mode . company-mode)
-             (prog-mode . company-mode)))
-#+end_src
-
-* Code folding
-
-Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.
-#+begin_src emacs-lisp
-  (use-package hideshow
-    :ensure t
-    :config
-    (defun hs-cycle (&optional level)
-      (interactive "p")
-      (let (message-log-max
-            (inhibit-message t))
-        (if (= level 1)
-            (pcase last-command
-              ('hs-cycle
-               (hs-hide-level 1)
-               (setq this-command 'hs-cycle-children))
-              ('hs-cycle-children
-               ;; TODO: Fix this case. `hs-show-block' needs to be
-               ;; called twice to open all folds of the parent
-               ;; block.
-               (save-excursion (hs-show-block))
-               (hs-show-block)
-               (setq this-command 'hs-cycle-subtree))
-              ('hs-cycle-subtree
-               (hs-hide-block))
-              (_
-               (if (not (hs-already-hidden-p))
-                   (hs-hide-block)
-                 (hs-hide-level 1)
-                 (setq this-command 'hs-cycle-children))))
-          (hs-hide-level level)
-          (setq this-command 'hs-hide-level))))
-
-    (defun hs-global-cycle ()
-      (interactive)
-      (pcase last-command
-        ('hs-global-cycle
-         (save-excursion (hs-show-all))
-         (setq this-command 'hs-global-show))
-        (_ (hs-hide-all))))    
-
-    :bind (:map python-mode-map
-                (("C-<tab>" . hs-cycle)
-                 ("S-C-<tab>" . hs-global-cycle)))
-    
-    :hook (python-mode . hs-minor-mode))
-#+end_src
-
-* Language server for Python
-
-* Notes
-
-Install language server before executing the following.
-lsp-ui-sideline to adjust lsp-ui behavior
-lsp-focus-frame to put cursor in documentation popup
-
-  (use-package python-mode
     :ensure nil
-    :hook (python-mode . lsp-deferred)
+    :after pythonic
+    :load-path "lisp"
     :custom
-      (python-shell-interpreter "python3")
-      (dap-python-executable "python3")
-      (dap-python-debugger 'debugpy)
+    (conda-anaconda-home my-anaconda-dir)
+    (conda-env-home-directory my-anaconda-dir)
+    (conda-message-on-environment-switch nil)
     :config
-      (require 'dap-python))
+    (conda-env-initialize-interactive-shells)
+    (conda-env-initialize-eshell)
+    (conda-env-autoactivate-mode 0)
+    (add-hook 'find-file-hook
+              (lambda ()
+                (when (bound-and-true-p conda-project-env-path)
+                  (conda-env-activate-for-buffer)))))
+#+end_src
 
-  (defun my-lsp-mode-setup ()
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-    (lsp-headerline-breadcrumb-mode))
+#+begin_src emacs-lisp
+  (defun my-conda-postactivate ()
+    (message "--- in conda-postactivate hook")
+    (message "--- current-buffer is %s" (current-buffer))
+    (message "--- conda-env-current-name is '%s'" conda-env-current-name)
+    (message "--- conda-env-current-path is '%s'" conda-env-current-path)
+    (if (bound-and-true-p conda-project-env-path)
+        (message "--- conda-project-env-path is '%s'" conda-project-env-path)
+      (message "--- conda-project-env-path is not bound")))
+  (defun my-conda-postdeactivate ()
+    (message "--- in conda-postdeactivate hook")
+    (message "--- current-buffer is %s" (current-buffer))
+    (message "--- conda-env-current-name is '%s'" conda-env-current-name)
+    (message "--- conda-env-current-path is '%s'" conda-env-current-path)
+    (if (bound-and-true-p conda-project-env-path)
+        (message "--- conda-project-env-path is '%s'" conda-project-env-path)
+      (message "--- conda-project-env-path is not bound")))
+#+end_src
 
-  (use-package lsp-mode
-    :commands (lsp lsp-deferred)
-    :hook (lsp-mode . my-lsp-mode-setup)
+Configuration from [[https://www.reddit.com/r/emacs/comments/n1gkkk/doom_emacs_pyright_lsp_conda/][Doom Emacs + Pyright + LSP + Conda]].
+#+begin_src emacs-lisp :tangle no
+  (use-package lsp-pyright
+    :ensure t
+    :after (python lsp-mode conda)
+    :hook ((python-mode . (lambda () (require 'lsp-pyright)))
+           (python-mode . lsp))
+    ;; :custom
+    ;; (lsp-pyright-venv-path (getenv "VIRTUAL_ENV"))
+    :config
+    ;; these hooks can't go in the :hook section since
+    ;; lsp-restart-workspace is not available if lsp isn't active
+    (add-hook 'conda-postactivate-hook (lambda () (lsp-restart-workspace)))
+    (add-hook 'conda-postactivate-hook #'my-conda-postactivate)
+    (add-hook 'conda-postdeactivate-hook (lambda () (lsp-restart-workspace)))
+    (add-hook 'conda-postdeactivate-hook #'my-conda-postactivate))
+#+end_src
+
+Tell =lsp-pyright= about conda environments, from [[https://github.com/emacs-lsp/lsp-pyright/issues/52][here]].
+#+begin_src emacs-lisp :tangle no
+  (with-eval-after-load 'conda
+    (with-eval-after-load 'lsp-pyright
+      (progn
+        (defun autoenv-for-lsp-pyright ()
+          (let* ((env-name (conda--infer-env-from-buffer))
+                 (env-path (concat conda-env-home-directory "/envs/" env-name)))
+            (setq-local lsp-pyright-venv-path env-path)
+            (setq-local mode-line-process (concat "(" env-name ")"))
+            (message "setting lsp-pyright-venv-path to %s" env-path))
+          )
+        (push 'autoenv-for-lsp-pyright python-mode-hook)
+        )))
+#+end_src
+
+* Testing
+
+** Pytest
+
+My own modified version of the pytest package. The original doesn't work well
+on Windows.
+#+begin_src emacs-lisp
+  (use-package pytest
+    :ensure nil
+    :demand
+    :load-path "lisp"
+    :custom
+    (pytest-global-name "pytest")
+    (pytest-cmd-flags "-x -s --disable-warnings")
+    (pytest-enable-minor-mode t)
+    :bind (:map python-mode-map
+                ("C-c a" . pytest-all)
+                ("C-c m" . pytest-module)
+                ("C-c d" . pytest-directory)
+                ("C-c o" . pytest-one))
     :init
-    (setq lsp-keymap-prefix "C-c l")
+    (defun my-pytest-all (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-all)
+        (call-interactively #'pytest-all)))
+    (defun my-pytest-directory (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-directory)
+        (call-interactively #'pytest-directory)))
+    (defun my-pytest-module (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-module)
+        (call-interactively #'pytest-module)))
+    (defun my-pytest-one (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-one)
+        (call-interactively #'pytest-one))))
+#+end_src
+
+** Find monitor and frame attributes
+
+#+begin_src emacs-lisp
+  (defun names= (alist1 alist2)
+    "Test whether the `name' attribute of ALIST1 is the same as the
+  `name' attribute of ALIST2."
+    (string= (alist-get 'name alist1) (alist-get 'name alist2)))
+#+end_src
+
+Find the attributes of a second monitor, if it exists.
+#+begin_src emacs-lisp
+  (defun my-other-monitor-attributes ()
+    "Return the attributes of a monitor other than the one displaying
+  the selected frame. If there is only one monitor, return that
+  monitor's attributes."
+    (let ((attrs
+           (car (seq-filter
+                 (lambda (attrs) (not (names= (frame-monitor-attributes) attrs)))
+                 (display-monitor-attributes-list)))))
+      (or attrs (frame-monitor-attributes))))
+
+  (defun my-other-monitor-attribute (key)
+    "Return monitor atttribute indexed by KEY on the other monitor."
+    (alist-get key (my-other-monitor-attributes)))
+#+end_src
+
+Frame predicate for ~display-buffer-use-some-frame~. Returns `t' iff the
+frame contains one or more buffers with name matching a regexp.
+#+begin_src emacs-lisp
+  (defun my-pytest-frame-p (frame &optional name-rx)
+    "Test whether FRAME has a buffer with name matching NAME-RX,
+  whether or not that buffer is visible or buried. If NAME-RX is
+  not specified or nil, use '\\*pytest'."
+    (let ((regexp (or name-rx "\\*pytest"))
+          (visible-names (mapcar #'buffer-name (frame-parameter frame 'buffer-list)))
+          (buried-names (mapcar #'buffer-name (frame-parameter frame 'buried-buffer-list))))
+      (cl-some
+       (apply-partially #'string-match-p regexp)
+       (append visible-names buried-names))))
+#+end_src
+
+Filter all frames in a particular monitor.
+#+begin_src emacs-lisp
+  (defun my-pytest-filter-frames (monitor-attrs &optional name-rx)
+    "Filter the `frames' attribute of MONITOR-ATTRS using the
+  predicate `my-pytest-frame-p'. Returns a copy of MONITOR-ATTRS
+  with a new `frames' attribute."
+    (let ((filter-fn))
+      (if name-rx
+          (setf filter-fn (lambda (frame) (my-pytest-frame-p frame name-rx)))
+        (setf filter-fn #'my-pytest-frame-p))
+      (let ((filtered-frames
+             (seq-filter
+              filter-fn
+              (alist-get 'frames monitor-attrs))))
+        (alist-modify monitor-attrs 'frames filtered-frames))))
+#+end_src
+
+Return the first frame found on a monitor that contains a buffer with
+matching name.
+#+begin_src emacs-lisp
+  (defun my-pytest-get-frame (&optional monitor-attrs name-rx)
+    "Return the first frame in MONITOR-ATTRS found that contains a
+  buffer matching NAME-RX. If MONITOR-ATTRS is nil, use the monitor
+  attributes of the monitor other than the one currently in use."
+    (let* ((attrs (or monitor-attrs (my-other-monitor-attributes)))
+           (matches (my-pytest-filter-frames attrs name-rx)))
+      (car (alist-get 'frames matches))))
+#+end_src
+
+** Modify =popper='s display function
+
+#+begin_src emacs-lisp
+    (defun my-pytest-popper-display-frame (buffer &optional alist)
+      ""
+      (let* ((pytest-frame (or
+                            (my-pytest-get-frame (my-other-monitor-attributes))
+                            (car (my-other-monitor-attribute 'frames))
+                            ;; (my-pytest-get-frame (frame-monitor-attributes))
+                            (make-frame-on-monitor
+                             (my-other-monitor-attribute 'name)
+                             nil
+                             '((user-position . t)
+                               (top . 157)
+                               (left . 1089)
+                               (width . 111)
+                               (height . 69)))))
+             (my-alist '((inhibit-same-window . nil)
+                         (inhibit-switch-frame . nil)
+                         (reusable-frames . pytest-frame))))
+        (display-buffer-use-some-frame buffer my-alist)
+        (select-window (get-buffer-window buffer pytest-frame))))
+#+end_src
+
+Make =popper= display *pytest* buffers using my own display function.
+#+begin_src emacs-lisp
+  (defun my-popper-select-popup-at-bottom (buffer &optional alist)
+    "Display and switch to popup-buffer BUFFER at the bottom of the screen,
+  unless BUFFER is named '*pytest*'."
+    (if (string-match-p "\\*pytest\\*" (buffer-name buffer))
+        (my-pytest-popper-display-frame buffer alist)
+      (popper-select-popup-at-bottom buffer alist)))
+#+end_src
+
+Set the =popper= display function.
+#+begin_src emacs-lisp
+  (popper-mode -1)
+  (setq popper-display-function #'my-popper-select-popup-at-bottom)
+  (popper-mode +1)
+#+end_src
+
+** Junkyard
+
+From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
+#+begin_src emacs-lisp :tangle no
+  (defun push-buffer-to-frame ()
+    "push current window buffer to own frame and revert current window to previous frame."
+    (interactive)
+    (let ((current (current-buffer))
+          (selected (selected-window)))
+      (if (display-buffer-other-frame current)
+          (quit-restore-window selected))))
+#+end_src
+
+From [[https://emacs.stackexchange.com/questions/60558/controlling-behaviour-of-compilation-window-creation][Controlling behavior of compilation window creation]].
+#+begin_src emacs-lisp :tangle no
+(setq display-buffer-alist
+      `((,(rx bos
+              (| (literal "*compilation")
+                 (literal "*shell")
+                 (literal "*eshell")
+                 (literal "*Compile-Log")))
+         display-buffer-in-direction
+         (window .                      ;reference window
+                 t) ;either `t' (selected window), `main', `root', or an arbitrary valid window
+         (direction .
+                    below)              ;`below' (window) or `bottom' (of frame)
+         (window-height . 0.33)          ;absolute (10) or relative (0.3)
+         )))
+#+end_src
+
+Predicates for matching frame and monitor names.
+#+begin_src emacs-lisp :tangle no
+  (defun my-pytest-frame-p (name-regexp &optional frame)
+    "Test whether FRAME has name matching NAME-REGEXP."
+    (let ((params (frame-parameters frame)))
+      (string-match-p name-regexp (alist-get 'name params))))
+
+  (defun my-pytest-monitor-p (name-regexp monitor-attrs)
+    "Test whether MONITOR-ATTRS has name matching NAME-REGEXP."
+    (string-match-p name-regexp (alist-get 'name monitor-attrs)))
+#+end_src
+
+Finds matching monitor attributes alists.
+#+begin_src emacs-lisp :tangle no
+  (defun my-find-monitor-attributes-by-name (name-regexp)
+    "Return the first set of monitor attributes found with name
+  matching NAME-REGEXP. If NAME-REGEXP is blank or nil, return nil."
+    (if (or (not name-regexp) (string-blank-p name-regexp))
+        nil
+      (car (seq-filter
+            (apply-partially #'my-pytest-monitor-p name-regexp)
+            (display-monitor-attributes-list)))))
+#+end_src
+
+Removes non-matching frames from a monitor attributes alist.
+#+begin_src emacs-lisp :tangle no
+  (defun my-filter-frames-by-name (monitor-attrs frame-name-regexp)
+    "Returns a modified monitor attributes alist with frames having
+  names matching FRAME-NAME-REGEXP. All other frames are removed
+  from `frames' list. MONITOR-ATTRS is the original monitor
+  attributes alist."
+    (let ((filtered-frames
+           (seq-filter
+            (apply-partially #'my-pytest-frame-p frame-name-regexp)
+            (alist-get 'frames monitor-attrs))))
+      (alist-modify monitor-attrs 'frames filtered-frames)))
+#+end_src
+
+Removes non-matching frames from all monitor attributes alists.
+#+begin_src emacs-lisp :tangle no
+  (defun my-filter-all-frames-by-name (frame-name-regexp)
+    "Return a list of monitor attribute alists with all frames having
+  names not matching FRAME-NAME-REGEXP removed."
+    (mapcar
+     (apply-partially #'my-filter-frames-by-name frame-name-regexp)
+     (display-monitor-attributes-list)))
+#+end_src
+
+A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-python-pytest][python-pytest]]).
+#+begin_src emacs-lisp :tangle no
+  (use-package python-pytest
+    :disabled
+    :ensure t)
+#+end_src
+
+** Jupyter
+
+Note: The package =emacs-jupyter= is [[https://github.com/nnicandro/emacs-jupyter][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package jupyter
+    :after (ob-jupyter ob-python)
     :config
-    (lsp-enable-which-key-integration t))
-
-  (use-package lsp-ui
-    :hook (lsp-mode . lsp-ui-mode)
-    :custom
-    (lsp-ui-doc-position 'bottom))
-
-  (use-package lsp-treemacs
-      :after lsp)
-
-  (use-package lsp-ivy)
-
-  (use-package which-key)
-
-(use-package typescript-mode
-    :mode "\\.ts\\'"
-    :hook (typescript-mode . lsp-deferred)
-    :config
-    (setq typescript-indent-level 2))
-
-Completion (emacs completion-at-point with ivy, perhaps)
-Gives automatic completion menu
-Signature help (eldoc?, ivy?)
-
-(use-package company
-      :after lsp-mode
-      :hook (lsp-mode . company-mode)
-      :bind (:map company-active-map
-                  ("<tab>" . company-complete-selection))
-            (:map lsp-mode-map
-                  ("<tab>" . company-indent-or-complete-common))
-      :custom
-      (company-minimum-prefix-length 1)
-      (company-idle-delay 0.0))
-
-    (use-package company-box
-      :hook (company-mode . company-box-mode))
-
+    (setq jupyter-api-authentication-method 'password)
+    (setq jupyter-eval-use-overlays nil)
+    (setq org-babel-default-header-args:jupyter-python '((:session . "/jpy:localhost#8888:py")
+                                                         (:kernel . "conda-env-edge-py")
+                                                         (:async . "yes")
+                                                         (:pandoc t)))
+    (add-to-list 'savehist-additional-variables 'jupyter-server-kernel-names)
+    (setq ob-async-no-async-languages-alist '("jupyter-python"))
+    (add-to-list 'org-structure-template-alist '("j" . "src jupyter-python")))
+#+end_src

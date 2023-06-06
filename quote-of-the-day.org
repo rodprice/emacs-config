@@ -266,7 +266,8 @@ From [[https://www.inc.com/glenn-leibowitz/50-quotes-from-famous-authors-that-wi
           (quotes-alist (or quotes-alist quotes-of-the-day-alist))
           (day (calendar-day-of-week (calendar-current-date))))
       (insert-random-quote (cdr (nth day quotes-alist)))
-      (goto-char (point-max))))
+      (goto-char (point-max))
+      (message "--- inserted qotd; point at %d" (point))))
 #+end_src
 
 #+begin_src emacs-lisp

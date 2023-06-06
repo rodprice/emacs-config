@@ -4,9 +4,9 @@
 
 
 (add-to-list 'load-path (expand-file-name "lisp/" user-emacs-directory))
-(add-to-list 'load-path (expand-file-name "mode/" user-emacs-directory))
+;; (add-to-list 'load-path (expand-file-name "mode/" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "site/" user-emacs-directory))
-(add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
+;; (add-to-list 'load-path (expand-file-name "pkgs/" user-emacs-directory))
 
 ;; Load the site-specific preload file.
 (load (concat (car (split-string (system-name) "\\.")) "-preload") 'noerror)
@@ -87,14 +87,18 @@
 
 ;; Load the various settings files
 (require 'my-functions)
-(org-babel-load-file (expand-file-name "~/.emacs.d/settings.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-markup.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-internet.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-completion.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-programming.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-elisp.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-cpp.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-javascript.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-julia.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
 ;; (org-babel-jupyter-override-src-block 'python)
-;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-minimal.org"))
-;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-theme.org"))
-;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-global.org"))
-;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-org-mode.org"))
-;; (org-babel-load-file (expand-file-name "~/.emacs.d/settings-python.org"))
 
 ;; Load the site-specific postload file
 (load (concat (car (split-string (system-name) "\\.")) "-postload") 'noerror)

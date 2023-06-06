@@ -1,0 +1,163 @@
+#+TITLE: Emacs configuration for internet access
+#+STARTUP: overview indent
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-internet")
+#+end_src
+
+This configuration requires packages
+
+  - engine-mode
+
+External programs that should be on =exec-path= are
+
+  - PuTTY (Tramp, Windows)
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+* Tramp
+
+Note: A possibly useful blog post: [[https://www.eigenbahn.com/2020/07/08/painless-emacs-remote-shells][Painless Emacs remote shells]].
+
+From [[https://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82bhttps://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82b][init-tramp-plink.el]]
+#+begin_src emacs-lisp
+  (require 'tramp)
+  (modify-coding-system-alist 'process "plink" 'utf-8-unix)
+  (setq tramp-default-method "plink"
+        tramp-completion-without-shell-p t
+        tramp-verbose 10
+        tramp-debug-buffer t)
+
+  ;; (let ((path (getenv "PATH"))
+  ;;       (plink (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)"))))
+  ;;   (setenv "PATH" (concat plink path-separator path)))
+
+  ;; ;; (add-to-list 'exec-path "C:/Program Files (x86)/PuTTY/")
+  ;; (add-to-list 'exec-path (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)")))
+#+end_src
+
+Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers][Consult wiki]]
+#+begin_src emacs-lisp
+  (defun consult-buffer-state-no-tramp ()
+    "Buffer state function that doesn't preview Tramp buffers."
+    (let ((orig-state (consult--buffer-state))
+          (filter (lambda (action cand)
+                    (if (and cand
+                             (or (eq action 'return)
+                                 (let ((buffer (get-buffer cand)))
+                                   (and buffer
+                                        (not (file-remote-p
+                                              (buffer-local-value 'default-directory buffer)))))))
+                        cand
+                      nil))))
+      (lambda (action cand)
+        (funcall orig-state action (funcall filter action cand)))))
+
+  ;; (setq consult--source-buffer
+  ;;       (plist-put consult--source-buffer :state #'consult-buffer-state-no-tramp))
+#+end_src
+
+From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
+#+begin_src emacs-lisp
+    ;; (when (eq window-system 'w32)
+    ;;   (setq tramp-default-method "plink")
+    ;;   (when (and (not (string-match my-putty-directory (getenv "PATH")))
+    ;; 	     (file-directory-p my-putty-directory))
+    ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
+    ;;     (add-to-list 'exec-path my-putty-directory)))
+#+end_src
+
+* Docker
+
+Notes: Run Emacs from inside Docker; instructions [[https://github.com/JAremko/docker-emacs][here]]. Someone else
+is running what he says is an Emacs Python IDE using Docker, [[https://rebeja.eu/posts/python-ide-with-emacs-and-docker/][here]]. Yet
+another way to run Docker, a Python script called [[https://github.com/jkitchin/devcontainer][devcontainer]].
+
+Emacs Docker package [[https://github.com/Silex/docker.el][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package docker
+    :ensure t)
+#+end_src
+
+* Mastodon
+
+From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mastodon][here]].
+#+begin_src emacs-lisp
+#+end_src
+
+* Search engines
+
+Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
+#+begin_src emacs-lisp
+  (use-package engine-mode
+    :ensure t
+    :bind-keymap ("C-c s" . engine-mode-prefixed-map)
+    :config
+    (defengine google
+               "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+               :keybinding "g")
+    (defengine wikipedia
+               "https://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+               :keybinding "w")
+    (defengine stack-overflow
+               "https://stackoverflow.com/search?q=%s"
+               :keybinding "s")
+    (defengine emacs-stack-exchange
+               "https://emacs.stackexchange.com/search?q=%s"
+               :keybinding "e")
+    (defengine python-stack-exchange
+               "https://python.stackexchange.com/search?q=%s"
+               :keybinding "p")
+    (defengine github
+               "https://github.com/search?ref=simplesearch&q=%s"
+               :keybinding "h")
+    (defengine wolfram-alpha
+               "https://www.wolframalpha.com/input/?i=%s"
+               :keybinding "a")
+    (engine-mode t))
+#+end_src
+
+* Chat GPT
+
+See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping Secrets in Emacs]].
+This package can be found on [[https://github.com/xenodium/chatgpt-shell][Github]].
+#+begin_src emacs-lisp
+  (use-package chatgpt-shell
+    :ensure nil
+    :load-path "mode"
+    :custom
+    (auth-sources
+     '((:source "~/.emacs.d/secrets/.authinfo.gpg")))
+    (chatgpt-shell-openai-key
+     (lambda ()
+       (auth-source-pick-first-password :host "api.openai.com"))))
+#+end_src
+
+* Notes
+
+Compiling Emacs 29 on Windows with Msys2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]].
+
+The psychology of bad habits, [[https://iai.tv/video/the-psychology-of-bad-habits-susan-michie][here]].
+
+Look for the section "space as control key" in this guy's [[https://github.com/svend/dot-emacsd][config]].
+Might be a way to circumvent browser's nasty habit of stealing key
+strokes. Also, see "custom hook for all major modes":
+#+begin_src emacs-lisp :tangle no
+(defun my/run-local-vars-mode-hook ()
+  "Run a hook for the `major-mode` after the local variables have been processed."
+  (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
+(add-hook 'hack-local-variables-hook 'my/run-local-vars-mode-hook)
+#+end_src
+
+Make your blog look like the [[https://github.com/moble/www_black-holes_org][black-holes.org]] website.
+
+Installing Doom Emacs through =git-bash=, [[https://earvingad.github.io/posts/doom_emacs_windows/][here]].
+
+Really irritating name, [[https://github.com/p3r7/awesome-elisp][Awesome Elisp]], but a useful cookbook guide.
+
+Reproducible research and other things through [[https://github.com/jkitchin/scimax][Scimax]]. Python code
+from the same author to work with org-mode, etc, called [[https://github.com/jkitchin/pycse][pycse]].

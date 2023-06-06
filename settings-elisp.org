@@ -1,0 +1,39 @@
+#+TITLE: Emacs configuration for Emacs Lisp
+#+STARTUP: overview indent
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-elisp")
+#+end_src
+
+This configuration requires packages
+
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+* Code folding
+
+#+begin_src emacs-lisp
+  (add-hook 'emacs-lisp-mode-hook #'origami-mode)
+  (add-hook 'origami-mode-hook #'my-add-origami-emacs-lisp-parser)
+#+end_src
+
+Include emacs Common Lisp extensions.
+#+begin_src emacs-lisp
+  (defun my-origami-elisp-parser (create)
+    (origami-lisp-parser
+     create
+     "(\\(cl-def\\|def\\)\\w*\\s-*\\(\\s_\\|\\w\\|[:?!]\\)*\\([ \\t]*(.*?)\\)?"))
+
+  (defun my-add-origami-emacs-lisp-parser ()
+    "Replace the origami elisp parser to handle `cl-defmethod', etc."
+    (alist-pop origami-parser-alist 'emacs-lisp-mode)
+    (push '(emacs-lisp-mode . my-origami-elisp-parser) origami-parser-alist)
+    (alist-pop origami-parser-alist 'lisp-interaction-mode)
+    (push '(lisp-interaction-mode . my-origami-elisp-parser) origami-parser-alist))
+#+end_src

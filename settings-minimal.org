@@ -1,65 +1,178 @@
-#+TITLE: Minimal Emacs Configuration
+#+TITLE: Minimal Emacs configuration
 #+STARTUP: overview indent
 
-* Character encodings
-   
-   Character encodings default to utf-8.
-   #+begin_src emacs-lisp
-     (prefer-coding-system 'utf-8)
-     (set-language-environment 'utf-8)
-     (set-default-coding-systems 'utf-8)
-     (set-terminal-coding-system 'utf-8)
-     (set-selection-coding-system 'utf-8)
-   #+end_src
-   
-* Tabs
-   
-   Always insert spaces, never tab characters.
-   #+begin_src emacs-lisp
-     (setq-default indent-tabs-mode nil)
-   #+end_src
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-minimal")
+#+end_src
 
-* Clipboard
-   
+This configuration requires packages
+
+  - expand-region
+  - gnupg
+  - mwim
+  - popper
+  - vscode-dark-plus-theme
+  - which-key
+  - whole-line-or-region
+
+* Defaults
+
+#+begin_src emacs-lisp
+(message "starting defaults")
+#+end_src
+
+** Text
+
+Character encodings default to utf-8.
+#+begin_src emacs-lisp
+  (prefer-coding-system 'utf-8)
+  (set-language-environment 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+#+end_src
+
+See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
+#+begin_src emacs-lisp
+  (setenv "LANG" "en_US.UTF-8")
+  (setenv "LC_ALL" "en_US.UTF-8")
+  (setenv "LC_CTYPE" "en_US.UTF-8")
+#+end_src
+
+Sentences end with a single space.
+#+begin_src emacs-lisp
+  (setq sentence-end-double-space nil)
+#+end_src
+
+Always insert spaces, never tab characters.
+#+begin_src emacs-lisp
+   (setq-default indent-tabs-mode nil)
+#+end_src
+
+Truncate long lines everywhere.
+#+begin_src emacs-lisp
+  (global-visual-line-mode 0)
+  (setq-default truncate-lines t)
+#+end_src
+
+Delete trailing whitespace before save.
+#+begin_src emacs-lisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (setq require-final-newline t)
+#+end_src
+
+Highlight current line.
+#+begin_src emacs-lisp
+  (global-hl-line-mode t)
+#+end_src
+
+** Clipboard
+
    Use the system clipboard.
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
      (setq select-enable-clipboard t
            select-enable-primary t
            save-interprogram-paste-before-kill t
            mouse-yank-at-point t)
-   #+end_src
-   
-* File locations
-   
-   Make emacs open files in a reasonable directory by default.
-   #+begin_src emacs-lisp
-     (setq default-directory (getenv "HOME"))
-   #+end_src
-   
-   [[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
-   #+begin_src emacs-lisp
-     (setq delete-old-versions t
-           kept-new-versions 2
-           kept-old-versions 2
-           version-control t)
-   #+end_src
-   
-   File locations for custom settings.
-   #+begin_src emacs-lisp
-     (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-     (unless (file-exists-p custom-file)
-       (custom-save-all))                   ; Create new, empty custom file
-     (load custom-file)
-     (require 'saveplace)
-     (setq save-place-file (concat user-emacs-directory "places")
-           backup-directory-alist `(("." . ,(concat user-emacs-directory
-                                                    "backups"))))
-   #+end_src
+#+end_src
+
+** File locations
+
+Make emacs open files in a reasonable directory by default.
+#+begin_src emacs-lisp
+  (setq default-directory (getenv "HOME"))
+#+end_src
+
+[[http://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Backup file configuration]].
+#+begin_src emacs-lisp
+  (setq delete-old-versions t
+        kept-new-versions 2
+        kept-old-versions 2
+        version-control t)
+#+end_src
+
+File locations for custom settings.
+#+begin_src emacs-lisp
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+  (unless (file-exists-p custom-file)
+    (custom-save-all))                   ; Create new, empty custom file
+  (load custom-file)
+#+end_src
+
+File location for saving cursor state.
+#+begin_src emacs-lisp
+  (require 'saveplace)
+  (setq save-place-file (concat user-emacs-directory "places")
+        backup-directory-alist `(("." . ,(concat user-emacs-directory
+                                                 "backups"))))
+#+end_src
+
+Info directory locations. On Windows, for no apparent reason, the
+Emacs manual and all the other defaults vanished from the top-level
+info node. This puts the defaults back in.
+#+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+    (use-package info
+      :commands Info-default-dirs
+      :init
+      (dolist (dir (Info-default-dirs))
+        (when (file-directory-p dir)
+          (add-to-list 'Info-directory-list dir t)))))
+#+end_src
+
+** Buffer defaults
+
+Add options to kill or revert buffer when prompted to save a buffer.
+From this [[https://github.com/svend/dot-emacsd][config]].
+#+begin_src emacs-lisp
+  (add-to-list
+   'save-some-buffers-action-alist
+   '(?k
+     (lambda (buf)
+       (kill-buffer buf))
+     "kill this buffer"))
+  (add-to-list
+   'save-some-buffers-action-alist
+   '(?r
+     (lambda (buf)
+       (save-current-buffer
+         (set-buffer buf)
+         (revert-buffer t t t)))
+     "revert this buffer"))
+#+end_src
+
+** Time zones
+
+Set time zones displayed by =world-clock=. A list of time zones is [[https://timezonedb.com/time-zones][here]].
+Another list, with legacy abbreviations, is [[https://en.wikipedia.org/wiki/List_of_tz_database_time_zones][here]]. Windows requires
+the legacy Posix format, while Linux, etc. use the zoneinfo format.
+
+#+begin_src emacs-lisp
+  (if (eq system-type 'windows-nt)
+      (setq legacy-style-world-list
+            '(("UTC0" "UTC")
+              ("MST7MDT" "Denver")         ;; UTC-06:00
+              ("EST5EDT" "Fairfax")        ;; UTC-04:00
+              ("GMT0BST" "London")))       ;; UTC+01:00
+    (setq world-clock-list
+          '(("UTC0" "UTC")
+            ("America/Denver" "Denver")    ;; UTC-06:00
+            ("America/New_York" "Fairfax") ;; UTC-04:00
+            ("Europe/London" "London"))))  ;; UTC+01:00
+#+end_src
 
 * GUI elements
 
-   Keep menu bar, drop toolbar and scroll bars.
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
+(message "starting gui elements")
+#+end_src
+
+** Menu bar, tool bar, scroll bars
+
+Keep menu bar, drop toolbar and scroll bars.
+#+begin_src emacs-lisp
      (setq inhibit-startup-message t)
      ;;  (menu-bar-mode -1)
      (when (fboundp 'tool-bar-mode)
@@ -69,306 +182,508 @@
      (when (fboundp 'horizontal-scroll-bar-mode)
        (horizontal-scroll-bar-mode -1))
      (setq visible-bell t)
-   #+end_src
+#+end_src
 
-   Show line numbers on the left.
-   #+begin_src emacs-lisp
+Show line numbers on the left.
+#+begin_src emacs-lisp
      (if (>= emacs-major-version 29)
          (global-display-line-numbers-mode 1)
        (global-linum-mode t))
-   #+end_src
+#+end_src
 
-   #+begin_src emacs-lisp
+Smooth scrolling
+#+begin_src emacs-lisp
+  (pixel-scroll-mode)
+#+end_src
+
+#+begin_src emacs-lisp
      ;; (require 'paren)
      ;; (setq show-paren-style 'parenthesis)
      ;; (show-paren-mode 1)
-   #+end_src
+#+end_src
 
-   Display buffer name in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
-   #+begin_src emacs-lisp
+** Frame titles
 
-       (defun my-emacs-version ()
-         "Returns a shortened Emacs name and version string."
-         (let ((ls (split-string (emacs-version) " ")))
-           (substring
-            (format "%s" `(,(car ls) ,(cadr ls) ,(caddr ls)))
-            1
-            -1)))
+Display buffer information in frame titles. ([[https://github.com/malb/emacs.d/blob/master/malb.org#frame-title][source]])
+#+begin_src emacs-lisp
+  (defun my-emacs-version ()
+    "Returns a shortened Emacs name and version string."
+    (let ((ls (split-string (emacs-version) " ")))
+      (substring
+       (format "%s" `(,(car ls) ,(cadr ls) ,(caddr ls)))
+       1
+       -1)))
 
-       (defun my-conda-env-current-name ()
-         "Returns the name of the current conda environment."
-         (if (bound-and-true-p conda-env-current-name)
-             (concat " - Conda: " conda-env-current-name)
-           ""))
+  (defun my-conda-env-current-name ()
+    "Returns the name of the current conda environment."
+    (if (bound-and-true-p conda-env-current-name)
+        (concat " - Conda: " conda-env-current-name)
+      ""))
 
-       (defun my-git-branch-name ()
-         "Returns the name of the current git branch."
-         (if vc-mode
-             (concat " -" (substring-no-properties vc-mode))
-           ""))
+  (defun my-git-branch-name ()
+    "Returns the name of the current git branch."
+    (if vc-mode
+        (concat " -" (substring-no-properties vc-mode))
+      ""))
 
-       (setq frame-title-format
-             '(""
-               (:eval (replace-regexp-in-string "^ +" "" (my-emacs-version)))
-               (:eval (my-conda-env-current-name))
-               (:eval (my-git-branch-name))))
-   #+end_src
-   
-* Mode line
-   
-   #+begin_src emacs-lisp
+  (defun my-project-name ()
+    "Returns the name of the current project."
+    (if (not (featurep 'project))
+        ""
+      (let ((project (project-current)))
+        (if (null project)
+            ""
+          (format " - Project: %s" (project-name project))))))
+
+  (setq frame-title-format
+        '(""
+          (:eval (replace-regexp-in-string "^ +" "" (my-emacs-version)))
+          ;; (:eval (my-conda-env-current-name))
+          (:eval (my-project-name))))
+#+end_src
+
+** Mode line
+
+#+begin_src emacs-lisp
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
      ;; Display the column number in the mode line
      (setq column-number-mode t)
-   #+end_src
+#+end_src
 
-* IDO mode
+#+begin_src emacs-lisp
+  (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
 
-   #+begin_src emacs-lisp
-     (require 'ido)
-     (ido-mode t)
-     (setq ido-enable-flex-matching t
-           ido-auto-merge-work-directories-length -1
-           ;; Control the window in which Emacs visits a new file
-           ido-default-file-method 'selected-window
-           ;; Don't pop up window of completions
-           ido-cannot-complete-command 'ido-next-match)
-   #+end_src
+** Visual bell
 
-* Help and Info files
+Use visual bell.
+#+begin_src emacs-lisp
+  (setq visual-bell t)
+#+end_src
 
-  See [[See https://www.gnu.org/software/emacs/manual/html_node/efaq/Installing-Texinfo-documentation.html][Installing TeXinfo documents]].
-  #+begin_src emacs-lisp
-    ;; When opening a help window, always select the new help window
-    (setq help-window-select t)
-    (require 'info)
-    (info-initialize)                      ; populate Info-directory-list
-    (require 'apropos)
-    (setq apropos-do-all t)                ; apropos searches more extensively
-  #+end_src
+Don't ring the bell for these common events.
+#+begin_src emacs-lisp
+  (setq ring-bell-function
+        (lambda ()
+          (unless
+              (memq this-command
+                    '(abort-recursive-edit
+                      isearch-abort
+                      isearch-printing-char
+                      keyboard-quit
+                      nil))
+            (ding))))
+#+end_src
 
-* Grepping
+* Fonts
 
-   Put the cursor in the results window after a grep.
-   #+begin_src emacs-lisp
-     (defun my-other-other-window (&rest r)
-       (message "Executing my-other-window after rgrep...")
-       (other-window 1))
-     (advice-add 'rgrep :after 'my-other-other-window)
-   #+end_src
+#+begin_src emacs-lisp
+(message "starting fonts")
+#+end_src
 
-* Key bindings
-** Prerequisites
+** Set the default font
 
-  #+begin_src emacs-lisp
-    (require 'my-functions)
-  #+end_src
+#+begin_src emacs-lisp
+    (defun my-font-in-family-p (font-family)
+      "True iff the current frame's font is in font-family."
+      (let ((font-name (cdr (assoc 'font default-frame-alist))))
+        (string-prefix-p (downcase font-family) (downcase font-name))))
+#+end_src
 
-** Completions
+  The default font can also be set in the site-specific preload file.
+#+begin_src emacs-lisp
+    (unless (boundp 'my-default-font)
+      (defvar my-default-font "Fira Code-11"))
+    (add-to-list 'default-frame-alist `(font . ,my-default-font))
+    (set-face-font 'default my-default-font)
+#+end_src
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "M-/") 'hippie-expand)
-  #+end_src
+** Use ligatures if available
 
-** Switch buffers
+#+begin_src emacs-lisp :tangle no
+    (use-package ligature
+      :if (or (my-font-in-family-p "Fira Code")
+              (my-font-in-family-p "JuliaMono"))
+      :ensure t
+      :config
+      ;; JuliaMono (https://juliamono.netlify.app/) supports the following small set of ligatures
+      (if (my-font-in-family-p "JuliaMono")
+          (let ((ligs '("->" "=>" "|>" "<|" "::" "<--" "-->" "<-->")))
+            (ligature-set-ligatures 'prog-mode ligs)
+            (ligature-set-ligatures 'org-mode ligs)))
+      (if (my-font-in-family-p "Fira Code")
+          (progn
+            (require 'fira-code-mode)
+            (ligature-set-ligatures 'prog-mode fira-code-mode--ligatures)
+            (ligature-set-ligatures 'org-mode fira-code-mode--ligatures)))
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-x C-b") 'ibuffer)
-  #+end_src
-  
+      ;; Enables ligature checks globally in all buffers. You can also do it
+      ;; per mode with `ligature-mode'.
+      (global-ligature-mode t))
+#+end_src
+
+** Insert Greek letters, etc
+
+=prettify-symbols-mode= can render Greek letters, etc. Doing [[http://endlessparentheses.com/new-in-emacs-25-1-have-prettify-symbols-mode-reveal-the-symbol-at-point.html][this]]
+allows you to see the original text. See also [[http://endlessparentheses.com/using-prettify-symbols-in-clojure-and-elisp-without-breaking-indentation.html][here]] and [[http://endlessparentheses.com/improving-latex-equations-with-font-lock.html][here]].
+#+begin_src emacs-lisp :tangle no
+(setq prettify-symbols-unprettify-at-point 'right-edge)
+#+end_src
+
+* Themes
+
+#+begin_src emacs-lisp
+(message "starting themes")
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package vscode-dark-plus-theme
+    :ensure t
+    :config
+    (load-theme 'vscode-dark-plus t)
+    (setq face-remapping-alist
+          `((show-paren-match
+             . (:weight bold
+                :foreground "#ecbc9c"))
+            (show-paren-mismatch
+             . (:strike-through t
+                :foreground "#cc6666"))
+            (sp-show-pair-match-face
+             . (:weight bold
+                :foreground "#ecbc9c"))
+            (sp-show-pair-mismatch-face
+             . (:strike-through t
+                :foreground "#cc6666"))
+            (comint-highlight-input
+             . (:foreground "cornflower blue"
+                :weight normal))
+            (font-lock-function-name-face
+             . (:foreground "#4ec9b0"
+                :weight normal))
+            (font-lock-keyword-face
+             . (:foreground "cornflower blue"
+                :weight normal))
+            (font-lock-variable-name-face
+             . (:foreground "#f0c674"))
+            (lsp-face-highlight-read
+             . (:underline t
+                :background nil
+                :foreground nil))
+            (lsp-face-highlight-textual
+             . (:underline t
+                :background nil
+                :foreground nil))
+            (lsp-face-highlight-write
+             . (:underline t
+                :background nil
+                :foreground nil))
+            (lsp-ui-peek-highlight
+             . (:inherit nil
+                :background nil
+                :foreground nil
+                :weight semi-bold
+                :box (:line-width -1)))
+            (org-block
+             . (:extend t
+                :background "gray12"
+                :foreground "#e8e8e8"))
+            (org-block-begin-line
+             . (:extend t
+                :background "gray12"
+                :foreground "gray40"))
+            (org-tree-slide-heading-level-1
+             . (:height 1.8
+                :weight bold))
+            (org-tree-slide-heading-level-2
+             . (:height 1.5
+                :weight bold))
+            (org-tree-slide-heading-level-3
+             . (:height 1.5
+                :weight bold))
+            (org-tree-slide-heading-level-4
+             . (:height 1.5
+                :weight bold)))))
+#+end_src
+
+* Editing
+
+#+begin_src emacs-lisp
+(message "starting editing")
+#+end_src
+
 ** Search
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-s") 'isearch-forward-regexp)
-    (global-set-key (kbd "C-r") 'isearch-backward-regexp)
-    (global-set-key (kbd "C-M-s") 'isearch-forward)
-    (global-set-key (kbd "C-M-r") 'isearch-backward)
-    (global-set-key (kbd "C-c r") 'rgrep)
-  #+end_src
-  
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+  (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+  (global-set-key (kbd "C-M-s") 'isearch-forward)
+  (global-set-key (kbd "C-M-r") 'isearch-backward)
+  (global-set-key (kbd "C-c r") 'rgrep)
+#+end_src
+
 ** Line wrapping
 
-  #+begin_src emacs-lisp
-        (global-set-key (kbd "C-c q") 'auto-fill-mode)
-  #+end_src
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c q") 'auto-fill-mode)
+#+end_src
 
 ** Join, open, or transpose lines
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-;") 'my-insert-semicolon)
-    (global-set-key (kbd "M-j") 'my-join-lines)
-    (global-set-key (kbd "C-o") 'open-next-line)
-    (global-set-key (kbd "M-o") 'open-previous-line)
-    (global-set-key (kbd "C-t") 'transpose-next-line)
-    (global-set-key (kbd "M-t") 'transpose-previous-line)
-  #+end_src
-  
-** Cursor movement
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-;") 'my-insert-semicolon)
+  (global-set-key (kbd "M-j") 'my-join-lines)
+  (global-set-key (kbd "C-o") 'open-next-line)
+  (global-set-key (kbd "M-o") 'open-previous-line)
+  (global-set-key (kbd "C-t") 'transpose-next-line)
+  (global-set-key (kbd "M-t") 'transpose-previous-line)
+#+end_src
 
-  #+begin_src emacs-lisp
-    (use-package mwim
-      :ensure t
-      :bind
-      (("C-a" . mwim-beginning-of-line-or-code)
-       ("C-e" . mwim-end-of-line-or-code))
-      :pin melpa)
-  #+end_src
-  
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "<home>") 'mwim-beginning-of-line-or-code)
-    (global-set-key (kbd "<end>") 'mwim-end-of-line-or-code)
-    (global-set-key (kbd "M-<") 'scroll-row-up)
-    (global-set-key (kbd "M->") 'scroll-row-down)
-    (global-set-key (kbd "C-<") 'xah-backward-block)
-    (global-set-key (kbd "C->") 'xah-forward-block)
-    (global-set-key (kbd "M-<up>") 'scroll-row-up)
-    (global-set-key (kbd "M-<down>") 'scroll-row-down)
-  #+end_src
-
-*** Notes
-
-    smarter-move-beginning-of-line is from [[https://emacsredux.com/blog/2013/05/22/smarter-navigation-to-the-beginning-of-a-line/][here]].
-  
-** Window movement
-
-  #+begin_src emacs-lisp
-    ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
-  #+end_src
-  
-** Window and frame selection
-
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "C-x C-o") 'other-frame)
-  #+end_src
-  
 ** Camel case
 
-  #+begin_src emacs-lisp
-    (global-set-key (kbd "M-c") 'toggle-camelcase-underscores)
-  #+end_src
-  
-** Narrow or widen to the region
-
-  #+begin_src emacs-lisp
-    (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
-  #+end_src
-
-** Which Key package
-
-  Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org][Emacs from scratch]].
-  #+begin_src emacs-lisp
-
-    (use-package which-key
-      :defer 0
-      :diminish which-key-mode
-      :config
-      (which-key-mode)
-      (setq which-key-idle-delay 1))
-    
-  #+end_src
-
-** Unfill package
-
 #+begin_src emacs-lisp
-    (use-package unfill
-      :ensure t
-      :bind (("M-q" . unfill-toggle)))
+  (global-set-key (kbd "M-c") 'toggle-camelcase-underscores)
 #+end_src
 
-* Environment
+** Cursor movement
 
+Documentation is [[https://github.com/alezost/mwim.el][here]].
 #+begin_src emacs-lisp
-
-        (defun print-path-list (paths)
-          "Print the paths in a list of strings like exec-path."
-          (dolist (path paths)
-            (prin1 path)
-            (princ "\n")))
-
-        (defun print-path-string (path-str)
-          "Print the paths in a string like $PATH."
-          (let* ((separator (if (memq window-system '(mac ns x)) ":" ";"))
-                 (paths (split-string path-str separator)))
-            (print-path-list paths)))
-
-        (defun print-paths (paths)
-          "Print a set of paths, either a string or a list of strings."
-          (if (stringp paths)
-              (print-path-string paths)
-            (if (listp paths)
-                (print-path-list paths)
-              (princ "Argument `paths` is not a string or list of strings"))))
-
-#+end_src
-
-* Regions
-  
-  Kill or yank entire lines
-  #+begin_src emacs-lisp
-    (use-package whole-line-or-region
-      :ensure t
-      :bind (("C-w" . whole-line-or-region-kill-region)
-             ("M-w" . whole-line-or-region-copy-region-as-kill)))
-  #+end_src
-
-  Expand or contract the region by sexp
-  #+begin_src emacs-lisp
-    (use-package expand-region
-      :ensure t
-      :config
-      :bind (("C-=" . er/expand-region)
-             ("M-=" . er/contract-region)))
-  #+end_src
-
-* Packages
-
-** Org mode
-
-Appearance
-#+begin_src emacs-lisp
-  (use-package org-modern
+  (use-package mwim
     :ensure t
-    :hook ((org-mode . org-modern-mode)
-           (org-agenda-finalize . org-modern-agenda)))
-#+end_src
-  
-#+begin_src emacs-lisp
-  (eval-after-load 'org
-    (lambda ()
-      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))))
+    :bind
+    (("C-a" . mwim-beginning-of-code-or-line)
+     ("<home>" . mwim-beginning-of-code-or-line)
+     ("C-e" . mwim-end-of-code-or-line)
+     ("<end>" . mwim-end-of-code-or-line))
+    :pin melpa)
 #+end_src
 
-LaTeX
 #+begin_src emacs-lisp
-  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+  (global-set-key (kbd "M-<") 'scroll-row-up)
+  (global-set-key (kbd "M->") 'scroll-row-down)
+  (global-set-key (kbd "C-<") 'xah-backward-block)
+  (global-set-key (kbd "C->") 'xah-forward-block)
+  (global-set-key (kbd "M-<up>") 'scroll-row-up)
+  (global-set-key (kbd "M-<down>") 'scroll-row-down)
 #+end_src
 
-Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
+Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-mark-command.html][Faster pop-to-mark command]]). See also
+[[https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-mode][Fixing the mark commands in transient-mark-mode]].
 #+begin_src emacs-lisp
-  (use-package org-tufte
+  (advice-add 'pop-to-mark-command :around #'modi/multi-pop-to-mark)
+#+end_src
+
+** Parentheses
+
+#+begin_src emacs-lisp
+  (electric-pair-mode 1)
+#+end_src
+
+** Structured editing (disabled)
+
+[[https://github.com/AmaiKinono/puni][Puni]] is a minor mode for structured editing.
+
+| Command                   | Default keybinding |
+|---------------------------+--------------------|
+| puni-forward-delete-char  | C-d                |
+| puni-backward-delete-char | DEL                |
+| puni-forward-kill-word    | M-d                |
+| puni-backward-kill-word   | M-DEL              |
+| puni-kill-line            | C-k                |
+| puni-backward-kill-line   | C-S-k              |
+
+Use puni-mode only for certain major modes.
+#+begin_src emacs-lisp :tangle no
+  (use-package puni
+    :ensure t
+    :defer t
+    :hook ((prog-mode
+            sgml-mode
+            nxml-mode
+            tex-mode
+            eval-expression-minibuffer-setup
+            ) . puni-mode))
+#+end_src
+
+** Mark ring
+
+Move through the mark ring with =C-u C-SPC C-SPC= etc.
+#+begin_src emacs-lisp
+  (setq set-mark-command-repeat-pop t)
+#+end_src
+
+Empty the mark ring if it gets too messy.
+#+begin_src emacs-lisp
+  (defun empty-mark-ring (arg)
+      "Empty the mark ring, leaving only the current position of point.
+  If the prefix argument is non-nil, empty the global mark ring,
+  leaving the only the position of point on the global mark ring."
+      (interactive "P")
+      (if (null arg)
+          (progn
+            (setq-local mark-ring (list (point-marker)))
+            (message "Emptied mark ring for buffer %s" (buffer-name)))
+        (setq global-mark-ring (list (point-marker)))
+        (message "Emptied global mark ring.")))
+  (global-set-key (kbd "M-SPC") 'empty-mark-ring)
+#+end_src
+
+** Spelling
+
+Tweaks from Mastering Emacs, [[https://www.masteringemacs.org/article/wordsmithing-in-emacs][Wordsmithing in Emacs]].
+#+begin_src emacs-lisp
+  (use-package ispell
     :ensure nil
-    :config
-      (require 'org-tufte)
-      (setq org-tufte-htmlize-code t
-            org-tufte-embed-images nil))
+    :bind ("M-#" . dictionary-lookup-definition)
+    :init
+    (setq switch-to-buffer-obey-display-actions t)
+    (add-to-list 'display-buffer-alist
+                 '("^\\*Dictionary\\*" display-buffer-in-side-window
+                   (side . bottom)
+                   (window-height . 30))))
 #+end_src
 
-** Project
+Find the spelling program, if installed.
+#+begin_src emacs-lisp
+  (let ((aspell-exe (if (eq system-type 'windows-nt)
+                        (executable-find "aspell.exe")
+                      (executable-find "aspell"))))
+    (if aspell-exe
+        (setq-default ispell-program-name aspell-exe)
+      (user-error "Could not find an aspell executable on exec-path")))
+#+end_src
+
+Correct typos automatically. See [[https://www.masteringemacs.org/article/correcting-typos-misspellings-abbrev][Correcting Typos and Misspellings with Abbrev]].
+#+begin_src emacs-lisp
+  (setq-default abbrev-mode t)
+#+end_src
+
+** Regions
+
+Kill or yank entire lines. Github repo [[https://github.com/purcell/whole-line-or-region][here]].
+#+begin_src emacs-lisp
+  (use-package whole-line-or-region
+    :ensure t
+    :hook (emacs-startup . whole-line-or-region-global-mode))
+#+end_src
+
+Expand or contract the region by sexp ([[https://github.com/magnars/expand-region.el][expand-region.el]])
+#+begin_src emacs-lisp
+  (use-package expand-region
+    :ensure t
+    :config
+    :bind (("C-=" . er/expand-region)
+           ("M-=" . er/contract-region)))
+#+end_src
+
+** Which-key package
+
+Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org][Emacs from scratch]]. Source code and README is [[https://github.com/justbur/emacs-which-key][here]].
+#+begin_src emacs-lisp
+  (use-package which-key
+    :ensure t
+    :defer 0
+    :diminish which-key-mode
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 1))
+#+end_src
+
+* Window management
 
 #+begin_src emacs-lisp
-  (defun my-project-list-files (&optional project)
-    (interactive)
-    (let ((files (last (split-string (project-files (project-current)) "/"))))
-      (with-output-to-temp-buffer "*Project files*"
-        (princ (s-join "\n" files)))))
+(message "starting window management")
 #+end_src
 
-** Popper
+** Save the cursor position
 
+#+begin_src emacs-lisp
+    (require 'saveplace)
+    (setq-default save-place t)
+#+end_src
+
+** Desktop mode
+
+Note: Doesn't work with emacsclient. See StackExchange [[https://emacs.stackexchange.com/questions/8147/using-desktop-mode-with-emacs-daemon][Using desktop-mode with emacsclient]]
+and the last paragraph of [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Emacs-Sessions.html#Saving-Emacs-Sessions][Saving Emacs Sessions]] in the Emacs manual.
+
+Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.html][Desktop-Save Mode]] and [[https://www.emacswiki.org/emacs/Desktop][Emacs wiki]]).
+#+begin_src emacs-lisp
+  (if (daemonp)
+      (add-hook 'server-after-make-frame-hook #'desktop-read)
+    (add-hook 'window-setup-hook #'desktop-read))
+  (setq desktop-save t)  ;; always save
+  (desktop-save-mode)
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-desktop-after-read-hook ()
+    (message "--- Running `desktop-after-read-hook'")
+    (list-buffers))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package desktop
+    :preface
+    (defun my-restore-desktop (frame)
+      "Restores desktop and cancels hook after first frame opens.
+    So the daemon can run at startup and it'll still work."
+      (with-selected-frame frame
+        (desktop-save-mode 1)
+        (desktop-read)
+        (remove-hook 'after-make-frame-functions 'my-restore-desktop)))
+    :config
+    ;; (add-to-list 'desktop-buffer-mode-handlers ...)
+    ;; (add-to-list 'desktop-files-not-to-save ...)
+    ;; (add-to-list 'desktop-modes-not-to-save ...)
+    ;; (add-to-list 'desktop-globals-to-save ...)
+    ;; (add-to-list 'desktop-clear-preserve-buffers ...)
+    ;; (add-to-list 'desktop-globals-to-clear ...)
+    ;; (add-to-list 'desktop-locals-to-save ...)
+    ;; (setq desktop-restore-forces-onscreen nil)
+    (if (daemonp)
+        (add-hook 'server-after-make-frame-hook #'desktop-read)
+      (add-hook 'window-setup-hook #'desktop-read))
+    (setq desktop-save t)  ;; always save
+    (desktop-save-mode 1)
+    (add-hook 'after-make-frame-functions 'my-restore-desktop)
+    :hook
+    ((desktop-after-read . #'my-desktop-after-read-hook)))
+#+end_src
+
+** Window movement
+
+#+begin_src emacs-lisp
+  ;; (global-set-key (kbd "C-x p") 'my-rearrange-windows)
+#+end_src
+
+** Window and frame selection
+
+See [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying emacs' window manager]].
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x C-o") 'other-frame)
+  (unless (< emacs-major-version 27)
+    (setq switch-to-buffer-obey-display-actions t))
+#+end_src
+
+** Popup windows
+
+Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]). Doesn't seem to work as advertised.
+#+begin_src emacs-lisp :tangle no
+  (use-package shackle
+    :ensure t
+    :init
+    (setq shackle-rules '((compilation-mode :frame t))
+          shackle-default-rule '(:select t))
+    :config
+    (shackle-mode 1))
+#+end_src
+
+Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+begin_src emacs-lisp
   (use-package popper
-    :ensure t ; or :straight t
+    :ensure t
     :bind (("C-`"   . popper-toggle-latest)
            ("M-`"   . popper-cycle)
            ("C-M-`" . popper-toggle-type))
@@ -382,11 +697,20 @@ Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
             "\\*Completions\\*"
             "\\*Flycheck errors\\*"
             "^\\*Shortdoc"
-            "\\*grep\\*"
             "\\*Apropos\\*"
+            "\\*Buffer List\\*"
+            "^\\*eldoc"
+            "\\*xref\\*"
+            "\\*wclock\\*"
+            "\\*shell\\*"
+            "\\*PowerShell\\*"
+            "\\*Shell Errors\\*"
+            "\\*Tidy Error Buffer\\*"
+            "\\*Pyinspect:"
+            ("\\*Compile-Log\\*" . hide)
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
     (popper-mode +1)
-    (popper-echo-mode +1))                ; For echo area hints
+    (popper-echo-mode +1))
 #+end_src

@@ -1,0 +1,25 @@
+#+TITLE: Emacs configuration for Julia
+#+STARTUP: overview indent
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-julia")
+#+end_src
+
+This configuration requires packages
+
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+* Julia programming
+
+[[https://discourse.julialang.org/t/jupyter-integration-with-emacs/21496/5][Instructions]] from the Julia mailing list for installing Jupyter.
+#+begin_src emacs-lisp :tangle no
+  (use-package jupyter
+    :ensure t)
+#+end_src

@@ -1,0 +1,426 @@
+#+TITLE: Emacs configuration for markup languages
+#+STARTUP: overview indent
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-markup")
+#+end_src
+
+This configuration requires packages
+
+  - compat
+  - csv-mode
+  - htmlize
+  - json-mode
+  - json-par
+  - json-snatcher
+  - markdown-mode
+  - org-modern
+  - s
+  - yaml-mode
+
+External programs that should be on =exec-path= are
+
+  - tidy    (html)
+  - pandoc  (org-mode export)
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+* HTML
+
+Tidy up the HTML in the region. Adapted from this Mastering Emacs
+[[https://www.masteringemacs.org/article/executing-shell-commands-emacs][article]].
+#+begin_src emacs-lisp
+  (defun tidy-html ()
+    "Tidies the HTML content in the buffer using `tidy'"
+    (interactive)
+    (unless (executable-find "tidy")
+      (user-error "Can't find executable for 'tidy'."))
+    (shell-command-on-region
+     ;; beginning and end of buffer
+     (point-min)
+     (point-max)
+     ;; command and parameters
+     "tidy -i -w 120 -q"
+     ;; output buffer
+     (current-buffer)
+     ;; replace?
+     t
+     ;; name of the error buffer
+     "*Tidy Error Buffer*"
+     ;; show error buffer?
+     t))
+#+end_src
+
+* Markdown
+
+Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]].
+
+Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]]. This uses [[https://pandoc.org/][pandoc]] rather than the
+default multimarkdown, so it can run on Windows. A cheat sheet for
+Github-flavored Markdown is [[https://github.github.com/gfm/][here]].
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :mode
+    ("README\\.md\\'" . gfm-mode)
+    :custom
+    (markdown-enable-math t)
+    (markdown-live-preview-delete-export 'delete-on-export)
+    (markdown-asymmetric-header t)
+    :config
+    (setq markdown-command
+          (concat
+           "pandoc"
+           " --from=markdown --to=html"
+           " --standalone --mathjax --highlight-style=pygments"
+           " --css=pandoc.css"
+           " --quiet"
+           )))
+#+end_src
+
+[[https://github.com/Fanael/edit-indirect/][Edit code blocks]] in a new buffer, like =org-mode=.
+#+begin_src emacs-lisp
+  (use-package edit-indirect
+    :ensure nil
+    :after markdown-mode
+    :load-path "mode")
+#+end_src
+
+* YAML
+
+A major mode for =YAML= files is found [[https://github.com/yoshiki/yaml-mode/blob/master/yaml-mode.el][here]]. There's a linter called
+[[https://github.com/adrienverge/yamllint][yamllint]], with a flycheck adapter [[https://github.com/krzysztof-magosa/flycheck-yamllint][here]].
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :ensure t
+    :defer t)
+#+end_src
+
+* JSON
+
+#+begin_src emacs-lisp
+  (use-package json-mode
+    :ensure t
+    :defer t)
+#+end_src
+
+  [[https://github.com/taku0/json-par][json-par]] is a package that says it's "ctrl-less, yet mode-less". The
+  manual is [[https://www.tatapa.org/~takuo/json-par/manual.html][here]].
+
+  | Key        | Command                            | Description                                      |
+  |------------+------------------------------------+--------------------------------------------------|
+  | j          | json-par-backward-member           | To the next member (key-value pair).             |
+  | k          | json-par-forward-member            | To the previous member.                          |
+  | h          | json-par-up-backward               | To the beginning of the containing object/array. |
+  | l, }, or ] | json-par-up-forward                | To the end of the containing object/array.       |
+  | a          | json-par-beginning-of-member       | To the beginning of the member.                  |
+  | e          | json-par-end-of-member             | To the end of the member.                        |
+  | v          | json-par-beginning-of-object-value | To the beginning of the value.                   |
+  | J          | json-par-backward-record           | To the same key in the previous object.          |
+  | K          | json-par-forward-record            | To the same key in the next object.              |
+  | A          | json-par-beginning-of-list         | To the beginning of the first member.            |
+  | E          | json-par-end-of-list               | To the end of the last member.                   |
+
+#+begin_src emacs-lisp
+  (use-package json-par
+    :ensure t
+    :after json-mode
+    :defer t
+    :hook (json-mode . (lambda () (json-par-mode 1))))
+#+end_src
+
+* CSV
+
+In CSV mode, the following commands are available:
+
+- C-c C-s (`csv-sort-fields') and C-c C-n (`csv-sort-numeric-fields')
+  respectively sort lexicographically and numerically on a
+  specified field or column.
+
+- C-c C-r (`csv-reverse-region') reverses the order.  (These
+  commands are based closely on, and use, code in `sort.el'.)
+
+- C-c C-k (`csv-kill-fields') and C-c C-y (`csv-yank-fields') kill
+  and yank fields or columns, although they do not use the normal
+  kill ring.  C-c C-k can kill more than one field at once, but
+  multiple killed fields can be yanked only as a fixed group
+  equivalent to a single field.
+
+- `csv-align-mode' keeps fields visually aligned, on-the-fly.
+  It truncates fields to a maximum width that can be changed per-column
+  with `csv-align-set-column-width'.
+  Alternatively, C-c C-a (`csv-align-fields') aligns fields into columns
+  and C-c C-u (`csv-unalign-fields') undoes such alignment;
+  separators can be hidden within aligned records (controlled by
+  `csv-invisibility-default' and `csv-toggle-invisibility').
+
+- C-c C-t (`csv-transpose') interchanges rows and columns.  For
+  details, see the documentation for the individual commands.
+
+#+begin_src emacs-lisp
+  (use-package csv-mode
+    :ensure t
+    :defer t
+    :hook (csv-mode . csv-align-mode))
+#+end_src
+
+* LaTeX
+
+There's an LSP server, [[https://github.com/latex-lsp/texlab][texlab]], for LaTeX, etc. The actual LSP client
+is [[https://github.com/ROCKTAKEY/lsp-latex][lsp-latex]].
+
+* Org mode
+
+#+begin_src emacs-lisp
+(message "starting org mode")
+#+end_src
+
+** Key bindings
+
+Note: [[https://www.reddit.com/r/orgmode/comments/ded3g8/orgmode_without_arrow_keysany_actual_better/][Org speed keys]] work only when point is at the beginning of a
+header line. Press '?' there to find out what they are. Another
+package for moving around org-mode headers is [[http://oremacs.com/worf/README.html][worf]], if you like
+vi-like commands.
+
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :init
+    ;; Make speed commands work when point is on any '*' in header
+    (setq org-use-speed-commands
+          (lambda () (and (looking-at org-outline-regexp)
+                          (looking-back "^\**"))))
+    :config
+    (unbind-key "M-<up>" org-mode-map)
+    (unbind-key "M-<down>" org-mode-map)
+    (unbind-key "M-<left>" org-mode-map)
+    (unbind-key "M-<right>" org-mode-map)
+    :bind (:map org-mode-map
+                ("C-S-<up>" . 'org-metaup)
+                ("C-S-<down>" . 'org-metadown)
+                ("C-S-<left>" . 'org-metaleft)
+                ("C-S-<right>" . 'org-metaright)))
+#+end_src
+
+*** Function to check folding status
+
+Check whether current item is folded, from [[https://emacs.stackexchange.com/questions/26827/test-whether-org-mode-heading-or-list-is-folded][here]].
+#+begin_src emacs-lisp
+  (defun my-org-get-folded-state ()
+    "Determine whether point is at a folded heading or list item.
+Returns one of symbols `not-at-node', `empty-node', `folded',
+or `not-folded'."
+    (cond
+     ((not (or (org-at-item-p) (org-at-heading-p)))
+      ;; (message "not at node (neither heading nor list item)")
+      'not-at-node)
+     ((org-before-first-heading-p)
+      ;; (message "not at node (neither heading nor list item)")
+      'not-at-node)
+     (t
+      (let (eoh eol eos has-children children-skipped struct)
+        ;; First, determine end of headline (EOH), end of subtree or item
+        ;; (EOS), and if item or heading has children (HAS-CHILDREN).
+        (save-excursion
+          (if (org-at-item-p)
+              (progn
+                (beginning-of-line)
+                (setq struct (org-list-struct))
+                (setq eoh (point-at-eol))
+                (setq eos (org-list-get-item-end-before-blank (point) struct))
+                (setq has-children (org-list-has-child-p (point) struct)))
+            (org-back-to-heading)
+            (setq eoh (save-excursion (outline-end-of-heading) (point)))
+            (setq eos (save-excursion (org-end-of-subtree t t)
+                                      (when (bolp) (backward-char)) (point)))
+            (setq has-children
+                  (or (save-excursion
+                        (let ((level (funcall outline-level)))
+                          (outline-next-heading)
+                          (and (org-at-heading-p t)
+                               (> (funcall outline-level) level))))
+                      (save-excursion
+                        (org-list-search-forward (org-item-beginning-re) eos t)))))
+          ;; Determine end invisible part of buffer (EOL)
+          (beginning-of-line 2)
+          (while (and (not (eobp)) ;; this is like `next-line'
+                      (get-char-property (1- (point)) 'invisible))
+            (goto-char (next-single-char-property-change (point) 'invisible))
+            (and (eolp) (beginning-of-line 2)))
+          (setq eol (point)))
+        (cond
+         ((= eos eoh)
+          ;; (message "empty node")
+          'empty-node)
+         ((or (>= eol eos)
+              (not (string-match "\\S-" (buffer-substring eol eos))))
+          ;; (message "folded")
+          'folded)
+         (t
+          ;; (message "not folded")
+          'not-folded))))))
+#+end_src
+
+*** Shorter function to check folding status
+
+#+begin_src emacs-lisp
+  (defun my-org-folded-p ()
+    "Returns non-nil if point is on a folded headline or plain list
+  item."
+    (and (or (org-at-heading-p)
+             (org-at-item-p))
+         (invisible-p (point-at-eol))))
+#+end_src
+
+** Appearance
+
+Note: More customization can be found in the blog post [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][Beautifying Org Mode in Emacs]].
+Note: =org-modern= ignores =org-bullets= and friends, substituting its own bullets.
+
+Make various elements of an org-mode document look nicer ([[https://github.com/minad/org-modern][org-modern]]).
+#+begin_src emacs-lisp
+  (use-package org-modern
+    :ensure t
+    :after org
+    :custom
+    (org-modern-star '("◉" "○" "●" "‣"))
+    (org-modern-hide-stars nil)		; adds extra indentation
+    (org-modern-table nil)
+    :hook
+    (org-mode . org-modern-mode)
+    (org-agenda-finalize . org-modern-agenda))
+#+end_src
+
+Hide markers for italics, bold, etc.
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :custom
+    (org-hide-emphasis-markers t))
+#+end_src
+
+** Refile
+
+See [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes with Refile]].
+
+** Shortcuts
+
+Note: =org= motion commands are [[https://orgmode.org/org.html#Motion][here]].
+
+Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#structure-templates][emacs from scratch]]).
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    ;; This is needed as of Org 9.2
+    (require 'org-tempo)
+    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist '("py" . "src python"))
+    (add-to-list 'org-structure-template-alist '("rc" . "src restclient")))
+#+end_src
+
+** LaTeX
+
+Note: An extensive configuration for AUCTeX is [[https://sqrtminusone.xyz/configs/emacs/#latex][here]].
+
+#+begin_src emacs-lisp :tangle no
+  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+  (setq org-highlight-latex-and-related '(latex))
+#+end_src
+
+** Exporting
+
+Required for [[https://github.com/hniksic/emacs-htmlize][highlighting source code]] in exported HTML.
+#+begin_src emacs-lisp
+  (use-package htmlize
+    :ensure t)
+#+end_src
+
+Export using Tufte's CSS: code [[https://github.com/Zilong-Li/org-tufte][here]].
+#+begin_src emacs-lisp
+  (use-package s
+    :ensure t)
+  (use-package org-tufte
+    :ensure nil
+    :config
+      (require 'org-tufte)
+      (setq org-tufte-htmlize-code t
+            org-tufte-embed-images nil))
+#+end_src
+
+I don't know if this is needed for export with =pandoc=, but here it is.
+#+begin_src emacs-lisp :tangle no
+  (use-package ox-pandoc
+    :ensure t
+    :defer t)
+#+end_src
+
+** Blogging
+
+Note: A possibly interesting setup using Hugo, [[https://andreyorst.gitlab.io/posts/2022-10-16-my-blogging-setup-with-emacs-and-org-mode/][here]].
+
+** REST client
+
+Execute REST API calls in src blocks. From [[https://gitlab.com/gSwag/emacs-configuration/-/blob/master/.emacs-config.org][here]]. Its repo is [[https://github.com/alf/ob-restclient.el][here]].
+Uses [[https://github.com/pashky/restclient.el][restclient.el]] under the hood.
+#+begin_src emacs-lisp :tangle no
+  (use-package ob-restclient
+    :ensure t
+    :defer t
+    :hook
+    (org-mode . (lambda () (interactive)
+                  (org-babel-do-load-languages
+                   'org-babel-load-languages
+                   '((restclient . t))))))
+#+end_src
+
+** Junkyard
+
+Note: [[https://github.com/rksm/org-ai][org-ai]] is yet another emacs interface to ChatGPT, etc.
+
+Note: org-mode does not respect =org-bullets-bullet-list=. +Don't know why not.+
+The ~org-modern~ package steals this functionality.
+
+Use Unicode characters for bullets ([[https://github.com/sabof/org-bullets][org-bullets]]), including bullets in lists.
+#+begin_src emacs-lisp :tangle no
+  (use-package org-bullets
+    :ensure nil
+    :load-path "mode"
+    :after org
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  ;;    :hook org-mode)
+#+end_src
+
+Tried this package, too. =org= just refuses to show my bullets rather
+than the defaults.
+ #+begin_src emacs-lisp :tangle no
+   (use-package org-superstar
+     :ensure t
+     :config
+     (setq org-superstar-headline-bullets-list '("◉" "○" "●" "‣"))
+     (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+#+end_src
+
+Handle indentation correctly ([[https://github.com/jdtsmith/org-modern-indent][org-modern-indent]]).
+#+begin_src emacs-lisp :tangle no
+  (use-package org-modern-indent
+    :ensure nil
+    :after org
+    :load-path "lisp"
+    :config ; add late to hook
+    (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+#+end_src
+
+Github code is [[https://github.com/tj64/outline-magic][here]], but there's no documentation there. Requires more
+configuration; right now it steals TAB and behaves badly.
+#+begin_src emacs-lisp :tangle no
+  (use-package outline-magic
+    :ensure t
+    :demand
+    :after outline
+    :bind (:map outline-minor-mode-map
+                ("C-<tab>" . outline-cycle)))
+#+end_src
