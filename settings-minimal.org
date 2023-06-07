@@ -681,25 +681,15 @@ See [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][
 
 ** Popup windows
 
-Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]). Doesn't seem to work as advertised.
-#+begin_src emacs-lisp :tangle no
-  (use-package shackle
-    :ensure t
-    :init
-    (setq shackle-rules '((compilation-mode :frame t))
-          shackle-default-rule '(:select t))
-    :config
-    (shackle-mode 1))
-#+end_src
-
 Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+begin_src emacs-lisp
   (use-package popper
     :ensure t
+    :commands popper-popup-p
     :bind (("C-`"   . popper-toggle-latest)
            ("M-`"   . popper-cycle)
            ("C-M-`" . popper-toggle-type))
-    :init
+    :config
     (setq popper-reference-buffers
           '("\\*Messages\\*"
             "Output\\*$"
@@ -723,6 +713,45 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             ("\\*Warnings\\*" . hide)
             help-mode
             compilation-mode))
+    (setq popper-display-control nil)
     (popper-mode +1)
     (popper-echo-mode +1))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (defun my-respect-shackle-rules (buffer)
+    "If BUFFER is managed by `popper', return `t'."
+    (message "--- checking buffer %s" buffer)
+    (let ((managed  (not (null (popper-popup-p buffer)))))
+      (message "--- managed is '%s'" managed)
+      managed))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-respect-shackle-rules (buffer)
+    "If BUFFER is managed by `popper', return `t'."
+    (not (null (popper-popup-p buffer))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-list-popup-buffers ()
+    ""
+    (let* ((buffers (buffer-list))
+           (popup? (mapcar #'my-respect-shackle-rules buffers)))
+      (mapcar* #'cons popup? buffers)))
+#+end_src
+
+Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
+#+begin_src emacs-lisp
+  (use-package shackle
+    :ensure t
+    :demand
+    :after popper
+    :config
+    (setq shackle-rules '((compilation-mode
+                           :frame t)
+                          ((:custom my-respect-shackle-rules)
+                           :popup t :align 'below :size 0.35 :select t)))
+    (setq shackle-default-rule '(:select t))
+    (shackle-mode 1))
 #+end_src

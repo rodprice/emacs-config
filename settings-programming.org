@@ -1,6 +1,8 @@
 #+TITLE: Emacs configuration for programming
 #+STARTUP: overview indent
 
+* Preliminaries
+
 All functions below use lexical binding.
 #+begin_src emacs-lisp
 ;; -*- coding: utf-8; lexical-binding: t -*-

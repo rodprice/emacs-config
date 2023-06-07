@@ -1,6 +1,8 @@
 #+TITLE: Emacs configuration for Python
 #+STARTUP: overview indent
 
+* Preliminaries
+
 All functions below use lexical binding.
 #+begin_src emacs-lisp
 ;; -*- coding: utf-8; lexical-binding: t -*-
@@ -354,7 +356,7 @@ matching name.
 
 ** Modify =popper='s display function
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
     (defun my-pytest-popper-display-frame (buffer &optional alist)
       ""
       (let* ((pytest-frame (or
@@ -377,7 +379,7 @@ matching name.
 #+end_src
 
 Make =popper= display *pytest* buffers using my own display function.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun my-popper-select-popup-at-bottom (buffer &optional alist)
     "Display and switch to popup-buffer BUFFER at the bottom of the screen,
   unless BUFFER is named '*pytest*'."
@@ -387,7 +389,7 @@ Make =popper= display *pytest* buffers using my own display function.
 #+end_src
 
 Set the =popper= display function.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (popper-mode -1)
   (setq popper-display-function #'my-popper-select-popup-at-bottom)
   (popper-mode +1)
