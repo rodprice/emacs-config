@@ -645,6 +645,7 @@ Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.
         (desktop-save-mode 1)
         (desktop-read)
         (remove-hook 'after-make-frame-functions 'my-restore-desktop)))
+    :defer t
     :config
     ;; (add-to-list 'desktop-buffer-mode-handlers ...)
     ;; (add-to-list 'desktop-files-not-to-save ...)
@@ -700,7 +701,6 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*Flycheck errors\\*"
             "^\\*Shortdoc"
             "\\*Apropos\\*"
-            "\\*Buffer List\\*"
             "^\\*eldoc"
             "\\*xref\\*"
             "\\*wclock\\*"
@@ -737,19 +737,28 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
   (defun my-list-popup-buffers ()
     ""
     (let* ((buffers (buffer-list))
-           (popup? (mapcar #'my-respect-shackle-rules buffers)))
+           (popup? (mapcar #'popper-popup-p buffers)))
       (mapcar* #'cons popup? buffers)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-custom-shackle-action (buffer-or-name alist plist)
+    ""
+    (message "--- running my-custom-shackle-action")
+    (message "--- buffer-or-name is %s" buffer-or-name)
+    (message "--- alist is %s" alist)
+    (message "--- plist is %s" plist))
 #+end_src
 
 Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
 #+begin_src emacs-lisp
   (use-package shackle
     :ensure t
-    :demand
-    :after popper
+    :requires popper
+    :demand t
     :config
-    (setq shackle-rules '((compilation-mode
-                           :frame t)
+    (setq shackle-rules '(("*pytest*"
+                           :custom my-pytest-popper-display-frame)
                           ((:custom my-respect-shackle-rules)
                            :popup t :align 'below :size 0.35 :select t)))
     (setq shackle-default-rule '(:select t))

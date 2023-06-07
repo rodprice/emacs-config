@@ -98,7 +98,7 @@ following line into =init.el=:
       ("Never confuse a single defeat with a final defeat." . "F. Scott Fitzgerald")
       ("I'm a survivor / I'm not gonna give up / I'm not gonna stop / I'm gonna work harder" . "Destiny's Child")
       ("Never allow a person to tell you no who doesn't have the power to say yes." . "Eleanor Roosevelt")
-      ("Only when we're drowning do we understand how fierce our feet can kick." ' "Amanda Gorman")
+      ("Only when we're drowning do we understand how fierce our feet can kick." . "Amanda Gorman")
       ("Real courage is holding on to a still voice in your head that says, 'I must keep going.' It's that voice that says nothing is a failure if it is not final. That voice that says to you, 'Get out of bed. Keep going. I will not quit.'" . "Cory Booker")
       ("I break chains all by myself / Won't let my freedom rot in hell / Hey! I'ma keep running / 'Cause a winner don't quit on themselves." . "Beyonce")))
 #+end_src

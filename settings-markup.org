@@ -30,10 +30,21 @@ External programs that should be on =exec-path= are
 The file =settings-minimal.org= should be loaded before loading this
 file.
 
+* Config files
+
+Bring up common configuration files in =conf-mode=.
+#+begin_src emacs-lisp
+  (use-package emacs
+    :ensure nil
+    :mode
+    (("/\\.git[[:alnum:]]*\\'" . conf-mode)
+     ("\\.minttyrc\\'" . conf-mode)
+     ("/\\.inputrc\\'" . sh-mode)))
+#+end_src
+
 * HTML
 
-Tidy up the HTML in the region. Adapted from this Mastering Emacs
-[[https://www.masteringemacs.org/article/executing-shell-commands-emacs][article]].
+Tidy up the HTML in the region. Adapted from [[https://www.masteringemacs.org/article/executing-shell-commands-emacs][Mastering Emacs]].
 #+begin_src emacs-lisp
   (defun tidy-html ()
     "Tidies the HTML content in the buffer using `tidy'"

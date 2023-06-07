@@ -356,8 +356,8 @@ matching name.
 
 ** Modify =popper='s display function
 
-#+begin_src emacs-lisp :tangle no
-    (defun my-pytest-popper-display-frame (buffer &optional alist)
+#+begin_src emacs-lisp
+    (defun my-pytest-popper-display-frame (buffer &optional alist plist)
       ""
       (let* ((pytest-frame (or
                             (my-pytest-get-frame (my-other-monitor-attributes))
