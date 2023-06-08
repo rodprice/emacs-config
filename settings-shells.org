@@ -167,6 +167,83 @@ If SHELL-NAME is nil, use \"bash\"."
      (shell-mode . my-fix-shell-prompt-colors)))
 #+end_src
 
+Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/][here]].
+
+#+begin_src emacs-lisp
+  (defun my-clean-up-line-endings-command (dir pat)
+    "Walk the directory tree DIR, running `dos2unix' on all files
+  matching glob pattern PAT, a string."
+    (string-join
+     (list "find" dir "-name" (concat "\"" pat "\"") "-print0 | xargs -0 dos2unix")
+     " "))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-clean-up-line-endings-command-list (dir &optional pats)
+    (interactive
+     (list
+      (read-directory-name "Directory: ")
+      (let (pats)
+        (while
+            (let ((pat
+                   (if (null pats)
+                       (read-string (format "Patterns (): "))
+                     (read-string (format "Patterns %s: " pats)))))
+              (if (not (string-empty-p pat))
+                  (setq pats (cons pat pats))
+                nil)))
+        (if (null pats)
+            (user-error "Cancelled")
+          pats))))
+    (let ((dir (expand-file-name (or dir ".")))
+          (pats (cond
+                 ((null pats) '(".*.el" "*.signed"))
+                 ((and (stringp pats) (not (string-empty-p pats))) (list pats))
+                 ((listp pats) pats)
+                 (t (user-error "Invalid patterns '%s'" pats)))))
+      (message "--- DIR is '%s'; PATS is '%s'" dir pats)
+      (mapcar
+       (apply-partially #'my-clean-up-line-endings-command dir)
+       pats)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-clean-up-line-endings-inner (pats &optional dir noconfirm)
+    "Walk the directory tree DIR, running `dos2unix' on all files
+  matching glob patterns PATS, which can be either a string or a
+  list of strings. If NOCONFIRM is non-nil, omit confirmation."
+    ;; find . -name "*.signed" -print0 | xargs -0 dos2unix
+    ;; async-shell-command
+    (unless (executable-find "find")
+      (user-error "Cannot find 'find' command"))
+    (unless (executable-find "dos2unix")
+      (user-error "Cannot find 'dos2unix' command"))
+    (let ((pats (if (stringp pats) (list pats) pats))
+          (dir (expand-file-name (or dir "."))))
+      (when (null noconfirm)
+        (unless (y-or-n-p
+                 (format "Replace all CRLF line endings in '%s'?" dir))
+          (user-error "Cancelled")))
+      (dolist (pat pats)
+        (print
+         ;; (async-shell-command
+         (my-clean-up-line-endings-command pat dir))))))
+#+end_src
+
+Muck around with =exec-path= if we're on Windows.
+#+begin_src emacs-lisp
+  (defun my-clean-up-line-endings (pats &optional dir noconfirm)
+    "Walk the directory tree DIR, running `dos2unix' on all files
+  matching glob patterns PATS, which can be either a string or a
+  list of strings. If NOCONFIRM is non-nil, omit confirmation."
+    (cond
+     ((eq system-type 'windows-nt)
+      (let ((exec-path my-msys2-extra-paths))
+        (my-clean-up-line-endings-inner pats dir noconfirm)))
+     (t
+      (my-clean-up-line-endings-inner pats dir noconfirm))))
+#+end_src
+
 * Vterm
 
 Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].

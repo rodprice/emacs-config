@@ -222,6 +222,44 @@ From [[https://www.inc.com/glenn-leibowitz/50-quotes-from-famous-authors-that-wi
       ("When you make music or write or create, it's really your job to have mind-blowing, irresponsible, condomless sex with whatever idea it is you're writing about at the time. " . "Lady Gaga")))
 #+end_src
 
+** Churchill
+
+From [[https://www.goodreads.com/author/quotes/14033.Winston_S_Churchill][Goodreads]].
+#+begin_src emacs-lisp
+  (defvar quotes-of-the-day-churchill
+    '(("Success is not final, failure is not fatal: it is the courage to continue that counts." . "Winston Churchill")
+      ("You have enemies? Good. That means you've stood up for something, sometime in your life." . "Winston Churchill")
+      ("Men occasionally stumble over the truth, but most of them pick themselves up and hurry off as if nothing had happened." . "Winston Churchill")
+      ("If you are going through hell, keep going." . "Winston Churchill")
+      ("My tastes are simple: I am easily satisfied with the best." . "Winston Churchill")
+      ("History will be kind to me, for I intend to write it." . "Winston Churchill")
+      ("Success is stumbling from failure to failure with no loss of enthusiasm." . "Winston Churchill")
+      ("Tact is the ability to tell someone to go to hell in such a way that they look forward to the trip." . "Winston Churchill")
+      ("Never, never, never give in!" . "Winston Churchill")
+      ("I am fond of pigs. Dogs look up to us. Cats look down on us. Pigs treat us as equals." . "Winston Churchill")
+      ("It is not enough that we do our best; sometimes we must do what is required." . "Winston Churchill")
+      ("The best argument against democracy is a five-minute conversation with the average voter." . "Winston Churchill")
+      ("A lady came up to me one day and said 'Sir! You are drunk', to which I replied 'I am drunk today madam, and tomorrow I shall be sober but you will still be ugly." . "Winston Churchill")
+      ("Kites rise highest against the wind, not with it." . "Winston Churchill")
+      ("Never give in. Never give in. Never, never, never, never" . "Winston Churchill")
+      ("Never give in, except to convictions of honour and good sense. Never yield to force. Never yield to the apparently overwhelming might of the enemy." . "Winston Churchill")
+      ("Nothing in life is so exhilarating as to be shot at without result." . "Winston Churchill")
+      ("A fanatic is one who can't change his mind and won't change the subject." . "Winston Churchill")
+      ("Personally, I'm always ready to learn, although I do not always like being taught." . "Winston Churchill")
+      ("For myself I am an optimist - it does not seem to be much use to be anything else." . "Winston Churchill")
+      ("The greatest lesson in life is to know that even fools are right sometimes." . "Winston Churchill")
+      ("We make a living by what we get. We make a life by what we give." . "Winston Churchill")
+      ("Continuous effort - not strength or intelligence - is the key to unlocking our potential." . "Winston Churchill")
+      ("The price of greatness is responsibility." . "Winston Churchill")
+      ("Don't interrupt me while I'm interrupting." . "Winston Churchill")
+      ("Attitude is a little thing that makes a big difference." . "Winston Churchill")
+      ("He has all the virtues I dislike and none of the vices I admire." . "Winston Churchill")
+      ("If you cannot read all your books...fondle them---peer into them, let them fall open where they will, read from the first sentence that arrests the eye, set them back on the shelves with your own hands, arrange them on your own plan so that you at least know where they are. Let them be your friends; let them, at any rate, be your acquaintances." . "Winston Churchill")
+      ("An appeaser is one who feeds a crocodile, hoping it will eat him last." . "Winston Churchill")
+      ("To improve is to change; to be perfect is to change often." . "Winston Churchill")
+      ("To each there comes in their lifetime a special moment when they are figuratively tapped on the shoulder and offered the chance to do a very special thing, unique to them and fitted to their talents. What a tragedy if that moment finds them unprepared or unqualified for that which could have been their finest hour." . "Winston Churchill")))
+#+end_src
+
 * Code
 
 ** Initial quote insertion
@@ -235,7 +273,8 @@ From [[https://www.inc.com/glenn-leibowitz/50-quotes-from-famous-authors-that-wi
           (cons "thursday"   quotes-of-the-day-thursday)
           (cons "friday"     quotes-of-the-day-friday)
           (cons "saturday"   quotes-of-the-day-saturday)
-          (cons "on-writing" quotes-of-the-day-on-writing))
+          (cons "on-writing" quotes-of-the-day-on-writing)
+          (cons "churchill"  quotes-of-the-day-churchill))
     "Alist of lists of quotes of the day.")
 #+end_src
 

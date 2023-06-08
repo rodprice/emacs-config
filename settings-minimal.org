@@ -27,7 +27,8 @@ This configuration requires packages
 
 ** Text
 
-Character encodings default to utf-8.
+Character encodings default to utf-8. Xah Lee (bless his crooked
+little heart) [[http://xahlee.info/emacs/emacs/emacs_convert_line_ending.html][says]] you should use =utf-8-unix= rather than =utf-8=.
 #+begin_src emacs-lisp
   (prefer-coding-system 'utf-8)
   (set-language-environment 'utf-8)
@@ -754,7 +755,6 @@ Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
 #+begin_src emacs-lisp
   (use-package shackle
     :ensure t
-    :requires popper
     :demand t
     :config
     (setq shackle-rules '(("*pytest*"
