@@ -97,6 +97,28 @@ such that all directories in \\Apps come first."
          (others (cl-set-difference stdpaths apps :test #'string=)))
     (append apps others dots)))
 
+(defun my-convert-windows-drive-letter (winpath)
+  "Convert a Windows path with initial drive letter `c:/Users' to a
+Unix-like path `/c/Users'."
+  ;; It shouldn't be this hard...
+  (let ((path (seq-remove (lambda (elt) (equal ?: elt)) winpath)))
+    (concat (cons ?/ path))))
+
+(defun my-write-bash-env-file (extra-paths)
+  "Write a file `bash-env.sh' to the `site' directory that adds
+EXTRA-PATHS to the default path. Used with environment variable
+`BASH_ENV', this adds paths to a non-login bash shell such as the
+one made by `shell-command'."
+  (let ((path (expand-file-name "site/bash-env.sh" user-emacs-directory))
+        (content (concat
+                  "#!/usr/bin/bash\nexport PATH=$PATH:"
+                  (string-join
+                   (mapcar #'my-convert-windows-drive-letter extra-paths)
+                   ":")
+                  "\n")))
+    (with-temp-file path
+      (insert content))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions to print lists in readable form
 
@@ -130,7 +152,10 @@ SHOW-PATHS is non-nil, expand path strings into lists."
    ((stringp obj)
     (if (not show-paths)
         (format "%S" obj)
-      (let* ((separator (if (memq window-system '(mac ns x)) ":" ";"))
+      (let* ((separator
+              (if (member show-paths '(":" ";"))
+                  show-paths
+                (if (memq window-system '(mac ns x)) ":" ";")))
              (paths (split-string obj separator)))
         (if (length> paths 1)
             (append

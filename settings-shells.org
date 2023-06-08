@@ -97,13 +97,18 @@ Rather than signal an error if there is no process, fail silently.
 
 * Shell
 
-Notes: [[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
-has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells. The configuration below starts
-with error message "no job control in this shell"; there's a discussion on
-[[https://emacs.stackexchange.com/questions/71487/mingw-shell-in-emacs][StackExchange]]. Another possible hint involving =system-uses-terminfo= [[https://stackoverflow.com/questions/39761234/git-bash-for-windows-not-working-lein-repl-command][here]].
+** Notes
+
+[[https://github.com/atomontage/xterm-color][xterm-color]] for better color emulation, supposedly. Mastering Emacs
+has a nice [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][introduction]] to running shells. The configuration below
+starts with error message "no job control in this shell"; there's a
+discussion on [[https://emacs.stackexchange.com/questions/71487/mingw-shell-in-emacs][StackExchange]]. Another possible hint involving
+=system-uses-terminfo= [[https://stackoverflow.com/questions/39761234/git-bash-for-windows-not-working-lein-repl-command][here]].
+
+** Shell package
 
 #+begin_src emacs-lisp
-  (defun get-shell-file-name (&optional shell-name)
+  (defun my-get-shell-file-name (&optional shell-name)
     "Return the explicit path to SHELL-NAME, based on `system-type'
 and the variables defined in the `site/<hostname>-preload.el' file.
 If SHELL-NAME is nil, use \"bash\"."
@@ -152,7 +157,7 @@ If SHELL-NAME is nil, use \"bash\"."
     :custom
     (shell-command-default-error-buffer "*Shell Errors*")
     :config
-    (setq explicit-shell-file-name (get-shell-file-name))
+    (setq explicit-shell-file-name (my-get-shell-file-name))
     (setq shell-file-name explicit-shell-file-name)
     (setenv "SHELL" explicit-shell-file-name)
     (setq explicit-bash.exe-args (list "-i" "-l"))
@@ -167,16 +172,103 @@ If SHELL-NAME is nil, use \"bash\"."
      (shell-mode . my-fix-shell-prompt-colors)))
 #+end_src
 
+** Shell commands
+
+If you want the output buffer for asynchronous shell commands to be
+displayed only when the command generates output, set
+‘async-shell-command-display-buffer’ to ‘nil’.
+
+If ‘shell-command-prompt-show-cwd’ is non-nil, show the current
+directory in the prompt.
+
+** Findutils
+
 Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/][here]].
 
 #+begin_src emacs-lisp
-  (defun my-clean-up-line-endings-command (dir pat)
-    "Walk the directory tree DIR, running `dos2unix' on all files
-  matching glob pattern PAT, a string."
+  (defun my-find-command (dir pat)
+    "Assemble a `find' command string that will return all
+  files matching glob pattern PAT in directory tree DIR."
+    (combine-and-quote-strings
+     (list "find" dir "-name" pat "-print0")))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-find-command (dir pat)
+    "Assemble a `find' command string that will return all
+  files matching glob pattern PAT in directory tree DIR."
     (string-join
-     (list "find" dir "-name" (concat "\"" pat "\"") "-print0 | xargs -0 dos2unix")
+     (list
+      "find"
+      (expand-file-name dir)
+      "-name"
+      (concat "'" pat "'")
+      "-print0")
      " "))
 #+end_src
+
+#+begin_src emacs-lisp
+      (defun my-find-command-list (dir &rest pats)
+        "Assemble a list of `find' command strings that will return all
+      files matching glob patterns in list PATS in directory tree DIR."
+        (interactive
+         (cons
+          (read-directory-name "Directory: ")
+          (split-string
+           (let ((pats (read-string "Patterns: " "*.el *.signed")))
+             (if (string-empty-p pats)
+                 (user-error "Cancelled")
+               pats))
+           " ")))
+        (let ((dir (expand-file-name (or dir ".")))
+              (pats (cond
+                     ((null pats) '("*.el" "*.signed"))
+                     ((and (stringp pats) (not (string-empty-p pats))) (list pats))
+                     ((listp pats) pats)
+                     (t (user-error "Invalid patterns '%s'" pats)))))
+          (mapcar
+           (apply-partially #'my-find-command dir)
+           pats)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-clean-up-line-endings-inner (pats &optional dir noconfirm)
+    "Walk the directory tree DIR, running `dos2unix' on all files
+  matching glob patterns PATS, which can be either a string or a
+  list of strings. If NOCONFIRM is non-nil, omit confirmation."
+    ;; find . -name "*.signed" -print0 | xargs -0 dos2unix
+    ;; async-shell-command
+    (unless (executable-find "find")
+      (user-error "Cannot find 'find' command"))
+    (unless (executable-find "dos2unix")
+      (user-error "Cannot find 'dos2unix' command"))
+    (let ((pats (if (stringp pats) (list pats) pats))
+          (dir (expand-file-name (or dir "."))))
+      (when (null noconfirm)
+        (unless (y-or-n-p
+                 (format "Replace all CRLF line endings in '%s'?" dir))
+          (user-error "Cancelled")))
+      (dolist (pat pats)
+        (print
+         ;; (async-shell-command
+         (my-clean-up-line-endings-command pat dir)))))
+#+end_src
+
+Muck around with =exec-path= if we're on Windows.
+#+begin_src emacs-lisp
+  (defun my-clean-up-line-endings (pats &optional dir noconfirm)
+    "Walk the directory tree DIR, running `dos2unix' on all files
+  matching glob patterns PATS, which can be either a string or a
+  list of strings. If NOCONFIRM is non-nil, omit confirmation."
+    (cond
+     ((eq system-type 'windows-nt)
+      (let ((exec-path my-msys2-extra-paths))
+        (my-clean-up-line-endings-inner pats dir noconfirm)))
+     (t
+      (my-clean-up-line-endings-inner pats dir noconfirm))))
+#+end_src
+
+** Junkyard
 
 #+begin_src emacs-lisp
   (defun my-clean-up-line-endings-command-list (dir &optional pats)
@@ -205,43 +297,6 @@ Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/][here
       (mapcar
        (apply-partially #'my-clean-up-line-endings-command dir)
        pats)))
-#+end_src
-
-#+begin_src emacs-lisp
-  (defun my-clean-up-line-endings-inner (pats &optional dir noconfirm)
-    "Walk the directory tree DIR, running `dos2unix' on all files
-  matching glob patterns PATS, which can be either a string or a
-  list of strings. If NOCONFIRM is non-nil, omit confirmation."
-    ;; find . -name "*.signed" -print0 | xargs -0 dos2unix
-    ;; async-shell-command
-    (unless (executable-find "find")
-      (user-error "Cannot find 'find' command"))
-    (unless (executable-find "dos2unix")
-      (user-error "Cannot find 'dos2unix' command"))
-    (let ((pats (if (stringp pats) (list pats) pats))
-          (dir (expand-file-name (or dir "."))))
-      (when (null noconfirm)
-        (unless (y-or-n-p
-                 (format "Replace all CRLF line endings in '%s'?" dir))
-          (user-error "Cancelled")))
-      (dolist (pat pats)
-        (print
-         ;; (async-shell-command
-         (my-clean-up-line-endings-command pat dir))))))
-#+end_src
-
-Muck around with =exec-path= if we're on Windows.
-#+begin_src emacs-lisp
-  (defun my-clean-up-line-endings (pats &optional dir noconfirm)
-    "Walk the directory tree DIR, running `dos2unix' on all files
-  matching glob patterns PATS, which can be either a string or a
-  list of strings. If NOCONFIRM is non-nil, omit confirmation."
-    (cond
-     ((eq system-type 'windows-nt)
-      (let ((exec-path my-msys2-extra-paths))
-        (my-clean-up-line-endings-inner pats dir noconfirm)))
-     (t
-      (my-clean-up-line-endings-inner pats dir noconfirm))))
 #+end_src
 
 * Vterm
