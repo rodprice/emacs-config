@@ -104,18 +104,19 @@ Unix-like path `/c/Users'."
   (let ((path (seq-remove (lambda (elt) (equal ?: elt)) winpath)))
     (concat (cons ?/ path))))
 
-(defun my-write-bash-env-file (extra-paths)
+(defun my-write-bash-env-file (extra-paths &optional filename)
   "Write a file `bash-env.sh' to the `site' directory that adds
 EXTRA-PATHS to the default path. Used with environment variable
 `BASH_ENV', this adds paths to a non-login bash shell such as the
 one made by `shell-command'."
-  (let ((path (expand-file-name "site/bash-env.sh" user-emacs-directory))
-        (content (concat
-                  "#!/usr/bin/bash\nexport PATH=$PATH:"
-                  (string-join
-                   (mapcar #'my-convert-windows-drive-letter extra-paths)
-                   ":")
-                  "\n")))
+  (let* ((filename (or filename "site/bash-env.sh"))
+         (path (expand-file-name filename user-emacs-directory))
+         (content (concat
+                   "#!/usr/bin/bash\nexport PATH="
+                   (string-join
+                    (mapcar #'my-convert-windows-drive-letter extra-paths)
+                    ":")
+                   "\n")))
     (with-temp-file path
       (insert content))))
 

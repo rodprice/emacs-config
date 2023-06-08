@@ -183,7 +183,7 @@ directory in the prompt.
 
 ** Findutils
 
-Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/][here]].
+Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/manual/html_mono/find.html][here]].
 
 #+begin_src emacs-lisp
   (defun my-find-command (dir pat)
