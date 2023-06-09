@@ -544,8 +544,15 @@ Empty the mark ring if it gets too messy.
 
 ** Spelling
 
-Tweaks from Mastering Emacs, [[https://www.masteringemacs.org/article/wordsmithing-in-emacs][Wordsmithing in Emacs]].
+Use =hunspell= for spell checking. See [[https://lucidmanager.org/productivity/emacs-windows/][here]].
 #+begin_src emacs-lisp
+  (use-package ispell
+    :ensure nil
+    :bind ("M-#" . dictionary-lookup-definition))
+#+end_src
+
+Tweaks from Mastering Emacs, [[https://www.masteringemacs.org/article/wordsmithing-in-emacs][Wordsmithing in Emacs]].
+#+begin_src emacs-lisp :tangle no
   (use-package ispell
     :ensure nil
     :bind ("M-#" . dictionary-lookup-definition)
@@ -558,9 +565,9 @@ Tweaks from Mastering Emacs, [[https://www.masteringemacs.org/article/wordsmithi
 #+end_src
 
 Find the spelling program, if installed.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (let ((aspell-exe (if (eq system-type 'windows-nt)
-                        (executable-find "aspell.exe")
+                        (executable-find "hunspell.exe")
                       (executable-find "aspell"))))
     (if aspell-exe
         (setq-default ispell-program-name aspell-exe)
@@ -765,3 +772,26 @@ Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
     (setq shackle-default-rule '(:select t))
     (shackle-mode 1))
 #+end_src
+
+* Notes
+
+[[https://lucidmanager.org/productivity/more-productive-with-emacs/][More Productive with Emacs]] is a series of articles on Emacs. Here's the list:
+
+    Getting Started with Emacs
+    Configure Emacs
+    Emacs Completion System
+    Ricing Org mode
+    Distraction-Free Writing
+    Taking Notes with Org-Roam
+    Manage your literature with Emacs BibTeX Mode
+    Bibliographic notes with Denote and Citar
+    Writing Articles and Books with Org Mode
+    Create Websites
+    Getting Things Done
+    Manage files with dired
+    Manage images with image-dired
+    Read RSS feeds with Elfeed
+    Play Music with the Emacs Multimedia System
+    Using Emacs on a Chromebook
+
+    [[https://xenodium.com/modern-elisp-libraries/][Modern elisp libraries]]: reference to elisp utilities/libraries.

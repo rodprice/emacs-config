@@ -181,6 +181,27 @@ displayed only when the command generates output, set
 If ‘shell-command-prompt-show-cwd’ is non-nil, show the current
 directory in the prompt.
 
+** Shell dwim
+
+Might be interesting for quick shortcuts. From [[https://github.com/xenodium/dwim-shell-command][here]].
+#+begin_src emacs-lisp :tangle no
+(use-package dwim-shell-command
+  :ensure t
+  :bind (([remap shell-command] . dwim-shell-command)
+         :map dired-mode-map
+         ([remap dired-do-async-shell-command] . dwim-shell-command)
+         ([remap dired-do-shell-command] . dwim-shell-command)
+         ([remap dired-smart-shell-command] . dwim-shell-command))
+  :config
+  (defun my/dwim-shell-command-convert-to-gif ()
+    "Convert all marked videos to optimized gif(s)."
+    (interactive)
+    (dwim-shell-command-on-marked-files
+     "Convert to gif"
+     "ffmpeg -loglevel quiet -stats -y -i <<f>> -pix_fmt rgb24 -r 15 <<fne>>.gif"
+     :utils "ffmpeg")))
+#+end_src
+
 ** Findutils
 
 Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/manual/html_mono/find.html][here]].

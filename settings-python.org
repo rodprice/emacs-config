@@ -35,6 +35,8 @@ Other useful articles by the same author [[https://www.adventuresinwhy.com/tag/e
 =python-lsp-server= [[https://github.com/python-lsp/python-lsp-server][here]]. Emacs lsp client for python ruff language
 server [[https://github.com/emacs-lsp/lsp-mode/issues/3876][here]]. Ruff docs, such as they are, [[https://beta.ruff.rs/docs/][here]].
 
+A list of Python links, [[https://xenodium.com/python-bookmarks/][here]].
+
 * Python mode
 
 Set up Python interpreters, code folding, etc.
