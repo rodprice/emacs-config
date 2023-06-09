@@ -185,35 +185,28 @@ directory in the prompt.
 
 Might be interesting for quick shortcuts. From [[https://github.com/xenodium/dwim-shell-command][here]].
 #+begin_src emacs-lisp :tangle no
-(use-package dwim-shell-command
-  :ensure t
-  :bind (([remap shell-command] . dwim-shell-command)
-         :map dired-mode-map
-         ([remap dired-do-async-shell-command] . dwim-shell-command)
-         ([remap dired-do-shell-command] . dwim-shell-command)
-         ([remap dired-smart-shell-command] . dwim-shell-command))
-  :config
-  (defun my/dwim-shell-command-convert-to-gif ()
-    "Convert all marked videos to optimized gif(s)."
-    (interactive)
-    (dwim-shell-command-on-marked-files
-     "Convert to gif"
-     "ffmpeg -loglevel quiet -stats -y -i <<f>> -pix_fmt rgb24 -r 15 <<fne>>.gif"
-     :utils "ffmpeg")))
+  (use-package dwim-shell-command
+    :ensure t
+    :bind (([remap shell-command] . dwim-shell-command)
+           :map dired-mode-map
+           ([remap dired-do-async-shell-command] . dwim-shell-command)
+           ([remap dired-do-shell-command] . dwim-shell-command)
+           ([remap dired-smart-shell-command] . dwim-shell-command))
+    :config
+    (defun my/dwim-shell-command-convert-to-gif ()
+      "Convert all marked videos to optimized gif(s)."
+      (interactive)
+      (dwim-shell-command-on-marked-files
+       "Convert to gif"
+       "ffmpeg -loglevel quiet -stats -y -i <<f>> -pix_fmt rgb24 -r 15 <<fne>>.gif"
+       :utils "ffmpeg")))
 #+end_src
 
 ** Findutils
 
 Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/manual/html_mono/find.html][here]].
 
-#+begin_src emacs-lisp
-  (defun my-find-command (dir pat)
-    "Assemble a `find' command string that will return all
-  files matching glob pattern PAT in directory tree DIR."
-    (combine-and-quote-strings
-     (list "find" dir "-name" pat "-print0")))
-#+end_src
-
+Make a =find= command string suitable for piping results to =xargs -0=.
 #+begin_src emacs-lisp
   (defun my-find-command (dir pat)
     "Assemble a `find' command string that will return all
@@ -228,28 +221,29 @@ Gnu documentation on =findutils= [[https://www.gnu.org/software/findutils/manual
      " "))
 #+end_src
 
+Interactively make a list of =find= command strings.
 #+begin_src emacs-lisp
-      (defun my-find-command-list (dir &rest pats)
-        "Assemble a list of `find' command strings that will return all
-      files matching glob patterns in list PATS in directory tree DIR."
-        (interactive
-         (cons
-          (read-directory-name "Directory: ")
-          (split-string
-           (let ((pats (read-string "Patterns: " "*.el *.signed")))
-             (if (string-empty-p pats)
-                 (user-error "Cancelled")
-               pats))
-           " ")))
-        (let ((dir (expand-file-name (or dir ".")))
-              (pats (cond
-                     ((null pats) '("*.el" "*.signed"))
-                     ((and (stringp pats) (not (string-empty-p pats))) (list pats))
-                     ((listp pats) pats)
-                     (t (user-error "Invalid patterns '%s'" pats)))))
-          (mapcar
-           (apply-partially #'my-find-command dir)
-           pats)))
+  (defun my-find-command-list (dir &rest pats)
+    "Assemble a list of `find' command strings that will return all
+  files matching glob patterns in list PATS in directory tree DIR."
+    (interactive
+     (cons
+      (read-directory-name "Directory: ")
+      (split-string
+       (let ((pats (read-string "Patterns: " "*.el *.signed")))
+         (if (string-empty-p pats)
+             (user-error "Cancelled")
+           pats))
+       " ")))
+    (let ((dir (expand-file-name (or dir ".")))
+          (pats (cond
+                 ((null pats) '("*.el" "*.signed"))
+                 ((and (stringp pats) (not (string-empty-p pats))) (list pats))
+                 ((listp pats) pats)
+                 (t (user-error "Invalid patterns '%s'" pats)))))
+      (mapcar
+       (apply-partially #'my-find-command dir)
+       pats)))
 #+end_src
 
 #+begin_src emacs-lisp

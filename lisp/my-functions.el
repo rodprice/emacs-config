@@ -69,38 +69,136 @@ contains a list. Otherwise do nothing."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monkey around with exec-path and env variable PATH
 
-(defun my-filter-paths (regex paths)
+(defun my-seq-most (seq)
+  "Drop the last element of SEQ."
+  (seq-take seq (- (length seq) 1)))
+
+(defun my-seq-last (seq)
+  "Take the last element of SEQ."
+  (seq-drop seq (- (length seq) 1)))
+
+(defun my-file-name-split (dir)
+  "Return a list of the parts of DIR."
+  (let ((parts
+         (my-seq-most
+          (file-name-split
+           (file-name-as-directory dir)))))
+    (if (eq system-type 'windows-nt)
+        (mapcar #'downcase parts)
+      parts)))
+
+(defun my-subdirectory-p (dir subdir)
+  "Check whether SUBDIR is a subdirectory of DIR."
+  ;; (unless (file-directory-p dir)
+  ;;   (error "Not a directory `%s'" dir))
+  ;; (unless (file-directory-p subdir)
+  ;;   (error "Not a directory `%s'" subdir))
+  (let ((dir-parts (my-file-name-split dir))
+        (subdir-parts (my-file-name-split subdir)))
+    (and (<= (length dir-parts) (length subdir-parts))
+         (cl-every 'identity
+                   (cl-mapcar #'string=
+                              dir-parts
+                              subdir-parts)))))
+
+(defun my-dedup-paths (paths)
+  "Remove any duplicate paths in PATHS."
+  (cond
+   ((null paths)
+    paths)
+   ((member (car paths) (cdr paths))
+    (my-dedup-paths (cdr paths)))
+   (t
+    (cons (car paths) (my-dedup-paths (cdr paths))))))
+
+(defun my-filter-subdir-paths (dir paths)
+  "Given a list of strings PATHS, return a list of all those
+that are subdirectories of DIR, in the order they were found."
+  (cond
+   ((null paths)
+    paths)
+   ((my-subdirectory-p dir (car paths))
+    (cons (car paths) (my-filter-subdir-paths dir (cdr paths))))
+   (t
+    (my-filter-subdir-paths dir (cdr paths)))))
+
+(defun my-subdirectory-any-p (dirs subdir)
+  "Check whether SUBDIR is a subdirectory of any directory in DIRS."
+  (cl-some 'identity
+           (mapcar
+            (lambda (dir) (my-subdirectory-p dir subdir))
+            dirs)))
+
+(defun my-filter-any-subdir-paths (dirs paths)
+  "Given a list of strings PATHS, return a list of all those
+that are subdirectories of any directory in DIRS, in the order
+they were found."
+  (cond
+   ((null paths)
+    paths)
+   ((my-subdirectory-any-p dirs (car paths))
+    (cons (car paths) (my-filter-any-subdir-paths dirs (cdr paths))))
+   (t
+    (my-filter-any-subdir-paths dirs (cdr paths)))))
+
+(defun my-remove-subdir-paths (dir paths)
+  "Given a list of strings PATHS, return a list of all those
+that are not subdirectories of DIR, in the order they were found."
+  (let* ((stdpaths (mapcar #'expand-file-name paths))
+         (rempaths (my-filter-subdir-paths dir stdpaths)))
+    (cl-set-difference stdpaths rempaths :test #'string=)))
+
+(defun my-remove-all-subdir-paths (dirs paths)
+  "Given a list of strings PATHS, return a list of all those
+that are not subdirectories of any directory in DIRS, in the
+order they were found."
+  (if (null dirs)
+      paths
+    (my-remove-all-subdir-paths
+     (cdr dirs)
+     (my-remove-subdir-paths (car dirs) paths))))
+
+(defun my-sort-subdir-paths (dir paths)
+  "Given a list of strings PATHS representing directories, sort them
+such that all subdirectories of DIR come first."
+  (let* ((dots (my-filter-regex-paths "^\\." paths))
+         (nodots (cl-set-difference paths dots :test #'string=))
+         (stdpaths (mapcar #'expand-file-name nodots))
+         (apps (my-filter-subdir-paths dir stdpaths))
+         (others (cl-set-difference stdpaths apps :test #'string=)))
+    (append apps others dots)))
+
+(defun my-filter-regex-paths (regex paths)
   "Given a list of strings PATHS, return a list of all those
 matching REGEX, in the order they were found."
   (cond
    ((null paths)
     paths)
    ((string-match-p regex (car paths))
-    (cons (car paths) (my-filter-paths regex (cdr paths))))
+    (cons (car paths) (my-filter-regex-paths regex (cdr paths))))
    (t
-    (my-filter-paths regex (cdr paths)))))
+    (my-filter-regex-paths regex (cdr paths)))))
 
-(defun my-remove-paths (regex paths)
+(defun my-remove-regex-paths (regex paths)
   "Given a list of strings PATHS, return a list of all those
 that do not match REGEX, in the order they were found."
   (let* ((stdpaths (mapcar #'expand-file-name paths))
-         (rempaths (my-filter-paths regex stdpaths)))
+         (rempaths (my-filter-regex-paths regex stdpaths)))
     (cl-set-difference stdpaths rempaths :test #'string=)))
 
-(defun my-sort-paths (paths)
+(defun my-sort-regex-paths (regex paths)
   "Given a list of strings PATHS representing directories, sort them
-such that all directories in \\Apps come first."
-  (let* ((dots (my-filter-paths "^\\." paths))
+such that all directories matching REGEX come first."
+  (let* ((dots (my-filter-regex-paths "^\\." paths))
          (nodots (cl-set-difference paths dots :test #'string=))
          (stdpaths (mapcar #'expand-file-name nodots))
-         (apps (my-filter-paths "/Apps" stdpaths))
+         (apps (my-filter-regex-paths regex stdpaths))
          (others (cl-set-difference stdpaths apps :test #'string=)))
     (append apps others dots)))
 
 (defun my-convert-windows-drive-letter (winpath)
   "Convert a Windows path with initial drive letter `c:/Users' to a
 Unix-like path `/c/Users'."
-  ;; It shouldn't be this hard...
   (let ((path (seq-remove (lambda (elt) (equal ?: elt)) winpath)))
     (concat (cons ?/ path))))
 
