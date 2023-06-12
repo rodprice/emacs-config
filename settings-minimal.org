@@ -487,6 +487,30 @@ Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-ma
   (advice-add 'pop-to-mark-command :around #'modi/multi-pop-to-mark)
 #+end_src
 
+** Bookmarks
+
+The visible bookmarks package, described [[https://pragmaticemacs.wordpress.com/2016/07/22/use-visible-bookmarks-to-quickly-jump-around-a-file/][here]].
+#+begin_src emacs-lisp
+  (use-package bm
+    :ensure t
+    :config
+    (add-to-list 'display-buffer-alist
+                 '("\\*bm-bookmarks\\*"
+                   (display-buffer-at-bottom)
+                   (window-height . fit-window-to-buffer)))
+    :custom
+    (bm-marker 'bm-marker-right)
+    (bm-in-lifo-order t)
+    (bm-highlight-style 'bm-highlight-only-fringe)
+    :bind (("<f2>" . bm-toggle)
+           ("C-<f2>" . bm-next)
+           ("S-<f2>" . bm-previous)
+           ("C-S-<f2>" . bm-show-all)
+           ("<left-fringe> <mouse-5>" . bm-next-mouse)
+           ("<left-fringe> <mouse-4>" . bm-previous-mouse)
+           ("<left-fringe> <mouse-1>" . bm-toggle-mouse)))
+#+end_src
+
 ** Parentheses
 
 #+begin_src emacs-lisp
@@ -723,6 +747,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             help-mode
             compilation-mode))
     (setq popper-display-control nil)
+    (setq switch-to-buffer-obey-display-actions t)
     (popper-mode +1)
     (popper-echo-mode +1))
 #+end_src

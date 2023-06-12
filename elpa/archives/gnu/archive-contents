@@ -1109,6 +1109,16 @@
 		      ("Andrea Corallo" . "akrl@sdf.org"))
 		     (:url . "https://elpa.gnu.org/packages/elisp-benchmarks.html")
 		     (:commit . "70e38dbfa8f4acbdebfd0f417410d99f5031e05f"))])
+ (emacs-gc-stats .
+		 [(1 1)
+		  ((emacs
+		    (25 1)))
+		  "Collect Emacs GC statistics" tar
+		  ((:url . "https://git.sr.ht/~yantar92/emacs-gc-stats")
+		   (:maintainer "Ihor Radchenko" . "yantar92@posteo.net")
+		   (:authors
+		    ("Ihor Radchenko" . "yantar92@posteo.net"))
+		   (:commit . "19c24e427fcee57fe834b7842cd48f0e23ba8a84"))])
  (embark .
 	 [(0 22 1)
 	  ((emacs
@@ -3719,7 +3729,7 @@
 	  ("Toby Cubitt" . "toby-predictive@dr-qubit.org"))
 	 (:keywords "extensions" "matching" "data structures trie" "ternary search tree" "tree" "completion" "regexp"))])
  (triples .
-	  [(0 2 7)
+	  [(0 3 1)
 	   ((seq
 	     (2 0))
 	    (emacs
@@ -3730,7 +3740,7 @@
 	    (:maintainer "Andrew Hyatt" . "ahyatt@gmail.com")
 	    (:authors
 	     ("Andrew Hyatt" . "ahyatt@gmail.com"))
-	    (:commit . "e4caebe696695be94a7d2c36a610990d61fed3ba"))])
+	    (:commit . "b68552830075617c06c502d4d97cb8c9c0fc0ccb"))])
  (typo .
        [(1 0 1)
 	((emacs

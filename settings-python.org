@@ -397,6 +397,24 @@ Set the =popper= display function.
   (popper-mode +1)
 #+end_src
 
+** Jupyter
+
+Note: The package =emacs-jupyter= is [[https://github.com/nnicandro/emacs-jupyter][here]]. An article on setting up
+Jupyter with Conda is [[https://martinralbrecht.wordpress.com/2020/08/23/conda-jupyter-and-emacs/][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package jupyter
+    :after (ob-jupyter ob-python)
+    :config
+    (setq jupyter-api-authentication-method 'password)
+    (setq jupyter-eval-use-overlays nil)
+    (setq org-babel-default-header-args:jupyter-python '((:session . "/jpy:localhost#8888:py")
+                                                         (:kernel . "conda-env-edge-py")
+                                                         (:async . "yes")
+                                                         (:pandoc t)))
+    (add-to-list 'savehist-additional-variables 'jupyter-server-kernel-names)
+    (setq ob-async-no-async-languages-alist '("jupyter-python"))
+    (add-to-list 'org-structure-template-alist '("j" . "src jupyter-python")))
+#+end_src
 ** Junkyard
 
 From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
@@ -480,22 +498,4 @@ A Magit-like emacs interface to Pytest ([[https://github.com/wbolster/emacs-pyth
   (use-package python-pytest
     :disabled
     :ensure t)
-#+end_src
-
-** Jupyter
-
-Note: The package =emacs-jupyter= is [[https://github.com/nnicandro/emacs-jupyter][here]].
-#+begin_src emacs-lisp :tangle no
-  (use-package jupyter
-    :after (ob-jupyter ob-python)
-    :config
-    (setq jupyter-api-authentication-method 'password)
-    (setq jupyter-eval-use-overlays nil)
-    (setq org-babel-default-header-args:jupyter-python '((:session . "/jpy:localhost#8888:py")
-                                                         (:kernel . "conda-env-edge-py")
-                                                         (:async . "yes")
-                                                         (:pandoc t)))
-    (add-to-list 'savehist-additional-variables 'jupyter-server-kernel-names)
-    (setq ob-async-no-async-languages-alist '("jupyter-python"))
-    (add-to-list 'org-structure-template-alist '("j" . "src jupyter-python")))
 #+end_src

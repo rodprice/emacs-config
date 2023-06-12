@@ -15,6 +15,7 @@ url/
 custom.el
 places
 recentf
+bm-repository
 .org-id-locations
 \#*
 org-mode-config.el
