@@ -73,17 +73,32 @@
   :custom
   ;; (org-fold-catch-invisible-edits t)
   (org-element-use-cache nil) ;; org's cache get messed up easily, so don't use it
-)
-  ;; (org-babel-do-load-languages
-  ;;  'org-babel-load-languages
-  ;;  '((emacs-lisp . t)
-  ;;    ;;(R . t)
-  ;;    (python . t)
-  ;;    ;;(ipython . t)
-  ;;    (latex . t)
-  ;;    (ditaa . t)
-  ;;    (shell . t)
-  ;;    (jupyter . t)))
+  )
+
+;; Adapted from https://martinralbrecht.wordpress.com/2020/08/23/conda-jupyter-and-emacs/
+(use-package ob
+  :disabled
+  :ensure nil
+  :config
+  (progn
+    ;; load more languages for org-babel
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (python . t)
+       (shell . t)
+       (latex . t)
+       (C . t)
+       (makefile . t)
+       (jupyter . t)))          ; must be last
+
+    (setq org-babel-default-header-args:sh    '((:results . "output replace"))
+          org-babel-default-header-args:bash  '((:results . "output replace"))
+          org-babel-default-header-args:shell '((:results . "output replace"))
+          org-babel-default-header-args:jupyter-python '((:async . "yes")
+                                                         (:session . "py")
+                                                         (:kernel . "sagemath"))
+          org-confirm-babel-evaluate nil)))
 
 ;; Load the various settings files
 (require 'my-functions)

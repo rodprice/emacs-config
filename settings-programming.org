@@ -22,6 +22,18 @@ file.
 
 * Version control
 
+** VC package
+
+#+begin_src emacs-lisp
+  (use-package vc
+    :ensure nil
+    :config
+    (add-to-list 'display-buffer-alist
+                 '("\\*vc-dir\\*"
+                   (display-buffer-at-bottom)
+                   (window-height . fit-window-to-buffer))))
+#+end_src
+
 ** Magit package
 
 Note: An example =magit= configuration can be found [[https://gist.github.com/soonhokong/235ae79cb0639b15f8b1][here]].
