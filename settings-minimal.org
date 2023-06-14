@@ -18,6 +18,17 @@ This configuration requires packages
   - vscode-dark-plus-theme
   - which-key
   - whole-line-or-region
+* Debugging
+
+#+begin_src emacs-lisp
+  (use-package my-local-vars
+    :load-path "lisp"
+    :after origami
+    :bind
+    (("<f7>" . my-local-vars-show)
+     (:map my-local-vars-mode-map
+           ("<f7>" . quit-window))))
+#+end_src
 
 * Defaults
 

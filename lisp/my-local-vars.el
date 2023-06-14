@@ -3,15 +3,22 @@
 ;;; Commentary:
 ;;; Code:
 
+(require 'origami)
+
 (eval-when-compile (require 'cl-lib))
 
-(defface my-local-vars-header '((t :inherit font-lock-type-face))
+(defface my-local-vars-label-face '((t :inherit font-lock-type-face))
   "Face for headers in my-local-vars buffers."
   :group 'mlv
   :version "0.1")
 
-(defface my-local-vars-header-value '((t :inherit font-lock-variable-name-face))
+(defface my-local-vars-value-face '((t :inherit font-lock-variable-name-face))
   "Face for header values in my-local-vars buffers."
+  :group 'mlv
+  :version "0.1")
+
+(defface my-local-vars-doc-face '((t :inherit font-lock-doc-face))
+  "Face for documentation in my-local-vars buffers."
   :group 'mlv
   :version "0.1")
 
@@ -31,8 +38,16 @@
 (defvar my-local-vars-process nil
   "The process (if any) running in the target buffer.")
 
+(defvar my-local-vars-header-text
+  (propertize
+   "'o' toggles all folded values, 'l' toggles values under point.\n"
+   'face 'my-local-vars-doc-face)
+  "Text to insert at the top of the local variables buffer.")
+
 (defvar my-local-vars-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "o" #'origami-toggle-all-nodes)
+    (define-key map "l" #'origami-recursively-toggle-node)
     (define-key map "n" #'next-line)
     (define-key map "p" #'previous-line)
     (define-key map "q" #'quit-window)
@@ -41,44 +56,103 @@
 
 (define-derived-mode my-local-vars-mode special-mode "Local vars"
   "Major mode for my-local-vars buffers."
-  (setq buffer-read-only t))
+  (add-to-list
+   'origami-parser-alist
+   `(my-local-vars-mode . ,(origami-markers-parser "(" ")")))
+  (origami-mode +1)
+  ;; (setq buffer-read-only t)
+  )
 
 (cl-defstruct (variables (:type list))
   >name        ;; buffer name
   >process     ;; name of process running in buffer
   >major-mode  ;; current major mode for the buffer
   >minor-modes ;; list of minor modes for the buffer
-  )
+  >project     ;; list of variables related to projects
+  >conda       ;; list of variables related to conda
+  >hooks       ;; list of buffer-local hooks
+  >functions)  ;; list of buffer-local abnormal hooks
 
 (defun my-local-vars-find-variables (target)
-  ""
+  "Return a variables struct populated from buffer-local variables
+in buffer TARGET."
   (with-current-buffer target
     (let ((vars (buffer-local-variables)))
       (make-variables
-       :>name (buffer-name target)
-       :>process (get-buffer-process target)
-       :>major-mode (alist-get 'major-mode vars)
+       :>name        (buffer-name target)
+       :>process     (get-buffer-process target)
+       :>major-mode  (alist-get 'major-mode vars)
        :>minor-modes (alist-get 'local-minor-modes vars)
-       ))))
+       :>project     (my-local-vars-filter "project" vars)
+       :>conda       (my-local-vars-filter "conda" vars)
+       :>hooks       (my-local-vars-filter "\\-hook\\'" vars)
+       :>functions   (my-local-vars-filter "\\-functions\\'" vars)))))
 
-(defun my-local-vars-filter (regex &optional buffer)
-  (let* ((buffer (or buffer (current-buffer)))
-         (vars (with-current-buffer buffer
-                 (buffer-local-variables)))
-         (matches))
+(defun my-local-vars-filter (regex vars)
+  "Return elements of VARS with leading symbols matching REGEX."
+  (let (matches)
     (dolist (var vars matches)
       (when (string-match regex (symbol-name (car var)))
         (push var matches)))))
 
-(defun my-local-vars-hooks (&optional buffer)
-  (let ((buffer (or buffer (current-buffer))))
-    (mapcar #'car (my-local-vars-filter "-hook\\'"))))
+(defun my-local-vars--format-value (indent value)
+  "Return a string with formatted values in VALUE."
+  (cond
+   ((null value)
+    "nil")
+   ((proper-list-p value)
+    (concat
+     "( "
+     (string-chop-newline
+      (string-join
+       ;; Recurse on each element of the list
+       (mapcar
+        (apply-partially
+         #'my-local-vars--format-value
+         (+ indent 2))
+        value)
+       ;; Join with padding
+       (concat
+        "\n"
+        (make-string indent ?\s))))
+     " )"))
+   ((listp value)  ;; cons cell
+    (format
+     "( %s . %s )"
+     (my-local-vars--format-value 0 (car value))
+     (my-local-vars--format-value 0 (cdr value))))
+   ((stringp value)
+    (format "\"%s\"" value))
+   (t
+    (format "%s" value))))
 
-(defun my-local-vars-refresh-header (&optional target)
-  ""
-  (let* ((target      ;; target buffer
+(defun my-local-vars--refresh-line (label tabstop value)
+  "Format a LABEL / VALUE pair, padding LABEL with TABSTOP spaces."
+  (defun propertize-item (item)
+    (propertize item 'face 'my-local-vars-value-face))
+  (concat
+   ;; Print the label
+   (propertize
+    (string-pad label tabstop)
+    'face 'my-local-vars-label-face)
+   ;; Print the value(s)
+   (propertize
+    (cond
+     ((listp value)
+      (concat
+       " : "
+       (my-local-vars--format-value (+ tabstop 5) value)
+       "\n"))
+    (t
+     (format " : %s\n" value)))
+    'face 'my-local-vars-value-face)))
+
+(defun my-local-vars--refresh (&optional target)
+  "Return a string representing labels and values in the `variables'
+struct."
+  (let* ((target       ;; target buffer
           (if (null target) (current-buffer) (get-buffer target)))
-         (vars        ;; buffer-local variables
+         (vars         ;; buffer-local variables
           (my-local-vars-find-variables target))
          (-name        ;; buffer name
           (variables->name vars))
@@ -88,33 +162,45 @@
                 "<none>"
               (process-name proc))))
          (-major-mode  ;; major mode of the buffer
-          (symbol-name (variables->major-mode vars)))
+          (variables->major-mode vars))
          (-minor-modes ;; list of minor modes for the buffer
-          (mapcar #'symbol-name (variables->minor-modes vars))))
+          (variables->minor-modes vars))
+         (-project
+          (variables->project vars))
+         (-conda
+          (variables->conda vars))
+         (-hooks       ;; list of buffer-local hooks
+          (variables->hooks vars))
+         (-functions   ;; list of buffer-local hooks
+          (variables->functions vars))
+         (tabstop 11))
     (concat
-     (propertize "Name: " 'face 'my-local-vars-header)
-     (propertize (format "%s\n" -name) 'face 'my-local-vars-header-value)
-     (propertize "Process: " 'face 'my-local-vars-header)
-     (propertize (format "%s\n" -process) 'face 'my-local-vars-header-value)
-     (propertize "Major mode: " 'face 'my-local-vars-header)
-     (propertize (format "%s\n" -major-mode) 'face 'my-local-vars-header-value)
-     (propertize "Minor modes: " 'face 'my-local-vars-header)
-     (propertize (format "%s\n" -minor-modes) 'face 'my-local-vars-header-value))))
+     my-local-vars-header-text
+     (my-local-vars--refresh-line "Name" tabstop -name)
+     (my-local-vars--refresh-line "Process" tabstop -process)
+     (my-local-vars--refresh-line "Major mode" tabstop -major-mode)
+     (my-local-vars--refresh-line "Minor modes" tabstop -minor-modes)
+     (my-local-vars--refresh-line "Project" tabstop -project)
+     (my-local-vars--refresh-line "Conda" tabstop -conda)
+     (my-local-vars--refresh-line "Hooks" tabstop -hooks)
+     (my-local-vars--refresh-line "Functions" tabstop -functions)
+     )))
 
 (defun my-local-vars-refresh ()
-  ""
+  "Refresh the contents of the local variables buffer using
+buffer-local variables found in the current buffer."
   (let* ((buffer-read-only nil)
          (buffer (current-buffer))
          (target (buffer-local-value 'my-local-vars-target buffer)))
     (when (null target)
       (error "Target buffer is not defined"))
     (erase-buffer)
-    (insert (my-local-vars-refresh-header target))
-    (align-regexp (point-min) (point-max) "\\(:\\)")
-    ))
+    (insert (my-local-vars--refresh target))
+    (goto-char (point-min))))
 
+;;;###autoload
 (defun my-local-vars-show (&optional target)
-  ""
+  "Show interesting buffer-local variables in a new window."
   (interactive)
   (let* ((target (if (null target) (current-buffer) (get-buffer target)))
          (process (get-buffer-process target))
@@ -124,71 +210,7 @@
       (setq-local my-local-vars-target target)
       (setq-local my-local-vars-process process)
       (my-local-vars-refresh)
+      (origami-close-all-nodes buffer)
       (pop-to-buffer buffer))))
 
 (provide 'my-local-vars)
-
-;;; my-local-vars.el ends here
-
-  ;; ( major-mode . emacs-lisp-mode )
-  ;; ( buffer-read-only )
-  ;; (default-directory . "c:/Users/rdprice/Apps/msys64/home/rdprice/.emacs.d/")
-  ;; (buffer-file-name . "c:/Users/rdprice/Apps/msys64/home/rdprice/.emacs.d/init.el")
-  ;; (local-minor-modes
-  ;;   whole-line-or-region-local-mode
-  ;;   font-lock-mode
-  ;;   eldoc-mode
-  ;;   display-line-numbers-mode
-  ;;   flycheck-mode
-  ;;   origami-mode
-  ;;   corfu-mode
-  ;;   auto-save-mode)
-  ;; (electric-pair-text-pairs
-  ;;   ( 96 . 39 )
-  ;;   ( 8216 . 8217 )
-  ;;   ( 34 . 34 )
-  ;;   ( 8216 . 8217 )
-  ;;   ( 8220 . 8221 ))
-  ;; ( file-local-variables-alist )
-  ;; (post-command-hook
-  ;;   jit-lock--antiblink-post-command
-  ;;   eldoc-schedule-timer
-  ;;   flycheck-perform-deferred-syntax-check
-  ;;   flycheck-error-list-update-source
-  ;;   flycheck-error-list-highlight-errors
-  ;;   flycheck-maybe-display-error-at-point-soon
-  ;;   flycheck-hide-error-buffer
-  ;;   t)
-  ;; (focus-out-hook
-  ;;   flycheck-cancel-error-display-error-at-point-timer
-  ;;   t)
-  ;; ( focus-in-hook flycheck-display-error-at-point-soon t )
-  ;; ( before-revert-hook flycheck-teardown t )
-  ;; (change-major-mode-hook
-  ;;   font-lock-change-mode
-  ;;   flycheck-teardown
-  ;;   t)
-  ;; ( kill-buffer-hook flycheck-teardown t )
-  ;; (window-configuration-change-hook
-  ;;   flycheck-perform-deferred-syntax-check
-  ;;   t)
-  ;; (after-change-functions
-  ;;   jit-lock-after-change
-  ;;   flycheck-handle-change
-  ;;   t)
-  ;; ( after-save-hook flycheck-handle-save t )
-  ;; ( delayed-after-hook-functions )
-
-  ;; (buffer-file-truename
-  ;;   .
-  ;;   "~/working/kalman/src/kepler/rotators.py")
-  ;; ( buffer-file-coding-system . undecided-unix )
-  ;; (post-self-insert-hook
-  ;;   t
-  ;;   python-electric-pair-string-delimiter
-  ;;   python-indent-post-self-insert-function)
-  ;; ( completion-at-point-functions python-completion-at-point t )
-  ;; ( before-change-functions t syntax-ppss-flush-cache )
-  ;; (eshell-path-env
-  ;;   .
-  ;;   "c:\\Users\\rdprice\\Apps\\Anaconda3\\envs\\kalman;c:\\Users\\rdprice\\Apps\\Anaconda3\\envs\\kalman\\Library\\mingw-w64\\bin;c:\\Users\\rdprice\\Apps\\Anaconda3\\envs\\kalman\\Library\\usr\\bin;c:\\Users\\rdprice\\Apps\\Anaconda3\\envs\\kalman\\Library\\bin;c:\\Users\\rdprice\\Apps\\Anaconda3\\envs\\kalman\\Scripts;c:\\Users\\rdprice\\Apps\\Anaconda3\\envs\\kalman\\bin;C:\\Users\\rdprice\\Apps\\Anaconda3\\condabin;C:\\Users\\rdprice\\Apps\\msys64\\home\\rdprice\\bin;C:\\Users\\rdprice\\Apps\\msys64\\home\\rdprice\\bin;C:\\Users\\rdprice\\Apps\\GnuPG\\bin;C:\\Users\\rdprice\\Apps\\CMake\\bin;C:\\Users\\rdprice\\Apps\\Emacs\\bin;C:\\Users\\rdprice\\Apps\\Julia\\bin;C:\\Users\\rdprice\\Apps\\Pandoc;C:\\Users\\rdprice\\Apps\\msys64\\mingw64\\bin;C:\\Users\\rdprice\\Apps\\shellcheck;C:\\Users\\rdprice\\Apps\\Microsoft VS Code\\bin;C:\\Users\\rdprice\\Apps\\msys64\\ucrt64\\bin;C:\\Users\\rdprice\\Apps\\Microsoft VS Code\\bin;c:\\Users\\rdprice\\Apps\\Emacs\\libexec\\emacs\\29.0.60\\x86_64-w64-mingw32;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0;C:\\Windows\\System32\\OpenSSH;C:\\Program Files\\PuTTY;C:\\Users\\rdprice\\AppData\\Local\\Microsoft\\WindowsApps")
