@@ -498,10 +498,9 @@ The visible bookmarks package, described [[https://pragmaticemacs.wordpress.com/
                  '("\\*bm-bookmarks\\*"
                    (display-buffer-at-bottom)
                    (window-height . fit-window-to-buffer)))
-    :custom
-    (bm-marker 'bm-marker-right)
-    (bm-in-lifo-order t)
-    (bm-highlight-style 'bm-highlight-only-fringe)
+    (setq bm-marker 'bm-marker-right)
+    (setq bm-in-lifo-order t)
+    (setq bm-highlight-style 'bm-highlight-only-fringe)
     :bind (("<f2>" . bm-toggle)
            ("C-<f2>" . bm-next)
            ("S-<f2>" . bm-previous)
