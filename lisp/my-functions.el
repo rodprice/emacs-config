@@ -64,7 +64,9 @@ contains a list. Otherwise do nothing."
 
 (defun my-list-of-strings-p (value)
   "Test whether VALUE is a list of strings."
-  (cl-every #'stringp value))
+  (and
+   (listp value)
+   (cl-every #'stringp value)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monkey around with exec-path and env variable PATH

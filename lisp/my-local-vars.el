@@ -22,16 +22,6 @@
   :group 'mlv
   :version "0.1")
 
-(defface my-local-vars-variable '((t :inherit font-lock-function-name-face))
-  "Face for variables in my-local-vars buffers."
-  :group 'mlv
-  :version "0.1")
-
-(defface my-local-vars-variable-value '((t :inherit font-lock-builtin-face))
-  "Face for variable values in my-local-vars buffers."
-  :group 'mlv
-  :version "0.1")
-
 (defvar my-local-vars-target nil
   "The buffer whose local variables are displayed.")
 

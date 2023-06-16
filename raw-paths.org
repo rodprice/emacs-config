@@ -1,0 +1,674 @@
+#+TITLE: Compare paths in various shells
+#+STARTUP: overview indent
+
+* Preliminaries
+
+#+begin_src emacs-lisp
+  (require 'my-functions)
+#+end_src
+
+This is the Windows path for the system.
+#+begin_src emacs-lisp
+  (defvar raw-path-windows-system
+    "/c/Users/rdprice/Apps/Anaconda3/condabin"
+    "/c/Program Files (x86)/Common Files/Oracle/Java/javapath"
+    "/c/Windows/system32"
+    "/c/Windows"
+    "/c/Windows/System32/Wbem"
+    "/c/Windows/System32/WindowsPowerShell/v1.0/"
+    "/c/Windows/System32/OpenSSH/"
+    "/c/Program Files/PuTTY/"))
+#+end_src
+
+This is the Windows path for the user.
+#+begin_src emacs-lisp
+  (defvar raw-path-windows-user
+    '("/c/Users/rdprice/Apps/GnuPG/bin"
+      "/c/Users/rdprice/Apps/CMake/bin"
+      "/c/Users/rdprice/Apps/Emacs/bin"
+      "/c/Users/rdprice/Apps/Julia/bin"
+      "/c/Users/rdprice/Apps/Pandoc"
+      "/c/Users/rdprice/Apps/msys64/mingw64/bin"
+      "/c/Users/rdprice/Apps/shellcheck"
+      "/c/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"))
+#+end_src
+
+The =Path= environment variable seen in the =cmd= shell is the
+concatenation of the two.
+#+begin_src emacs-lisp
+  (defvar raw-path-windows
+    (append raw-path-windows-system
+            raw-path-windows-user))
+#+end_src
+
+* Git bash shell
+
+** Conda environment 'base'
+
+*** Startup
+
+We start up in the =MSYS2= home directory.
+#+begin_src shell :tangle no
+    (base) ~ $ pwd
+    /c/Users/rdprice/Apps/msys64/home/rdprice
+#+end_src
+
+*** Git executable
+
+The =git= executable found is in the Git for Windows directory.
+#+begin_src shell :tangle no
+    (base) ~ $ which git
+    /mingw64/bin/git
+    (base) ~ $ git --version
+    git version 2.37.1.windows.1
+    (base) ~ $ /c/Users/rdprice/Apps/Git/bin/git --version
+    git version 2.37.1.windows.1
+#+end_src
+
+*** Conda environment
+
+The =conda= environment variables are:
+    #+begin_src shell :tangle no
+    (base) ~ $ env | grep CONDA
+    CONDA_SHLVL=1
+    CONDA_EXE=/c/Users/rdprice/Apps/Anaconda3/Scripts/conda.exe
+    CONDA_PREFIX=C:\Users\rdprice\Apps\Anaconda3
+    CONDA_PYTHON_EXE=/c/Users/rdprice/Apps/Anaconda3/python.exe
+    _CE_CONDA=
+    CONDA_PROMPT_MODIFIER=
+    CONDA_DEFAULT_ENV=base
+#+end_src
+
+*** Path
+
+Show the raw path:
+#+begin_src shell :tangle no
+    (base) ~ $ echo $PATH
+#+end_src
+
+After massaging with =pprint=:
+#+begin_src emacs-lisp
+  (defvar raw-path-git-bash-conda-base
+    '("/c/Users/rdprice/Apps/Anaconda3"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/mingw-w64/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/usr/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Scripts"
+      "/c/Users/rdprice/Apps/Anaconda3/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/condabin"
+      "/c/Users/rdprice/Apps/msys64/home/rdprice/bin"
+      "/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin"
+      "/mingw64/bin"
+      "/usr/bin"
+      "/c/Users/rdprice/Apps/msys64/home/rdprice/bin"
+      "/c/Program Files (x86)/Common Files/Oracle/Java/javapath"
+      "/c/Windows/system32"
+      "/c/Windows"
+      "/c/Windows/System32/Wbem"
+      "/c/Windows/System32/WindowsPowerShell/v1.0"
+      "/c/Windows/System32/OpenSSH"
+      "/c/Program Files/PuTTY"
+      "/c/Users/rdprice/Apps/GnuPG/bin"
+      "/c/Users/rdprice/Apps/CMake/bin"
+      "/c/Users/rdprice/Apps/Emacs/bin"
+      "/c/Users/rdprice/Apps/Julia/bin"
+      "/c/Users/rdprice/Apps/Pandoc"
+      "/c/Users/rdprice/Apps/msys64/mingw64/bin"
+      "/c/Users/rdprice/Apps/shellcheck"
+      "/c/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"
+      "/c/Users/rdprice/Apps/msys64/ucrt64/bin"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"))
+#+end_src
+
+After removing all the absolute paths, we have:
+#+begin_src emacs-lisp
+  (defvar raw-path-git-bash-conda-base-relative
+    '(
+      "/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"))
+#+end_src
+
+** Conda environment 'kalman'
+
+*** Startup
+
+Activate the =kalman= environment. We remain in the =MSYS2= home
+directory.
+#+begin_src shell :tangle no
+  (base) ~ $ conda activate kalman
+  (kalman) ~ $ pwd
+  /c/Users/rdprice/Apps/msys64/home/rdprice
+#+end_src
+
+*** Git executable
+
+The =git= executable found is in the Git for Windows directory.
+#+begin_src shell :tangle no
+  (kalman) ~ $ which git
+  /mingw64/bin/git
+  (kalman) ~ $ git --version
+  git version 2.37.1.windows.1
+  (kalman) ~ $ /c/Users/rdprice/Apps/Git/bin/git --version
+  git version 2.37.1.windows.1
+    #+end_src
+
+*** Conda environment
+
+The =conda= environment variables are now:
+    #+begin_src shell :tangle no
+(kalman) ~ $ env | grep CONDA
+CONDA_SHLVL=2
+CONDA_EXE=/c/Users/rdprice/Apps/Anaconda3/Scripts/conda.exe
+CONDA_PREFIX=C:\Users\rdprice\Apps\Anaconda3\envs\kalman
+CONDA_PREFIX_1=C:\Users\rdprice\Apps\Anaconda3
+CONDA_PYTHON_EXE=/c/Users/rdprice/Apps/Anaconda3/python.exe
+_CE_CONDA=
+CONDA_PROMPT_MODIFIER=
+CONDA_DEFAULT_ENV=kalman
+#+end_src
+
+=CONDA_SHLVL=, =CONDA_PREFIX=, and =CONDA_DEFAULT_ENV= have changed, and a
+new variable =CONDA_PREFIX_1= points to the old =CONDA_PREFIX=.
+
+*** Path
+
+Show the raw path:
+#+begin_src shell :tangle no
+    (kalman) ~ $ echo $PATH
+#+end_src
+
+After massaging with =pprint=:
+#+begin_src emacs-lisp
+  (defvar raw-path-git-bash-conda-kalman
+    '("/c/Users/rdprice/Apps/Anaconda3/envs/kalman"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/mingw-w64/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/usr/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Scripts"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/condabin"
+      "/c/Users/rdprice/Apps/msys64/home/rdprice/bin"
+      "/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin"
+      "/mingw64/bin"
+      "/usr/bin"
+      "/c/Users/rdprice/Apps/msys64/home/rdprice/bin"
+      "/c/Program Files (x86)/Common Files/Oracle/Java/javapath"
+      "/c/Windows/system32"
+      "/c/Windows"
+      "/c/Windows/System32/Wbem"
+      "/c/Windows/System32/WindowsPowerShell/v1.0"
+      "/c/Windows/System32/OpenSSH"
+      "/c/Program Files/PuTTY"
+      "/c/Users/rdprice/Apps/GnuPG/bin"
+      "/c/Users/rdprice/Apps/CMake/bin"
+      "/c/Users/rdprice/Apps/Emacs/bin"
+      "/c/Users/rdprice/Apps/Julia/bin"
+      "/c/Users/rdprice/Apps/Pandoc"
+      "/c/Users/rdprice/Apps/msys64/mingw64/bin"
+      "/c/Users/rdprice/Apps/shellcheck"
+      "/c/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"
+      "/c/Users/rdprice/Apps/msys64/ucrt64/bin"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"))
+#+end_src
+
+After removing all the absolute paths, we have:
+#+begin_src emacs-lisp
+  (defvar raw-path-git-bash-conda-kalman-relative
+    '("/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"))
+#+end_src
+
+This is just the same as in the conda `base' environment.
+
+* Mingw shell
+
+** Conda environment 'base'
+
+*** Startup
+
+Comparing the contents of the home directory with the one that
+=git-bash= sends me to, we find that we start up in the =MSYS2= home
+directory.
+#+begin_src emacs-lisp
+  (defvar raw-path-home-dir
+    "/c/Users/rdprice/Apps/msys64/home/rdprice")
+#+end_src
+
+*** Git executable
+
+The =git= executable found is in the MSYS2 directory.
+#+begin_src shell :tangle no
+  (base) ~ $ which git
+  /usr/bin/git
+  (base) ~ $ git --version
+  git version 2.41.0
+  (base) ~ $ /c/Users/rdprice/Apps/msys64/usr/bin/git --version
+  git version 2.41.0
+#+end_src
+
+*** Conda environment
+
+The =conda= environment variables are the same as the =git-bash=
+variables.
+#+begin_src shell :tangle no
+  (base) ~ $ env | grep CONDA
+  CONDA_EXE=/c/Users/rdprice/Apps/Anaconda3/Scripts/conda.exe
+  CONDA_PREFIX=C:\Users\rdprice\Apps\Anaconda3
+  CONDA_PROMPT_MODIFIER=
+  _CE_CONDA=
+  CONDA_SHLVL=1
+  CONDA_PYTHON_EXE=/c/Users/rdprice/Apps/Anaconda3/python.exe
+  CONDA_DEFAULT_ENV=base
+#+end_src
+
+*** Path
+
+Show the raw path:
+#+begin_src shell :tangle no
+  (base) ~ $ echo $PATH
+#+end_src
+
+After massaging with =pprint=:
+#+begin_src emacs-lisp
+  (defvar raw-path-mingw-conda-base
+    '("/c/Users/rdprice/Apps/Anaconda3"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/mingw-w64/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/usr/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Scripts"
+      "/c/Users/rdprice/Apps/Anaconda3/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/condabin"
+      "/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin"
+      "/c/Windows/System32"
+      "/c/Windows"
+      "/c/Windows/System32/Wbem"
+      "/c/Windows/System32/WindowsPowerShell/v1.0/"
+      "/usr/bin/site_perl"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"
+      "/ucrt64/bin"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"))
+#+end_src
+
+After removing all the absolute paths, we have:
+#+begin_src emacs-lisp
+    (defvar raw-path-mingw-conda-base-relative
+      '("/mingw64/bin"
+        "/usr/local/bin"
+        "/usr/bin"
+        "/usr/bin/site_perl"
+        "/usr/bin/vendor_perl"
+        "/usr/bin/core_perl"
+        "/ucrt64/bin"))
+#+end_src
+
+*** Path intersections
+
+Directories found in the =git-bash= path that are missing in the =mingw=
+path. Here I find my =~/bin= directory, a few directories from the
+Windows system =Path=, and all of the Windows user =Path=.
+#+begin_src emacs-lisp :tangle no
+  '("/c/Users/rdprice/Apps/msys64/home/rdprice/bin"
+    "/c/Users/rdprice/Apps/msys64/home/rdprice/bin"
+    "/c/Program Files (x86)/Common Files/Oracle/Java/javapath"
+    "/c/Windows/system32"
+    "/c/Windows/System32/WindowsPowerShell/v1.0"
+    "/c/Windows/System32/OpenSSH"
+    "/c/Program Files/PuTTY"
+    "/c/Users/rdprice/Apps/GnuPG/bin"
+    "/c/Users/rdprice/Apps/CMake/bin"
+    "/c/Users/rdprice/Apps/Emacs/bin"
+    "/c/Users/rdprice/Apps/Julia/bin"
+    "/c/Users/rdprice/Apps/Pandoc"
+    "/c/Users/rdprice/Apps/msys64/mingw64/bin"
+    "/c/Users/rdprice/Apps/shellcheck"
+    "/c/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
+    "/c/Users/rdprice/Apps/msys64/ucrt64/bin")
+#+end_src
+
+Directories that are in the =mingw= path that are missing in the
+=git-bash= path.
+#+begin_src emacs-lisp :tangle no
+  '("/c/Windows/System32"
+    "/c/Windows/System32/WindowsPowerShell/v1.0/"
+    "/usr/bin/site_perl"
+    "/ucrt64/bin")
+#+end_src
+
+Finally, here are the directories that are in common between the two
+paths, in no particular order.
+#+begin_src emacs-lisp :tangle no
+  '("/c/Users/rdprice/Apps/Microsoft VSCODE-DARK-PLUS-THEME Code/bin"
+    "/usr/bin/core_perl"
+    "/usr/bin/vendor_perl"
+    "/c/Windows/System32/Wbem"
+    "/c/Windows"
+    "/usr/bin"
+    "/usr/local/bin"
+    "/mingw64/bin"
+    "/c/Users/rdprice/Apps/Anaconda3/condabin"
+    "/c/Users/rdprice/Apps/Anaconda3/bin"
+    "/c/Users/rdprice/Apps/Anaconda3/Scripts"
+    "/c/Users/rdprice/Apps/Anaconda3/Library/bin"
+    "/c/Users/rdprice/Apps/Anaconda3/Library/usr/bin"
+    "/c/Users/rdprice/Apps/Anaconda3/Library/mingw-w64/bin"
+    "/c/Users/rdprice/Apps/Anaconda3")
+#+end_src
+
+*** Potential conflicting directories
+
+The relative directories that are in common, in order, are:
+#+begin_src emacs-lisp :tangle no
+  '("/mingw64/bin"
+    "/usr/local/bin"
+    "/usr/bin"
+    "/usr/bin/vendor_perl"
+    "/usr/bin/core_perl")
+#+end_src
+
+Git-related executables in the =MSYS2= directories are
+  - /mingw64/bin
+    - git-clang-format
+  - /usr/local/bin
+    - <no such dir>
+  - /usr/bin
+    - git-cvsserver
+    - git.exe
+    - gitk
+    - git-shell.exe
+    - git-upload-archive.exe
+    - git-upload-pack.exe
+  - /usr/bin/vendor_perl
+    - <none>
+  - /usr/bin/core_perl
+    - <none>
+
+Git-related executables in the =Git= directories are
+  - /mingw64/bin
+    - git-askpass.exe
+    - git-askyesno.exe
+    - git-credential-helper-selector.exe
+    - git-credential-manager-core.exe
+    - git-credential-manager-core.exe.config
+    - git-lfs.exe
+    - git-receive-pack.exe
+    - git-update-git-for-windows
+    - git-upload-archive.exe
+    - git-upload-pack.exe
+    - git.exe
+    - gitk
+  - /usr/local/bin
+    - <no such dir>
+  - /usr/bin
+    - git-flow
+    - git-flow-bugfix
+    - gitflow-common
+    - git-flow-config
+    - git-flow-feature
+    - git-flow-hotfix
+    - git-flow-init
+    - git-flow-log
+    - git-flow-release
+    - gitflow-shFlags
+    - git-flow-support
+    - git-flow-version
+  - /usr/bin/vendor_perl
+    - <none>
+  - /usr/bin/core_perl
+    - <none>
+
+In the =MSYS2= directories, =git.exe= is found in =/usr/bin=, while in the
+=Git= directories, =git.exe= is found in =/Git/bin=, another in =/Git/cmd=,
+and yet another in =/mingw64/bin, along with files =start-ssh-agent.cmd= and
+=start-ssh-pageant.cmd=. Saying =which git= returns the one in =/mingw64/bin=.
+All the =git.exe= executables return the same version.
+
+*** Code
+
+The following code was used to get these results.
+#+begin_src emacs-lisp :tangle no
+  ;; Dirs in git-bash path that are missing in mingw path
+  (pprint
+   (cl-set-difference
+    raw-path-git-bash-conda-base
+    raw-path-mingw-conda-base
+    :test #'string=))
+
+  ;; Dirs in mingw path that are missing in git-bash path
+  (pprint
+   (cl-set-difference
+    raw-path-git-bash-conda-base
+    raw-path-mingw-conda-base
+    :test #'string=))
+
+  ;; Dirs in both git-bash path and mingw path
+  (pprint
+   (cl-intersection
+    raw-path-git-bash-conda-base
+    raw-path-mingw-conda-base
+    :test #'string=))
+#+end_src
+
+** Conda environment 'kalman'
+
+*** Startup
+
+Activate the =kalman= environment. We remain in the =MSYS2= home
+directory.
+#+begin_src shell :tangle no
+  (base) ~ $ conda activate kalman
+  (kalman) ~ $ pwd
+  /c/Users/rdprice/Apps/msys64/home/rdprice
+#+end_src
+
+*** Git executable
+
+The =git= executable found is in the Git for Windows directory.
+#+begin_src shell :tangle no
+  (kalman) ~ $ which git
+  /mingw64/bin/git
+  (kalman) ~ $ git --version
+  git version 2.37.1.windows.1
+  (kalman) ~ $ /c/Users/rdprice/Apps/Git/bin/git --version
+  git version 2.37.1.windows.1
+    #+end_src
+
+*** Conda environment
+
+The =conda= environment variables are now:
+    #+begin_src shell :tangle no
+(kalman) ~ $ env | grep CONDA
+CONDA_SHLVL=2
+CONDA_EXE=/c/Users/rdprice/Apps/Anaconda3/Scripts/conda.exe
+CONDA_PREFIX=C:\Users\rdprice\Apps\Anaconda3\envs\kalman
+CONDA_PREFIX_1=C:\Users\rdprice\Apps\Anaconda3
+CONDA_PYTHON_EXE=/c/Users/rdprice/Apps/Anaconda3/python.exe
+_CE_CONDA=
+CONDA_PROMPT_MODIFIER=
+CONDA_DEFAULT_ENV=kalman
+#+end_src
+
+=CONDA_SHLVL=, =CONDA_PREFIX=, and =CONDA_DEFAULT_ENV= have changed, and a
+new variable =CONDA_PREFIX_1= points to the old =CONDA_PREFIX=.
+
+*** Path
+
+Show the raw path:
+#+begin_src shell :tangle no
+    (kalman) ~ $ echo $PATH
+#+end_src
+
+After massaging with =pprint=:
+#+begin_src emacs-lisp
+  (defvar raw-path-mingw-conda-kalman
+    '("/c/Users/rdprice/Apps/Anaconda3/envs/kalman"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/mingw-w64/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/usr/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Scripts"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/condabin"
+      "/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin"
+      "/c/Windows/System32"
+      "/c/Windows"
+      "/c/Windows/System32/Wbem"
+      "/c/Windows/System32/WindowsPowerShell/v1.0/"
+      "/usr/bin/site_perl"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"
+      "/ucrt64/bin"
+      "/c/Users/rdprice/Apps/Microsoft VS Code/bin"))
+#+end_src
+
+After removing all the absolute paths, we have:
+#+begin_src emacs-lisp
+  (defvar raw-path-mingw-conda-kalman-relative
+    '(
+      "/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin/site_perl"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"
+      "/ucrt64/bin"))
+#+end_src
+
+This is just the same as in the conda `base' environment.
+
+After removing all the absolute paths, we have:
+#+begin_src emacs-lisp
+  (defvar raw-path-git-bash-conda-kalman-relative
+    '("/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"))
+#+end_src
+
+This is just the same as in the conda `base' environment.
+
+* Summary
+
+** Paths
+
+*** Anaconda paths
+
+When the active conda environment is =base=, conda prepends the
+following when =.bashrc= or =.bash_profile= is run when the shell starts
+up.
+#+begin_src emacs-lisp
+  (defvar raw-path-conda-base
+    '("/c/Users/rdprice/Apps/Anaconda3"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/mingw-w64/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/usr/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Library/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/Scripts"
+      "/c/Users/rdprice/Apps/Anaconda3/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/condabin"))
+#+end_src
+
+After activating the =kalman= conda environment, for example, conda
+prepends an environment-specific set of paths:
+#+begin_src emacs-lisp
+  (defvar raw-path-conda-kalman
+    '("/c/Users/rdprice/Apps/Anaconda3/envs/kalman"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/mingw-w64/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/usr/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Library/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/Scripts"
+      "/c/Users/rdprice/Apps/Anaconda3/envs/kalman/bin"
+      "/c/Users/rdprice/Apps/Anaconda3/condabin"))
+#+end_src
+
+In the shell, the environment variable =CONDA_PREFIX= is set to either
+the Anaconda top level, if =base= is the current conda environment,
+#+begin_src shell :tangle no
+  CONDA_PREFIX=c:/Users/rdprice/Apps/Anaconda3
+#+end_src
+or the current conda environment, say, =kalman=,
+#+begin_src shell :tangle no
+  CONDA_PREFIX=c:/Users/rdprice/Apps/Anaconda3/envs/kalman
+#+end_src
+
+*** User-specific paths
+
+Next, a directory for user-created code is entered, if desired,
+
+#+begin_src emacs-lisp
+  (defvar raw-path-local-user
+    '("/c/Users/rdprice/Apps/msys64/home/rdprice/bin"))
+#+end_src
+
+*** Package-relative paths
+
+Next, one of the two relative paths below can be appended to the path,
+if the user wants to use either =Git for Windows= or =MSYS2=.
+
+#+begin_src shell :tangle no
+  APPS_PREFIX=c:/Users/rdprice/Apps
+  GIT_PREFIX=${APPS_PREFIX}/Git
+  MSYS2_PREFIX=${APPS_PREFIX}/msys64
+  # EXEPATH=C:\Users\rdprice\Apps\Git # what's this???
+  # MINGW_PREFIX=/mingw64
+  # MSYSTEM=MINGW64
+  # SSH_ASKPASS=C:/Users/rdprice/Apps/Git/mingw64/bin/git-askpass.exe
+#+end_src
+
+Note: These are the same whether in =mingw= shell or =git= shell.
+(kalman) ~ $ env | grep MSYS
+MSYSTEM_CARCH=x86_64
+MSYSTEM_CHOST=x86_64-w64-mingw32
+MSYSTEM_PREFIX=/mingw64
+MSYS=enable_pcon
+MSYSTEM=MINGW64
+(kalman) ~ $ env | grep MINGW
+MINGW_PACKAGE_PREFIX=mingw-w64-x86_64
+MINGW_CHOST=x86_64-w64-mingw32
+MSYSTEM=MINGW64
+MINGW_PREFIX=/mingw64
+
+#+begin_src emacs-lisp
+  (defvar raw-path-git-bash-relative
+    '("/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"))
+#+end_src
+
+After removing all the absolute paths, we have:
+#+begin_src emacs-lisp
+  (defvar raw-path-mingw-relative
+    '("/mingw64/bin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/usr/bin/site_perl"
+      "/usr/bin/vendor_perl"
+      "/usr/bin/core_perl"
+      "/ucrt64/bin"))
+#+end_src
