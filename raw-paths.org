@@ -629,29 +629,6 @@ Next, a directory for user-created code is entered, if desired,
 Next, one of the two relative paths below can be appended to the path,
 if the user wants to use either =Git for Windows= or =MSYS2=.
 
-#+begin_src shell :tangle no
-  APPS_PREFIX=c:/Users/rdprice/Apps
-  GIT_PREFIX=${APPS_PREFIX}/Git
-  MSYS2_PREFIX=${APPS_PREFIX}/msys64
-  # EXEPATH=C:\Users\rdprice\Apps\Git # what's this???
-  # MINGW_PREFIX=/mingw64
-  # MSYSTEM=MINGW64
-  # SSH_ASKPASS=C:/Users/rdprice/Apps/Git/mingw64/bin/git-askpass.exe
-#+end_src
-
-Note: These are the same whether in =mingw= shell or =git= shell.
-(kalman) ~ $ env | grep MSYS
-MSYSTEM_CARCH=x86_64
-MSYSTEM_CHOST=x86_64-w64-mingw32
-MSYSTEM_PREFIX=/mingw64
-MSYS=enable_pcon
-MSYSTEM=MINGW64
-(kalman) ~ $ env | grep MINGW
-MINGW_PACKAGE_PREFIX=mingw-w64-x86_64
-MINGW_CHOST=x86_64-w64-mingw32
-MSYSTEM=MINGW64
-MINGW_PREFIX=/mingw64
-
 #+begin_src emacs-lisp
   (defvar raw-path-git-bash-relative
     '("/mingw64/bin"
@@ -661,7 +638,9 @@ MINGW_PREFIX=/mingw64
       "/usr/bin/core_perl"))
 #+end_src
 
-After removing all the absolute paths, we have:
+A variable =my-msys2-paths= defined in the =site/*-preload.el= file uses
+the bash environment variable =MSYSTEM= to determine the path into the
+=MSYS2= executables. Here is the result for =MSYSTEM= = =MINGW64=.
 #+begin_src emacs-lisp
   (defvar raw-path-mingw-relative
     '("/mingw64/bin"
@@ -669,6 +648,20 @@ After removing all the absolute paths, we have:
       "/usr/bin"
       "/usr/bin/site_perl"
       "/usr/bin/vendor_perl"
-      "/usr/bin/core_perl"
-      "/ucrt64/bin"))
+      "/usr/bin/core_perl"))
+#+end_src
+
+*** Windows paths
+
+#+begin_src emacs-lisp
+  (defvar raw-path-windows
+    '("/c/Program Files (x86)/Common Files/Oracle/Java/javapath"
+      "/c/Windows/system32"
+      "/c/Windows"
+      "/c/Windows/System32/Wbem"
+      "/c/Windows/System32/WindowsPowerShell/v1.0"
+      "/c/Windows/System32/OpenSSH"
+      "/c/Program Files/PuTTY"
+      "/c/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
+      ))
 #+end_src
