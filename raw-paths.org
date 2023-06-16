@@ -639,6 +639,16 @@ if the user wants to use either =Git for Windows= or =MSYS2=.
   # SSH_ASKPASS=C:/Users/rdprice/Apps/Git/mingw64/bin/git-askpass.exe
 #+end_src
 
+=MSYS2= sets an environment variable =MSYSTEM=, which points to one of
+=MSYS2='s environments (documented [[https://www.msys2.org/docs/environments/][here]]).
+  - =MSYS=       = /usr (parent env)
+  - =UCRT64=     = /ucrt64
+  - =CLANG64=    = /clang64
+  - =CLANGARM64= = /clangarm64
+  - =CLANG32=    = /clang32
+  - =MINGW64=    = /mingw64
+  - =MINGW32=    = /mingw32
+
 Note: These are the same whether in =mingw= shell or =git= shell.
 (kalman) ~ $ env | grep MSYS
 MSYSTEM_CARCH=x86_64
