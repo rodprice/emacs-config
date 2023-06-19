@@ -156,7 +156,7 @@ Jupyter with Conda is [[https://martinralbrecht.wordpress.com/2020/08/23/conda-j
     (add-to-list 'org-structure-template-alist '("j" . "src jupyter-python")))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package jupyter
     :ensure t
     :commands (jupyter-run-server-repl

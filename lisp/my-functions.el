@@ -201,20 +201,24 @@ such that all directories matching REGEX come first."
 (defun my-convert-windows-drive-letter (winpath)
   "Convert a Windows path with initial drive letter `c:/Users' to a
 Unix-like path `/c/Users'."
-  (let ((path (seq-remove (lambda (elt) (equal ?: elt)) winpath)))
-    (concat (cons ?/ path))))
+  (replace-regexp-in-string "\\([A-Za-z]\\):" "/\\1" winpath))
+  ;; (let ((path (seq-remove (lambda (elt) (equal ?: elt)) winpath)))
+  ;;   (concat (cons ?/ path))))
 
-(defun my-write-bash-env-file (extra-paths &optional filename)
+(defun my-write-bash-env-file (extra-paths &optional nospaces filename)
   "Write a file `bash-env.sh' to the `site' directory that adds
 EXTRA-PATHS to the default path. Used with environment variable
 `BASH_ENV', this adds paths to a non-login bash shell such as the
-one made by `shell-command'."
+one made by `shell-command'. Setting NOSPACE to non-nil removes
+filenames from EXTRA-PATHS that contain spaces."
   (let* ((filename (or filename "site/bash-env.sh"))
          (path (expand-file-name filename user-emacs-directory))
          (content (concat
                    "#!/usr/bin/bash\nexport PATH="
                    (string-join
-                    (mapcar #'my-convert-windows-drive-letter extra-paths)
+                    (mapcar
+                     #'my-file-name-windows-to-unixy
+                     extra-paths)
                     ":")
                    "\n")))
     (with-temp-file path
@@ -655,6 +659,18 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
          (path3 (replace-regexp-in-string " " "\\\\ " path2))
          (path4 (replace-regexp-in-string ";" ":" path3)))
     path4))
+
+(defun my-file-name-windows-to-unixy (filename)
+  "Convert a Windows-formatted FILENAME to one compatible with bash."
+  (let* ((strings (split-string filename ":"))
+         (path1 (if (null (cdr strings))
+                    filename
+                  (string-join
+                   (cons "/"
+                         (cons (downcase (car strings))
+                               (cdr strings))))))
+         (path2 (replace-regexp-in-string "\\\\" "/" path1)))
+    (shell-quote-argument path2)))
 
 ;; Start up a Git for Windows bash shell external to Emacs. I don't
 ;; know how to make this run inside Emacs like the msys bash shell

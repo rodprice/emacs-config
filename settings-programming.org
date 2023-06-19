@@ -272,9 +272,9 @@ David Wilson blabbers on about =projectile= in this [[https://www.youtube.com/wa
 * Man pages
 
 Probably should put this in the site/*-preload file.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defvar my-man-paths
-    (when (boundp 'my-mysy2-dir)
+    (when (boundp 'my-msystem-dir)
       (mapcar
        #'my-prefix
        '("mingw64/local/man/"
@@ -286,13 +286,13 @@ Probably should put this in the site/*-preload file.
 #+end_src
 
 Windows-only man pages from MSYS2
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (when (boundp 'my-msys2-dir)
     (use-package woman
       :preface
       (defun my-prefix (path &optional prefix)
         "Make PATH an absolute path using PREFIX."
-        (let ((prefix (or prefix my-msys2-dir)))
+        (let ((prefix (or prefix my-msystem-dir)))
           (expand-file-name path prefix)))
       :custom
       (woman-manpath my-man-paths)))

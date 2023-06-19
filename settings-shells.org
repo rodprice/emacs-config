@@ -114,12 +114,12 @@ and the variables defined in the `site/<hostname>-preload.el' file.
 If SHELL-NAME is nil, use \"bash\"."
       (let ((shell-name (or shell-name "bash")))
         (cond ((eq system-type 'windows-nt)
-               (if (bound-and-true-p my-mingw-dir)
+               (if (bound-and-true-p my-msystem-dir)
                    (expand-file-name
                     (concat
-                     (file-name-directory my-mingw-dir)
+                     (file-name-directory my-msystem-dir)
                      (format "usr/bin/%s.exe" shell-name)))
-                 (user-error "Site-specific variable 'my-mingw-dir is undefined.")))
+                 (user-error "Site-specific variable 'my-msystem-dir is undefined.")))
               (t
                (executable-find shell-name)))))
 #+end_src
@@ -277,7 +277,7 @@ Muck around with =exec-path= if we're on Windows.
   list of strings. If NOCONFIRM is non-nil, omit confirmation."
     (cond
      ((eq system-type 'windows-nt)
-      (let ((exec-path my-msys2-extra-paths))
+      (let ((exec-path my-msystem-extra-paths))
         (my-clean-up-line-endings-inner pats dir noconfirm)))
      (t
       (my-clean-up-line-endings-inner pats dir noconfirm))))

@@ -523,7 +523,7 @@ The visible bookmarks package, described [[https://pragmaticemacs.wordpress.com/
 
 ** Parentheses
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (electric-pair-mode 1)
 #+end_src
 
