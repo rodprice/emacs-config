@@ -247,7 +247,7 @@ Interactively make a list of =find= command strings.
 #+end_src
 
 #+begin_src emacs-lisp
-  (defun my-clean-up-line-endings-inner (pats &optional dir noconfirm)
+  (defun my-clean-up-line-endings (pats &optional dir noconfirm)
     "Walk the directory tree DIR, running `dos2unix' on all files
   matching glob patterns PATS, which can be either a string or a
   list of strings. If NOCONFIRM is non-nil, omit confirmation."
@@ -267,20 +267,6 @@ Interactively make a list of =find= command strings.
         (print
          ;; (async-shell-command
          (my-clean-up-line-endings-command pat dir)))))
-#+end_src
-
-Muck around with =exec-path= if we're on Windows.
-#+begin_src emacs-lisp
-  (defun my-clean-up-line-endings (pats &optional dir noconfirm)
-    "Walk the directory tree DIR, running `dos2unix' on all files
-  matching glob patterns PATS, which can be either a string or a
-  list of strings. If NOCONFIRM is non-nil, omit confirmation."
-    (cond
-     ((eq system-type 'windows-nt)
-      (let ((exec-path my-msystem-extra-paths))
-        (my-clean-up-line-endings-inner pats dir noconfirm)))
-     (t
-      (my-clean-up-line-endings-inner pats dir noconfirm))))
 #+end_src
 
 ** Junkyard
