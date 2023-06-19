@@ -134,7 +134,7 @@
 (defvar my-exec-path-git
   (append
    my-user-paths
-   my-git-relative-paths
+   my-git-extra-paths
    my-apps-paths
    my-windows-paths)
   "Complete path for Git for Windows.")
@@ -142,16 +142,16 @@
 (defvar my-exec-path-msystem
   (append
    my-user-paths
-   my-msystem-relative-paths
+   my-msystem-extra-paths
    my-apps-paths
    my-windows-paths)
   "Complete path for MSYS2.")
 
-(setq exec-path my-exec-path-base)
+(setq exec-path my-exec-path-msystem)
 (setenv "PATH" (string-join exec-path path-separator))
 
-(setenv "BASH_ENV" (expand-file-name "site/bash-env.sh" user-emacs-directory))
-(my-write-bash-env-file my-exec-path-msystem 'nospaces)  ;; just in case
+;; (setenv "BASH_ENV" (expand-file-name "site/bash-env.sh" user-emacs-directory))
+;; (my-write-bash-env-file my-exec-path-msystem 'nospaces)  ;; just in case
 
 ;; ;; Use these only when calling the MSYS2 bash shell
 ;; (defvar my-msys2-extra-paths
