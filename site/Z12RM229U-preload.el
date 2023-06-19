@@ -108,19 +108,19 @@
     "c:/Users/rdprice/Apps/msys64/mingw64/bin"
     "c:/Users/rdprice/Apps/shellcheck"
     "c:/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
-    ;; "c:/Users/rdprice/Apps/Microsoft VS Code/bin"
+    "c:/Users/rdprice/Apps/Microsoft VS Code/bin"
     )
   "Path for user-installed executables (except MSYS2 and Git for Windows).")
 
 (defvar my-windows-paths
   '(
-    ;; "c:/Program Files (x86)/Common Files/Oracle/Java/javapath"
+    "c:/Program Files (x86)/Common Files/Oracle/Java/javapath"
     "c:/Windows/system32"
     "c:/Windows"
     "c:/Windows/System32/Wbem"
     "c:/Windows/System32/WindowsPowerShell/v1.0"
     "c:/Windows/System32/OpenSSH"
-    ;; "c:/Program Files/PuTTY"
+    "c:/Program Files/PuTTY"
     "c:/Users/rdprice/AppData/Local/Microsoft/WindowsApps")
   "Path for Windows executables.")
 
