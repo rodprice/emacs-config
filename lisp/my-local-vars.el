@@ -3,6 +3,7 @@
 ;;; Commentary:
 ;;; Code:
 
+(require 'seq)
 (require 'origami)
 
 (eval-when-compile (require 'cl-lib))
@@ -36,11 +37,13 @@
 
 (defvar my-local-vars-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "o" #'origami-toggle-all-nodes)
-    (define-key map "l" #'origami-recursively-toggle-node)
-    (define-key map "n" #'next-line)
-    (define-key map "p" #'previous-line)
-    (define-key map "q" #'quit-window)
+    (define-key map (kbd "o")         #'origami-toggle-all-nodes)
+    (define-key map (kbd "<backtab>") #'origami-toggle-all-nodes)
+    (define-key map (kbd "l")         #'origami-recursively-toggle-node)
+    (define-key map (kbd "<tab>")     #'origami-recursively-toggle-node)
+    (define-key map (kbd "n")         #'next-line)
+    (define-key map (kbd "p")         #'previous-line)
+    (define-key map (kbd "q")         #'quit-window)
     map)
   "Keymap for local variables buffer.")
 
@@ -137,6 +140,18 @@ in buffer TARGET."
      (format " : %s\n" value)))
     'face 'my-local-vars-value-face)))
 
+(defun my-local-vars--shell-env (regex)
+  "get list of shell environment variables matching REGEX."
+  (let* ((env (shell-command-to-string (concat "env | grep " regex)))
+         (vars (seq-take-while
+                (lambda (str) (> (length str) 0))
+                (split-string env "\n"))))
+    (mapcar
+     (lambda (str)
+       (let ((parts (split-string str "=")))
+         (cons (car parts) (nth 1 parts))))
+     vars)))
+
 (defun my-local-vars--refresh (&optional target)
   "Return a string representing labels and values in the `variables'
 struct."
@@ -163,17 +178,23 @@ struct."
           (variables->hooks vars))
          (-functions   ;; list of buffer-local hooks
           (variables->functions vars))
+         (-conda-env
+          (my-local-vars--shell-env "CONDA"))
          (tabstop 11))
     (concat
      my-local-vars-header-text
+     (propertize "\nBuffer\n" 'face 'my-local-vars-doc-face)
      (my-local-vars--refresh-line "Name" tabstop -name)
      (my-local-vars--refresh-line "Process" tabstop -process)
+     (propertize "\nBuffer-local variables\n" 'face 'my-local-vars-doc-face)
      (my-local-vars--refresh-line "Major mode" tabstop -major-mode)
      (my-local-vars--refresh-line "Minor modes" tabstop -minor-modes)
      (my-local-vars--refresh-line "Project" tabstop -project)
      (my-local-vars--refresh-line "Conda" tabstop -conda)
      (my-local-vars--refresh-line "Hooks" tabstop -hooks)
      (my-local-vars--refresh-line "Functions" tabstop -functions)
+     (propertize "\nShell environment\n" 'face 'my-local-vars-doc-face)
+     (my-local-vars--refresh-line "Conda env" tabstop -conda-env)
      )))
 
 (defun my-local-vars-refresh ()

@@ -153,7 +153,7 @@ Jupyter with Conda is [[https://martinralbrecht.wordpress.com/2020/08/23/conda-j
                                                          (:pandoc t)))
     (add-to-list 'savehist-additional-variables 'jupyter-server-kernel-names)
     (setq ob-async-no-async-languages-alist '("jupyter-python"))
-    (add-to-list 'org-structure-template-alist '("j" . "src jupyter-python")))
+    (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python")))
 #+end_src
 
 #+begin_src emacs-lisp :tangle no

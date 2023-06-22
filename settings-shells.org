@@ -57,6 +57,21 @@ A useful StackExchange answer about ANSI color escape codes is [[https://stackov
 
 Close the window containing the interpreter and kill its buffer when
 the interpreter exits. Adapted from a StackExchange answer [[https://emacs.stackexchange.com/questions/48306/how-to-automatically-kill-a-shell-buffer-when-the-shell-process-exits][here]].
+
+#+begin_src emacs-lisp
+  (defun my-make-kill-buffer-sentinel (sentinel)
+    "Return a new sentinel function that executes the default SENTINEL
+  first, then kills the buffer."
+    `(lambda (process signal)
+       ;; Call the original process sentinel first.
+       (funcall #',sentinel process signal)
+       ;; Kill the buffer on an exit signal.
+       (when (memq (process-status process) '(exit signal))
+         (let ((buffer (process-buffer process)))
+           (when (buffer-live-p buffer)
+             (quit-window t (get-buffer-window buffer)))))))
+#+end_src
+
 #+begin_src emacs-lisp
   (defun my-add-kill-buffer-sentinel ()
     "Set a process sentinel that kills the buffer when the process exits."
@@ -66,14 +81,7 @@ the interpreter exits. Adapted from a StackExchange answer [[https://emacs.stack
       (let ((sentinel (process-sentinel process)))
         (set-process-sentinel
          process
-         `(lambda (process signal)
-            ;; Call the original process sentinel first.
-            (funcall #',sentinel process signal)
-            ;; Kill the buffer on an exit signal.
-            (when (memq (process-status process) '(exit signal))
-              (let ((buffer (process-buffer process)))
-                (when (buffer-live-p buffer)
-                  (quit-window t (get-buffer-window buffer))))))))))
+         (my-make-kill-buffer-sentinel sentinel)))))
 #+end_src
 
 Rather than signal an error if there is no process, fail silently.
@@ -85,14 +93,7 @@ Rather than signal an error if there is no process, fail silently.
         (let ((sentinel (process-sentinel process)))
           (set-process-sentinel
            process
-           `(lambda (process signal)
-              ;; Call the original process sentinel first.
-              (funcall #',sentinel process signal)
-              ;; Kill the buffer on an exit signal.
-              (when (memq (process-status process) '(exit signal))
-                (let ((buffer (process-buffer process)))
-                  (when (buffer-live-p buffer)
-                    (quit-window t (get-buffer-window buffer)))))))))))
+           (my-make-kill-buffer-sentinel sentinel))))))
 #+end_src
 
 * Shell
