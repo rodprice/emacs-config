@@ -200,9 +200,7 @@ Keep menu bar, drop toolbar and scroll bars.
 
 Show line numbers on the left.
 #+begin_src emacs-lisp
-     (if (>= emacs-major-version 29)
-         (global-display-line-numbers-mode 1)
-       (global-linum-mode t))
+  (global-display-line-numbers-mode 1)
 #+end_src
 
 Smooth scrolling
