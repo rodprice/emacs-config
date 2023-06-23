@@ -4,6 +4,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'project)
 (require 'origami)
 
 (eval-when-compile (require 'cl-lib))
@@ -161,6 +162,19 @@ struct."
           (my-local-vars-find-variables target))
          (-name        ;; buffer name
           (variables->name vars))
+         (-project-name
+          (with-current-buffer target
+            (let ((project (project-current)))
+              (if (null project)
+                  "<none>"
+                (file-name-nondirectory
+                 (directory-file-name
+                  (project-root project)))))))
+         (-conda-name
+          (let ((conda-env (getenv "CONDA_DEFAULT_ENV")))
+            (if (null conda-env)
+                "<none>"
+              conda-env)))
          (-process     ;; process running in buffer, if any
           (let ((proc (variables->process vars)))
             (if (null proc)
@@ -180,11 +194,13 @@ struct."
           (variables->functions vars))
          (-conda-env
           (my-local-vars--shell-env "CONDA"))
-         (tabstop 11))
+         (tabstop 12))
     (concat
      my-local-vars-header-text
      (propertize "\nBuffer\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Name" tabstop -name)
+     (my-local-vars--refresh-line "Buffer name" tabstop -name)
+     (my-local-vars--refresh-line "Project name" tabstop -project-name)
+     ;; (my-local-vars--refresh-line "Conda name" tabstop -conda-name)
      (my-local-vars--refresh-line "Process" tabstop -process)
      (propertize "\nBuffer-local variables\n" 'face 'my-local-vars-doc-face)
      (my-local-vars--refresh-line "Major mode" tabstop -major-mode)
