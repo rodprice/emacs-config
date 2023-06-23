@@ -24,16 +24,30 @@
   :group 'mlv
   :version "0.1")
 
+(defface my-local-vars-header-face
+  '((t :inherit font-lock-constant-face
+       :foreground "SlateGray"))
+  "Face for documentation in my-local-vars buffers."
+  :group 'mlv
+  :version "0.1")
+
 (defvar my-local-vars-target nil
   "The buffer whose local variables are displayed.")
 
 (defvar my-local-vars-process nil
-  "The process (if any) running in the target buffer.")
+    "The process (if any) running in the target buffer.")
+
+(defvar my-local-vars-buffer-name
+  "*local variables*"
+  "Name of the buffer showing buffer-local variables.")
 
 (defvar my-local-vars-header-text
   (propertize
-   "'o' toggles all folded values, 'l' toggles values under point.\n"
-   'face 'my-local-vars-doc-face)
+   (concat
+    "'tab' toggles values under point, "
+    "'S-tab' toggles all folded values, "
+    "'q' kills this buffer.\n")
+   'face 'my-local-vars-header-face)
   "Text to insert at the top of the local variables buffer.")
 
 (defvar my-local-vars-mode-map
@@ -44,9 +58,27 @@
     (define-key map (kbd "<tab>")     #'origami-recursively-toggle-node)
     (define-key map (kbd "n")         #'next-line)
     (define-key map (kbd "p")         #'previous-line)
-    (define-key map (kbd "q")         #'quit-window)
+    (define-key map (kbd "q")         #'my-local-vars-close-window)
     map)
   "Keymap for local variables buffer.")
+
+(defun my-local-vars-close-window (&optional buffer-name)
+  "Close the window or frame containing BUFFER-NAME, killing the
+buffer. BUFFER-NAME defaults to `my-local-vars-buffer-name'."
+  (interactive)
+  (let* ((buffer-name (or buffer-name my-local-vars-buffer-name))
+         (buffer (get-buffer buffer-name))
+         (window (get-buffer-window buffer))
+         (frame (window-frame window)))
+    (when (window-valid-p window)
+      (cond
+       ((window-parent window)  ;; frame has other windows
+        (quit-window t window))
+       ((frame-parent)          ;; frame is a child frame
+        (delete-frame frame)
+        (kill-buffer buffer))
+       (t
+        (quit-window t window))))))
 
 (define-derived-mode my-local-vars-mode special-mode "Local vars"
   "Major mode for my-local-vars buffers."
@@ -142,7 +174,7 @@ in buffer TARGET."
     'face 'my-local-vars-value-face)))
 
 (defun my-local-vars--shell-env (regex)
-  "get list of shell environment variables matching REGEX."
+  "Get list of shell environment variables matching REGEX."
   (let* ((env (shell-command-to-string (concat "env | grep " regex)))
          (vars (seq-take-while
                 (lambda (str) (> (length str) 0))
@@ -152,6 +184,24 @@ in buffer TARGET."
        (let ((parts (split-string str "=")))
          (cons (car parts) (nth 1 parts))))
      vars)))
+
+(defun my-local-vars-project-name (target)
+  "Get the name of the project for buffer TARGET."
+  (with-current-buffer target
+    (let ((project (project-current)))
+      (if (null project)
+          "<none>"
+        (file-name-nondirectory
+         (directory-file-name
+          (project-root project)))))))
+
+(defun my-local-vars-conda-name (target)
+  "Get the name of the Conda environment for buffer TARGET."
+  (with-current-buffer target
+    (let ((conda-env (getenv "CONDA_DEFAULT_ENV")))
+      (if (null conda-env)
+          "<none>"
+        conda-env))))
 
 (defun my-local-vars--refresh (&optional target)
   "Return a string representing labels and values in the `variables'
@@ -163,26 +213,15 @@ struct."
          (-name        ;; buffer name
           (variables->name vars))
          (-project-name
-          (with-current-buffer target
-            (let ((project (project-current)))
-              (if (null project)
-                  "<none>"
-                (file-name-nondirectory
-                 (directory-file-name
-                  (project-root project)))))))
+          (my-local-vars-project-name target))
          (-conda-name
-          (let ((conda-env (getenv "CONDA_DEFAULT_ENV")))
-            (if (null conda-env)
-                "<none>"
-              conda-env)))
+          (my-local-vars-conda-name target))
          (-process     ;; process running in buffer, if any
           (let ((proc (variables->process vars)))
-            (if (null proc)
-                "<none>"
-              (process-name proc))))
+            (if (null proc) "<none>" (process-name proc))))
          (-major-mode  ;; major mode of the buffer
           (variables->major-mode vars))
-         (-minor-modes ;; list of minor modes for the buffer
+         (-minor-modes ;; list of buffer-local minor modes
           (variables->minor-modes vars))
          (-project
           (variables->project vars))
@@ -192,25 +231,25 @@ struct."
           (variables->hooks vars))
          (-functions   ;; list of buffer-local hooks
           (variables->functions vars))
-         (-conda-env
+         (-conda-vars
           (my-local-vars--shell-env "CONDA"))
          (tabstop 12))
     (concat
      my-local-vars-header-text
      (propertize "\nBuffer\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Buffer name" tabstop -name)
+     (my-local-vars--refresh-line "Buffer name"  tabstop -name)
      (my-local-vars--refresh-line "Project name" tabstop -project-name)
-     ;; (my-local-vars--refresh-line "Conda name" tabstop -conda-name)
-     (my-local-vars--refresh-line "Process" tabstop -process)
+     (my-local-vars--refresh-line "Conda env"    tabstop -conda-name)
+     (my-local-vars--refresh-line "Process"      tabstop -process)
      (propertize "\nBuffer-local variables\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Major mode" tabstop -major-mode)
-     (my-local-vars--refresh-line "Minor modes" tabstop -minor-modes)
-     (my-local-vars--refresh-line "Project" tabstop -project)
-     (my-local-vars--refresh-line "Conda" tabstop -conda)
-     (my-local-vars--refresh-line "Hooks" tabstop -hooks)
-     (my-local-vars--refresh-line "Functions" tabstop -functions)
+     (my-local-vars--refresh-line "Major mode"   tabstop -major-mode)
+     (my-local-vars--refresh-line "Minor modes"  tabstop -minor-modes)
+     (my-local-vars--refresh-line "Project"      tabstop -project)
+     (my-local-vars--refresh-line "Conda"        tabstop -conda)
+     (my-local-vars--refresh-line "Hooks"        tabstop -hooks)
+     (my-local-vars--refresh-line "Functions"    tabstop -functions)
      (propertize "\nShell environment\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Conda env" tabstop -conda-env)
+     (my-local-vars--refresh-line "Conda vars"   tabstop -conda-vars)
      )))
 
 (defun my-local-vars-refresh ()
@@ -231,7 +270,7 @@ buffer-local variables found in the current buffer."
   (interactive)
   (let* ((target (if (null target) (current-buffer) (get-buffer target)))
          (process (get-buffer-process target))
-         (buffer (get-buffer-create "*local variables*")))
+         (buffer (get-buffer-create my-local-vars-buffer-name)))
     (with-current-buffer buffer
       (my-local-vars-mode)
       (setq-local my-local-vars-target target)
