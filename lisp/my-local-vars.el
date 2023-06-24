@@ -56,29 +56,60 @@
     (define-key map (kbd "<backtab>") #'origami-toggle-all-nodes)
     (define-key map (kbd "l")         #'origami-recursively-toggle-node)
     (define-key map (kbd "<tab>")     #'origami-recursively-toggle-node)
+    (define-key map (kbd "f")         #'my-local-vars-pop-to-frame)
     (define-key map (kbd "n")         #'next-line)
     (define-key map (kbd "p")         #'previous-line)
     (define-key map (kbd "q")         #'my-local-vars-close-window)
     map)
   "Keymap for local variables buffer.")
 
-(defun my-local-vars-close-window (&optional buffer-name)
-  "Close the window or frame containing BUFFER-NAME, killing the
-buffer. BUFFER-NAME defaults to `my-local-vars-buffer-name'."
+(defun my-local-vars--single-frame-p (frame)
+  "True iff the buffer-local variables buffer is showing and is the
+only buffer in its frame."
+  (let ((buffer-list (frame-parameter frame 'buffer-list)))
+    (and (eq (length buffer-list) 1)
+         (string= (buffer-name (car buffer-list))
+                  my-local-vars-buffer-name))))
+
+(defun my-local-vars--target-frame-p (frame)
+  ""
+  (let ((buffer-list (frame-parameter frame 'buffer-list))
+        (target (buffer-local-value 'my-local-vars-target
+                                    (current-buffer))))
+    (when (null target) nil)
+    (memq target buffer-list)))
+
+(defun my-local-vars-close-window (&optional window nokill)
+  "Close WINDOW and, if WINDOW's buffer is the only one ever shown
+in the frame , close the frame as well. If NOKILL is nil, kill
+WINDOW's buffer."
   (interactive)
-  (let* ((buffer-name (or buffer-name my-local-vars-buffer-name))
-         (buffer (get-buffer buffer-name))
-         (window (get-buffer-window buffer))
-         (frame (window-frame window)))
+  (let ((window (or window (selected-window))))
     (when (window-valid-p window)
-      (cond
-       ((window-parent window)  ;; frame has other windows
-        (quit-window t window))
-       ((frame-parent)          ;; frame is a child frame
-        (delete-frame frame)
-        (kill-buffer buffer))
-       (t
-        (quit-window t window))))))
+      (let ((buffer (window-buffer window))
+            (frame (window-frame window)))
+        (if (my-local-vars--single-frame-p frame)
+            (progn
+              (delete-frame frame)
+              (when (not nokill)
+                (kill-buffer buffer)))
+          (quit-window (not nokill) window))))))
+
+(defun my-local-vars-pop-to-frame ()
+  "Close the window showing buffer-local variables, open a new
+frame, and show buffer-local variables in that frame."
+  (interactive)
+  (let* ((buffer (current-buffer))
+         (buffer-win (get-buffer-window buffer))
+         (buffer-frame (window-frame buffer-win))
+         (target (buffer-local-value 'my-local-vars-target buffer))
+         (target-name (concat my-local-vars-buffer-name
+                              " <" (buffer-name target) ">")))
+    (if (my-local-vars--single-frame-p buffer-frame)
+        (message "The buffer '%s' already has its own frame" buffer)
+      (make-frame `((name . ,target-name)
+                    (minibuffer . nil)))
+      (my-local-vars-close-window buffer-win t))))
 
 (define-derived-mode my-local-vars-mode special-mode "Local vars"
   "Major mode for my-local-vars buffers."
@@ -263,6 +294,76 @@ buffer-local variables found in the current buffer."
     (erase-buffer)
     (insert (my-local-vars--refresh target))
     (goto-char (point-min))))
+
+(defun my-local-vars--show (buffer target)
+  ""
+  (with-current-buffer buffer
+    (my-local-vars-mode)
+    (setq-local my-local-vars-target target)
+    (setq-local my-local-vars-process (get-buffer-process target))
+    (my-local-vars-refresh)
+    (origami-close-all-nodes buffer)
+    (pop-to-buffer buffer)))
+
+(defun my-local-vars--buffer-frames (buffer)
+  "Return a list of frames in which BUFFER has been displayed."
+  (let ((buffer (get-buffer buffer)))
+    (if (null buffer)
+        nil
+      (seq-filter
+       (lambda (frame)
+         (and
+          (frame-visible-p frame)
+          (memq buffer (frame-parameter frame 'buffer-list))))
+       (frame-list)))))
+
+(defun my-local-vars-debug (&optional target)
+  "Show interesting buffer-local variables in a new window."
+  (interactive)
+  (let ((target (if (null target) (current-buffer) (get-buffer target))))
+    (message "--- Target buffer is %s" target)
+    (unless (buffer-live-p target)
+      (user-error "Target buffer %s appears to be dead" target))
+    (let ((target-frames (my-local-vars--buffer-frames target)))
+      (unless target-frames
+        (user-error "Can't find a frame for target buffer %s" target))
+      (let ((buffer (get-buffer my-local-vars-buffer-name)))
+        (cond ((null buffer)
+               (message
+                "--- Creating buffer %s"
+                (my-local-vars--show
+                 (get-buffer-create my-local-vars-buffer-name)
+                 target)))
+              ((and
+                (buffer-live-p buffer)
+                (my-local-vars--buffer-frames buffer))
+                (let ((buffer-frames (my-local-vars--buffer-frames buffer))
+                      (buffer-win (get-buffer-window buffer)))
+                  (message "--- Buffer %s found in frames %s" buffer buffer-frames)
+                  (message "--- Buffer window is %s" buffer-win)
+                  (if (window-valid-p buffer-win)
+                      (let ((buffer-frame (window-frame buffer-win)))
+                        (message "--- Buffer window %s is valid" buffer-win)
+                        (message "--- Buffer window frame is %s" buffer-frame))
+                    (pop-to-buffer buffer)
+                    (message "--- Buffer window %s is not valid" buffer-win))
+                  (if (string= (buffer-name (current-buffer))
+                               my-local-vars-buffer-name)
+                      (message "--- Buffer %s is the current buffer" buffer)
+                    (message "--- Buffer %s is the current buffer" (current-buffer)))
+                  (if (eq (car target-frames) (car buffer-frames))
+                      (message "--- Target frame and buffer frame are the same")
+                    (message "--- Target frame and buffer frame are not the same"))
+                  (message "--- Target frame is %s" (car target-frames))
+                  (message "--- Buffer frame is %s" (car buffer-frames))
+                  ))
+              (t
+               (message "--- Oops, buffer %s has a problem" buffer)
+               (unless (buffer-live-p buffer)
+                 (message "--- Buffer %s appears to be dead" buffer))
+               (when (my-local-vars--buffer-frames buffer)
+                 (message "--- Buffer %s not found in frames list" buffer)))
+              )))))
 
 ;;;###autoload
 (defun my-local-vars-show (&optional target)
