@@ -1,0 +1,141 @@
+#+TITLE: Notes for non-emacs software
+#+STARTUP: overview indent
+
+* Anaconda3
+
+** Notes
+
+** Install
+
+Following instructions [[https://dellwindowsreinstallationguide.com/installing-mambaforge-or-anaconda-on-linux/][here]] for =mamba-forge=.
+
+** Uninstall
+
+Following instructions [[https://dellwindowsreinstallationguide.com/windows-uninstall-anaconda/][here]]. First, I copied =envs/kalman= to a backup
+directory =Anaconda3.old=.
+
+  - Run Anaconda3 uninstaller.
+
+    One or two files named =NUL= can't be uninstalled because of some
+    obscure Windows [[https://learn.microsoft.com/en-US/troubleshoot/windows-server/backup-and-storage/cannot-delete-file-folder-on-ntfs-file-system][rule]]. It can be done from Windows' =cmd.exe=. The
+    magic [[https://superuser.com/questions/282194/how-do-i-remove-a-file-named-nul-on-windows][incantation]] is =del \\?\C:\My\Path\NUL=.
+
+  - Move configuration files to =Apps\zz-dot-files-backup\=.
+    Directories searched include the following:
+    - =C:\Users\rdprice=
+    - =C:\Users\rdprice\AppData=
+    - =C:\Users\rdprice\AppData\Local=
+    - =C:\Users\rdprice\AppData\Roaming=
+    - =C:\Users\rdprice\msys64\home\rdprice=
+    - =Z:\=
+    - =%AppData%= -> =Z:\AppData=
+    - =%ProgramData%= -> =C:\ProgramData=
+
+  - Delete Start Menu entries in the following directories:
+    - =Z:\AppData\Microsoft\Windows\Start Menu\Programs=
+
+  - Make sure there are no remaining entries in =%Path%=.
+
+* CMake
+
+** Notes
+
+** Install
+
+* Emacs
+
+** Notes
+
+** Install
+
+* Git
+
+** Notes
+
+** Install
+
+* GnuPG
+
+** Notes
+
+** Install
+
+* Gpg4win
+
+** Notes
+
+** Install
+
+* Julia
+
+** Notes
+
+** Install
+
+* Mamba forge
+
+** Notes
+
+** Install
+
+Find the =mamba-forge= installer [[https://github.com/conda-forge/miniforge#mambaforge][here]]. I used the one with PyPy:
+=Mambaforge-pypy3-Windows-x86_64.exe=. The installation directory
+is =C:\Users\rdprice\Apps\mambaforge-pypy3=.
+
+* Microsoft VS Code
+
+** Notes
+
+** Install
+
+* MSYS2
+
+** Notes
+
+From the [[https://www.msys2.org/][web site]], "MSYS2 is a collection of tools and libraries
+providing you with an easy-to-use environment for building, installing
+and running native Windows software."
+
+The MSYS2 version of =git= does not deal well with Windows file names
+and paths, so I use the [[https://git-scm.com/downloads][Git for Windows]] version, which has a fork of
+=git= that works on Windows. However, Git for Windows and MSYS2 contain
+many of the same executables, including =bash=, which can cause all
+kinds of havoc if paths aren't handled carefully.
+
+** Install
+
+Following the installation [[https://www.msys2.org/#installation][instructions]], download the latest installer.
+At the time of writing, this was =msys2-x86_64-20230526.exe=. Double-
+click on the installer and follow the instructions. I changed the
+installation directory to =%USER_PROFILE%\Apps\msys64=, and installed
+with user permissions. I use the =mingw64= code rather than the
+recommended =ucrt64= code:
+
+#+begin_src shell :tangle no
+  $ echo $MSYSTEM
+  MINGW64
+  $ echo $MSYSTEM_PREFIX
+  /mingw64
+#+end_src
+
+** Pacman
+
+The ArchWiki docs for =pacman= are [[https://wiki.archlinux.org/title/Pacman][here]]. MSYS2-specific docs are [[https://www.msys2.org/docs/package-management/][here]].
+
+* Pandoc
+
+** Notes
+
+** Install
+
+* shellcheck
+
+** Notes
+
+** Install
+
+* texlab
+
+** Notes
+
+** Install

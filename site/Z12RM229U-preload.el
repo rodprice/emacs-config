@@ -14,8 +14,8 @@
 (defvar my-msys2-dir (concat my-apps-dir "/msys64"))
 (defvar my-mingw-dir (concat my-apps-dir "/msys64/mingw64"))
 (defvar my-ucrt-dir (concat my-apps-dir "/msys64/ucrt64"))
-(defvar my-anaconda-dir (concat my-apps-dir "/Anaconda3"))
-(defvar my-anaconda-scripts-dir (concat my-apps-dir "/Anaconda3/Scripts"))
+(defvar my-anaconda-dir (concat my-apps-dir "/radioconda"))
+(defvar my-anaconda-scripts-dir (concat my-anaconda-dir "/Scripts"))
 (defvar my-putty-directory "c:/Program Files/PuTTY")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
