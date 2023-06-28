@@ -103,19 +103,43 @@
             ("q"     . "close this window"))))
   "Keymap help text for local variables window.")
 
-(defun my-local-vars-buffer-selected-p (buffer-name)
-  "Return non-nil if BUFFER-NAME is in the selected window."
-  (let ((buffer (get-buffer buffer-name)))
+(defun my-local-vars--buffer-visible-p (buffer-or-name &optional all-frames)
+  "Return nil if BUFFER-OR-NAME has no window. See help for
+`get-buffer-window' for information on ALL-FRAMES."
+  (let* ((buffer (unless (null buffer-or-name)
+                   (get-buffer buffer-or-name)))
+         (window (unless (null buffer)
+                   (get-buffer-window buffer all-frames))))
+    (window-live-p window)))
+
+(defun my-local-vars--buffer-relevant-p (buffer-or-name)
+  "Return non-nil if BUFFER-OR-NAME was created by my-local-vars."
+  (let ((buffer (unless (null buffer-or-name)
+                  (get-buffer buffer-or-name))))
+    (and
+     buffer
+     (with-current-buffer buffer
+       (eq major-mode 'my-local-vars-mode))
+     (or
+      (string=
+       (buffer-name buffer)
+       my-local-vars-buffer-name)
+      (string=
+       (buffer-name buffer)
+       my-local-vars-help-name)))))
+
+(defun my-local-vars--buffer-selected-p (buffer-or-name)
+  "Return non-nil if BUFFER-OR-NAME is in the selected window."
+  (let ((buffer (get-buffer buffer-or-name)))
     (and buffer
-         (eq
-          (get-buffer-window buffer)
-          (selected-window)))))
+         (eq (get-buffer-window buffer)
+             (selected-window)))))
 
 (defun my-local-vars-show-help ()
   "Show help text in a new window."
   (interactive)
   (cond
-   ((my-local-vars-buffer-selected-p my-local-vars-help-name)
+   ((my-local-vars--buffer-selected-p my-local-vars-help-name)
     (message "Already in help buffer."))
    (t
     (let ((buffer (get-buffer-create my-local-vars-help-name)))
@@ -133,7 +157,15 @@
         (select-window (get-buffer-window buffer)))))))
 
 (defun my-local-vars--buffer-list (frame)
-  "Returns a list of buffers relevant to my-local-vars in FRAME."
+  "Returns a list of buffers relevant to my-local-vars in FRAME.
+
+Results are given as follows:
+  - The display buffer and help buffer both exist:
+    ( display-buffer . help-buffer)
+  - The display buffer exists but the help buffer does not:
+    ( display-buffer )
+  - Neither buffer exists:
+    nil"
   (let* ((buffer-list (frame-parameter frame 'buffer-list))
          (buffers (seq-filter
                    (lambda (buffer)
@@ -150,10 +182,16 @@
        (eq (length buffers) 2)
        (member my-local-vars-buffer-name buffer-names)
        (member my-local-vars-help-name buffer-names))
-      buffers)
+      (let ((display-buf (my-local-vars--find-buffer
+                          my-local-vars-buffer-name
+                          buffers))
+            (help-buf (my-local-vars--find-buffer
+                       my-local-vars-help-name
+                       buffers)))
+        (list display-buf help-buf)))
      (t nil))))
 
-(defun my-local-vars--select-buffer (buffer-or-name buffer-list)
+(defun my-local-vars--find-buffer (buffer-or-name buffer-list)
   "Return the first buffer matching BUFFER-OR-NAME in BUFFER-LIST."
   (let ((buffer (get-buffer buffer-or-name)))
     (seq-find
@@ -163,19 +201,18 @@
 (defun my-local-vars--buffer-in-frame (buffer-or-name frame)
   "Return the first buffer matching BUFFER-OR-NAME in FRAME."
   (let ((buffer-list (my-local-vars--buffer-list frame)))
-    (my-local-vars--select-buffer buffer-or-name buffer-list)))
+    (my-local-vars--find-buffer buffer-or-name buffer-list)))
 
 (defun my-local-vars--separate-frame-p (frame)
   "True iff the buffer-local variables buffer is in its own frame."
-  (let ((display-buf
-         (my-local-vars--buffer-in-frame
-          my-local-vars-buffer-name
-          frame))
-        (help-buf
-         (my-local-vars--buffer-in-frame
-          my-local-vars-help-name
-          frame)))
-    (cons display-buf help-buf)))
+  (let* ((buffer-list (frame-parameter frame 'buffer-list))
+         (visible-list (seq-filter
+                        (lambda (buffer)
+                          (my-local-vars--buffer-visible-p buffer frame))
+                        buffer-list)))
+    (seq-every-p
+     #'my-local-vars--buffer-relevant-p
+     visible-list)))
 
 (defun my-local-vars--single-frame-p (frame)
   "True iff the buffer-local variables buffer is showing and is the
@@ -203,52 +240,121 @@ only buffer in its frame."
 
 (defun my-local-vars-close-window (&optional window nokill)
   "Close WINDOW and, if WINDOW's buffer is the only one ever shown
-in the frame , close the frame as well. If NOKILL is nil, kill
+in the frame, close the frame as well. If NOKILL is nil, kill
 WINDOW's buffer."
   (interactive)
   (let ((window (or window (selected-window))))
-    (when (window-valid-p window)
-      (let ((buffers (my-local-vars--buffer-list (selected-frame)))
-            (frame (window-frame window)))
-        (if (my-local-vars--single-frame-p frame)
-            (progn
-              (delete-frame frame)
-              (when (not nokill)
-                (kill-buffer buffer)))
-          (quit-window (not nokill) window))))))
-
-;; (defun my-local-vars-close-window (&optional window nokill)
-;;   "Close WINDOW and, if WINDOW's buffer is the only one ever shown
-;; in the frame , close the frame as well. If NOKILL is nil, kill
-;; WINDOW's buffer."
-;;   (interactive)
-;;   (let ((window (or window (selected-window))))
-;;     (when (window-valid-p window)
-;;       (let ((buffer (window-buffer window))
-;;             (frame (window-frame window)))
-;;         (if (my-local-vars--single-frame-p frame)
-;;             (progn
-;;               (delete-frame frame)
-;;               (when (not nokill)
-;;                 (kill-buffer buffer)))
-;;           (quit-window (not nokill) window))))))
+    (when (window-live-p window)
+      (let* ((frame (window-frame window))
+             (buffer (window-buffer window))
+             (display-buf
+              (my-local-vars--buffer-in-frame
+               my-local-vars-buffer-name
+               frame))
+             (help-buf
+              (my-local-vars--buffer-in-frame
+               my-local-vars-help-name
+               frame)))
+        (cond
+         ((and (null display-buf) (null help-buf))
+          nil)
+         ((and help-buf
+               (my-local-vars--buffer-selected-p help-buf))
+          (quit-window
+           (not nokill)
+           (get-buffer-window help-buf frame)))
+         ((and display-buf help-buf
+               (my-local-vars--separate-frame-p frame))
+          (delete-frame frame)
+          (when (not nokill)
+            (kill-buffer display-buf)
+            (kill-buffer help-buf)))
+         ((and display-buf
+               (my-local-vars--separate-frame-p frame))
+          (delete-frame frame)
+          (when (not nokill)
+            (kill-buffer display-buf)))
+         ((and display-buf help-buf)
+          (quit-window
+           nil
+           (get-buffer-window display-buf frame))
+          (when (not nokill)
+            (kill-buffer display-buf)
+            (kill-buffer help-buf)))
+         (display-buf
+          (quit-window
+           (not nokill)
+           (get-buffer-window display-buf frame))))))))
 
 (defun my-local-vars-pop-to-frame ()
   "Close the window showing buffer-local variables, open a new
 frame, and show buffer-local variables in that frame."
   (interactive)
-  (when (eq (current-buffer) (get-buffer my-local-vars-buffer-name))
-    (let* ((buffer (current-buffer))
-           (buffer-win (get-buffer-window buffer))
-           (buffer-frame (window-frame buffer-win))
-           (target (buffer-local-value 'my-local-vars-target buffer))
-           (target-name (concat my-local-vars-buffer-name
-                                " <" (buffer-name target) ">")))
-      (if (my-local-vars--single-frame-p buffer-frame)
-          (message "The buffer '%s' already has its own frame" buffer)
-        (make-frame `((name . ,target-name)
-                      (minibuffer . nil)))
-        (my-local-vars-close-window buffer-win t))))
+  (let* ((frame (selected-frame))
+         (display-buf
+          (my-local-vars--buffer-in-frame
+           my-local-vars-buffer-name
+           frame))
+         (display-win (get-buffer-window display-buf))
+         (help-buf
+          (my-local-vars--buffer-in-frame
+           my-local-vars-help-name
+           frame))
+         (help-win (get-buffer-window help-buf))
+         (target
+          (buffer-local-value
+           'my-local-vars-target
+           display-buf))
+         (target-name
+          (concat my-local-vars-buffer-name
+                  " <" (buffer-name target) ">")))
+    (cond
+     ((my-local-vars--separate-frame-p frame)
+      (message "Buffer '%s' already has its own frame" display-buf))
+     ((and display-buf (null help-buf))
+      (make-frame `((name . ,target-name)
+                    (minibuffer . nil)))
+      (my-local-vars-close-window display-win t))
+     ((and display-buf help-buf)
+      (let ((display-selected-p
+             (my-local-vars--buffer-selected-p display-buf))
+            (help-selected-p
+             (my-local-vars--buffer-selected-p help-buf)))
+        (my-local-vars-close-window help-win)
+        (let ((new-frame
+               (make-frame `((name . ,target-name)
+                             (minibuffer . nil)))))
+          (with-selected-frame new-frame
+            (my-local-vars-show-help)
+            (cond
+             (help-selected-p
+              (select-window
+               (get-buffer-window
+                my-local-vars-help-name
+                new-frame)))
+             (display-selected-p
+              (select-window
+               (get-buffer-window
+                my-local-vars-buffer-name
+                new-frame))))))
+        (my-local-vars-close-window display-win t))))))
+
+;; (defun my-local-vars-pop-to-frame ()
+;;   "Close the window showing buffer-local variables, open a new
+;; frame, and show buffer-local variables in that frame."
+;;   (interactive)
+;;   (when (eq (current-buffer) (get-buffer my-local-vars-buffer-name))
+;;     (let* ((buffer (current-buffer))
+;;            (buffer-win (get-buffer-window buffer))
+;;            (buffer-frame (window-frame buffer-win))
+;;            (target (buffer-local-value 'my-local-vars-target buffer))
+;;            (target-name (concat my-local-vars-buffer-name
+;;                                 " <" (buffer-name target) ">")))
+;;       (if (my-local-vars--single-frame-p buffer-frame)
+;;           (message "The buffer '%s' already has its own frame" buffer)
+;;         (make-frame `((name . ,target-name)
+;;                       (minibuffer . nil)))
+;;         (my-local-vars-close-window buffer-win t)))))
 
 (define-derived-mode my-local-vars-mode special-mode "Local vars"
   "Major mode for my-local-vars buffers."
