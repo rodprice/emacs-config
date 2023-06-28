@@ -276,6 +276,12 @@ Display buffer information in frame titles. ([[https://github.com/malb/emacs.d/b
   (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
+** Minibuffer
+
+#+begin_src emacs-lisp :tangle no
+  (setq max-mini-window-height 6)
+#+end_src
+
 ** Visual bell
 
 Use visual bell.
@@ -813,10 +819,7 @@ information about the current buffer.
   (use-package my-local-vars
     :load-path "lisp"
     :after origami
-    :bind
-    (("<f7>" . my-local-vars-show)
-     (:map my-local-vars-mode-map
-           ("<f7>" . my-local-vars-close-window))))
+    :bind (("<f7>" . my-local-vars-show)))
 #+end_src
 
 * Notes
