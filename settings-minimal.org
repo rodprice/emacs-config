@@ -18,17 +18,6 @@ This configuration requires packages
   - vscode-dark-plus-theme
   - which-key
   - whole-line-or-region
-* Debugging
-
-#+begin_src emacs-lisp
-  (use-package my-local-vars
-    :load-path "lisp"
-    :after origami
-    :bind
-    (("<f7>" . my-local-vars-show)
-     (:map my-local-vars-mode-map
-           ("<f7>" . quit-window))))
-#+end_src
 
 * Defaults
 
@@ -80,6 +69,16 @@ Delete trailing whitespace before save.
 Highlight current line.
 #+begin_src emacs-lisp
   (global-hl-line-mode t)
+#+end_src
+
+** Keyboard
+
+On Windows, [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][set up]] hyper and super keys.
+#+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+    (setq w32-apps-modifier 'hyper)
+    (setq w32-lwindow-modifier 'super)
+    (setq w32-rwindow-modifier 'hyper))
 #+end_src
 
 ** Clipboard
@@ -350,7 +349,7 @@ Don't ring the bell for these common events.
 =prettify-symbols-mode= can render Greek letters, etc. Doing [[http://endlessparentheses.com/new-in-emacs-25-1-have-prettify-symbols-mode-reveal-the-symbol-at-point.html][this]]
 allows you to see the original text. See also [[http://endlessparentheses.com/using-prettify-symbols-in-clojure-and-elisp-without-breaking-indentation.html][here]] and [[http://endlessparentheses.com/improving-latex-equations-with-font-lock.html][here]].
 #+begin_src emacs-lisp :tangle no
-(setq prettify-symbols-unprettify-at-point 'right-edge)
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
 #+end_src
 
 * Themes
@@ -804,6 +803,20 @@ Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
                            :popup t :align 'below :size 0.35 :select t)))
     (setq shackle-default-rule '(:select t))
     (shackle-mode 1))
+#+end_src
+
+* Debugging
+
+Show a window with certain buffer-local variables and other
+information about the current buffer.
+#+begin_src emacs-lisp
+  (use-package my-local-vars
+    :load-path "lisp"
+    :after origami
+    :bind
+    (("<f7>" . my-local-vars-show)
+     (:map my-local-vars-mode-map
+           ("<f7>" . my-local-vars-close-window))))
 #+end_src
 
 * Notes

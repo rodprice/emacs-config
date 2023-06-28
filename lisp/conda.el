@@ -511,7 +511,7 @@ Returns a list of new path elements."
               (setenv "CONDA_PREFIX" env-dir)))
           (setq exec-path (s-split (if (eq system-type 'windows-nt) ";" ":")
                                    (conda-env-params-path params)))
-          ;; (message "new path? %s" (conda-env-params-path params))
+          (message "new path? %s" (conda-env-params-path params))
           (setenv "PATH" (conda-env-params-path params)))
         (setq eshell-path-env (getenv "PATH"))
         (conda--set-env-gud-pdb-command-name)
