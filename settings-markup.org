@@ -340,7 +340,7 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
 Note: An extensive configuration for AUCTeX is [[https://sqrtminusone.xyz/configs/emacs/#latex][here]].
 
 #+begin_src emacs-lisp :tangle no
-  ;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+  (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
   (setq org-highlight-latex-and-related '(latex))
 #+end_src
 
@@ -388,6 +388,40 @@ Uses [[https://github.com/pashky/restclient.el][restclient.el]] under the hood.
                   (org-babel-do-load-languages
                    'org-babel-load-languages
                    '((restclient . t))))))
+#+end_src
+
+** Links
+
+Maybe use [[help:org-link-make-description][org-link-make-description]] to generate a link when the user
+types in something like 'help:function-name'. Point is at the end; the
+function searches backward for a colon, sets the mark, then searches
+backward again for white space, defining a region, etc.
+
+[[yhttps://stackoverflow.com/questions/19772394/elisp-function-select-argument-from-list][Choosing]] from a list or a popup window.
+#+begin_src emacs-lisp :tangle no
+  (x-popup-menu
+     (list '(50 50) (selected-frame)) ;; where to popup
+     (list "Please choose"            ;; the menu itself
+           (cons "" (mapcar (function (lambda (item) (cons item item)))
+                    '("A" "B" "C")))))
+#+end_src
+
+If there is an active region, insert a help link.
+#+begin_src emacs-lisp :tangle no
+  (defun my-org-insert-help-link (beg end)
+    ""
+    (interactive "r")
+    (if (null (use-region-p))
+        (call-interactively #'org-insert-link)
+      (let ((region (buffer-substring beg end)))
+        (delete-region beg end)
+        (insert (concat "[[help:" region "][" region "]]")))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :bind (("C-c C-l" . my-org-insert-help-link)))
 #+end_src
 
 ** Junkyard

@@ -158,6 +158,7 @@ If SHELL-NAME is nil, use \"bash\"."
     :custom
     (shell-command-default-error-buffer "*Shell Errors*")
     :config
+    (setenv "PID" nil)  ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
     (setq explicit-shell-file-name (my-get-shell-file-name))
     (setq shell-file-name explicit-shell-file-name)
     (setenv "SHELL" explicit-shell-file-name)

@@ -108,7 +108,7 @@
     "c:/Users/rdprice/Apps/msys64/mingw64/bin"
     "c:/Users/rdprice/Apps/shellcheck"
     "c:/Users/rdprice/AppData/Local/Microsoft/WindowsApps"
-    "c:/Users/rdprice/Apps/Microsoft VS Code/bin"
+    "c:/Users/rdprice/Apps/vscode/bin"
     )
   "Path for user-installed executables (except MSYS2 and Git for Windows).")
 

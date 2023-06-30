@@ -49,6 +49,13 @@ Sentences end with a single space.
   (setq sentence-end-double-space nil)
 #+end_src
 
+No CRLF auto-translation in '~/.emacs.d'. See the variable
+[[help:w32-untranslated-filesystem-list][w32-untranslated-filesystem-list]].
+#+begin_src emacs-lisp
+  (w32-add-untranslated-filesystem
+   (expand-file-name user-emacs-directory))
+#+end_src
+
 Always insert spaces, never tab characters.
 #+begin_src emacs-lisp
    (setq-default indent-tabs-mode nil)
@@ -73,22 +80,35 @@ Highlight current line.
 
 ** Keyboard
 
-On Windows, [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][set up]] hyper and super keys.
+Use TeX '\alpha' to enter TeX characters such as 'α' easily. Run
+[[help:toggle-input-method][toggle-input-method]], bound to 'C-\', to turn this off.
+#+begin_src emacs-lisp
+  (set-input-method 'TeX)
+#+end_src
+
+Use Windows modifier keys in emacs. See help for function
+[[help:w32-register-hot-key][w32-register-hot-key]] to bind key chords. See also Xah Lee's
+(bless his crooked little heart) [[http://xahlee.info/emacs/emacs/emacs_hyper_super_keys.html][guide]].
 #+begin_src emacs-lisp
   (when (eq system-type 'windows-nt)
-    (setq w32-apps-modifier 'hyper)
+    ;; Left and right Windows keys map to 'super'
+    (setq w32-pass-lwindow-to-system nil)
     (setq w32-lwindow-modifier 'super)
-    (setq w32-rwindow-modifier 'hyper))
+    (setq w32-pass-rwindow-to-system nil)
+    (setq w32-rwindow-modifier 'super)
+    ;; Menu/App key maps to 'hyper'
+    (setq w32-pass-apps-to-system nil)
+    (setq w32-apps-modifier 'hyper))
 #+end_src
 
 ** Clipboard
 
-   Use the system clipboard.
+Use the system clipboard.
 #+begin_src emacs-lisp
-     (setq select-enable-clipboard t
-           select-enable-primary t
-           save-interprogram-paste-before-kill t
-           mouse-yank-at-point t)
+  (setq select-enable-clipboard t
+        select-enable-primary t
+        save-interprogram-paste-before-kill t
+        mouse-yank-at-point t)
 #+end_src
 
 ** File locations
@@ -158,7 +178,7 @@ From this [[https://github.com/svend/dot-emacsd][config]].
 
 ** Time zones
 
-Set time zones displayed by =world-clock=. A list of time zones is [[https://timezonedb.com/time-zones][here]].
+Set time zones displayed by [[help:world-clock][world-clock]]. A list of time zones is [[https://timezonedb.com/time-zones][here]].
 Another list, with legacy abbreviations, is [[https://en.wikipedia.org/wiki/List_of_tz_database_time_zones][here]]. Windows requires
 the legacy Posix format, while Linux, etc. use the zoneinfo format.
 
@@ -202,7 +222,7 @@ Show line numbers on the left.
   (global-display-line-numbers-mode 1)
 #+end_src
 
-Smooth scrolling
+Smooth scrolling.
 #+begin_src emacs-lisp
   (pixel-scroll-mode)
 #+end_src
@@ -352,7 +372,7 @@ Don't ring the bell for these common events.
 
 ** Insert Greek letters, etc
 
-=prettify-symbols-mode= can render Greek letters, etc. Doing [[http://endlessparentheses.com/new-in-emacs-25-1-have-prettify-symbols-mode-reveal-the-symbol-at-point.html][this]]
+[[help:prettify-symbols-mode][prettify-symbols-mode]] can render Greek letters, etc. Doing [[http://endlessparentheses.com/new-in-emacs-25-1-have-prettify-symbols-mode-reveal-the-symbol-at-point.html][this]]
 allows you to see the original text. See also [[http://endlessparentheses.com/using-prettify-symbols-in-clojure-and-elisp-without-breaking-indentation.html][here]] and [[http://endlessparentheses.com/improving-latex-equations-with-font-lock.html][here]].
 #+begin_src emacs-lisp :tangle no
   (setq prettify-symbols-unprettify-at-point 'right-edge)
@@ -503,7 +523,7 @@ Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-ma
 
 ** Bookmarks
 
-The visible bookmarks package, described [[https://pragmaticemacs.wordpress.com/2016/07/22/use-visible-bookmarks-to-quickly-jump-around-a-file/][here]].
+The [[help:visible-mode][visible-mode]] bookmarks package, described [[https://pragmaticemacs.wordpress.com/2016/07/22/use-visible-bookmarks-to-quickly-jump-around-a-file/][here]].
 #+begin_src emacs-lisp
   (use-package bm
     :ensure t

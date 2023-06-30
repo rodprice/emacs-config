@@ -6,6 +6,35 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Package public keys
+
+(defun my-keyring-modification-time ()
+  "Return the time the keyring file was last modified."
+  (file-attribute-modification-time
+   (file-attributes
+    (concat package-gnupghome-dir "/pubring.kbx")
+    'string)))
+
+;; https://stackoverflow.com/questions/5701388/where-can-i-find-the-public-key-for-gnu-emacs
+(defun my-keyring-update-age ()
+  "Return the age in months of the public key for package.el."
+  (require 'calendar)
+  (let* ((desc (alist-get 'gnu-elpa-keyring-update package-alist))
+         (date (calendar-current-date))
+         (year (nth 2 date))
+         (month (car date)))
+    (if (null desc)
+        nil
+      (let* ((pkg-date (package-desc-version (car desc)))
+             (pkg-year (car pkg-date))
+             (pkg-month (cadr pkg-date)))
+        (if (> pkg-month month)
+            (- (* 12 (- year pkg-year))
+               (- 12 (- pkg-month month)))
+          (+ (* 12 (- year pkg-year))
+             (- month pkg-month)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions for running shells
 
 (defun my-add-kill-buffer-sentinel ()
