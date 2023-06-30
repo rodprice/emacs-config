@@ -109,7 +109,8 @@ A major mode for =YAML= files is found [[https://github.com/yoshiki/yaml-mode/bl
 #+begin_src emacs-lisp
   (use-package yaml-mode
     :ensure t
-    :defer t)
+    :commands
+    (yaml-parse-string yaml-encode))
 #+end_src
 
 * JSON

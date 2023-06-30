@@ -4,8 +4,6 @@
 
 ;; Author: Vasilij Schneidermann <mail@vasilij.de>
 ;; URL: https://depp.brause.cc/shackle
-;; Package-Version: 20211118.1129
-;; Package-Commit: f1467db75a8fa5d51c676181fb308ccbf7b05e6f
 ;; Version: 1.0.3
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))

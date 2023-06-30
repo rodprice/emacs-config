@@ -17,17 +17,6 @@
     (concat invocation-directory "..")))
   "Base directory of Emacs installation.")
 
-;; Decide whether to turn on debugging for use-package
-;; From https://github.com/jwiegley/use-package/issues/768
-(defvar init-file-debug t)
-(if init-file-debug
-    (setq use-package-verbose t
-          use-package-expand-minimally nil
-          use-package-compute-statistics t
-          debug-on-error t)
-  (setq use-package-verbose nil
-        use-package-expand-minimally t))
-
 ;; Turn off annoying, useless warnings
 (require 'warnings)
 (setq warning-minimum-level :error)
@@ -57,15 +46,67 @@
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
 (add-to-list 'package-archives
-             '("org" . "http://orgmode.org/elpa/"))
+             '("org" . "https://orgmode.org/elpa/"))
 (package-initialize)
 (when (not package-archive-contents)
   (package-refresh-contents))
+
+;; Another approach
+;; https://stackoverflow.com/questions/5701388/where-can-i-find-the-public-key-for-gnu-emacs
+(defun my-keyring-update-age ()
+  "Return the age in months of the public key for package.el."
+  (require 'calendar)
+  (let* ((desc (alist-get 'gnu-elpa-keyring-update package-alist))
+         (date (calendar-current-date))
+         (year (nth 2 date))
+         (month (car date)))
+    (if (null desc)
+        nil
+      (let* ((pkg-date (package-desc-version (car desc)))
+             (pkg-year (car pkg-date))
+             (pkg-month (cadr pkg-date)))
+        (if (> pkg-month month)
+            (- (* 12 (- year pkg-year))
+               (- 12 (- pkg-month month)))
+          (+ (* 12 (- year pkg-year))
+             (- month pkg-month)))))))
+
+;; See https://emacs.stackexchange.com/questions/60278/gpg-no-public-key.
+;; The MSYS2 version of `gpg' doesn't like Windows paths, so we
+;; substitute a Unix-like path that `gpg' can deal with.
+(when (eq system-type 'windows-nt)
+  (setq package-gnupghome-dir (concat package-user-dir "/gnupg")))
+
+(defun my-keyring-modification-time ()
+  "Return the time the keyring file was last modified."
+  (file-attribute-modification-time
+   (file-attributes
+    (concat package-gnupghome-dir "/pubring.kbx")
+    'string)))
+
+;; See https://elpa.gnu.org/packages/gnu-elpa-keyring-update.html.
+;; package.el uses keys to verify packages upon installation, but
+;; these keys are only good for a year. The `gnu-elpa-keyring-update'
+;; package needs to be re-installed when the keys expire.
+(unless (package-installed-p 'gnu-elpa-keyring-update)
+  (let ((package-check-signature nil))  ;; keys are expired already
+    (package-install 'gnu-elpa-keyring-update)))
 
 ;; Bootstrap `use-package'
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+;; Decide whether to turn on debugging for use-package. From
+;; https://github.com/jwiegley/use-package/issues/768
+(defvar init-file-debug t)
+(if init-file-debug
+    (setq use-package-verbose t
+          use-package-expand-minimally nil
+          use-package-compute-statistics t
+          debug-on-error t)
+  (setq use-package-verbose nil
+        use-package-expand-minimally t))
 
 (use-package org
   :ensure t

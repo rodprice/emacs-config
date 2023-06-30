@@ -5,8 +5,6 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Created: 2020
 ;; Version: 0.9
-;; Package-Version: 20230411.445
-;; Package-Commit: fda630411ad9219f45136310f671b44eaefafcab
 ;; Package-Requires: ((emacs "27.1") (consult "0.32") (flycheck "32"))
 ;; Homepage: https://github.com/minad/consult
 ;; Keywords: languages, tools, completion

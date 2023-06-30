@@ -4,8 +4,6 @@
 
 ;; Author: Wataru MIYAGUNI <gonngo@gmail.com>
 ;; URL: https://github.com/gongo/emacs-toml
-;; Package-Version: 20230411.1449
-;; Package-Commit: ee4a12bfc8c890c5e8b4bfa35837ce672a882967
 ;; Keywords: toml parser
 ;; Version: 0.0.1
 

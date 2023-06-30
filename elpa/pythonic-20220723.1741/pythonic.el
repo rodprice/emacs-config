@@ -4,8 +4,6 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/pythonic
-;; Package-Version: 20220723.1741
-;; Package-Commit: c18a5bd8cb2ba59014b6b29b5bf1903bd2476a07
 ;; Version: 0.2
 ;; Package-Requires: ((emacs "25.1") (s "1.9") (f "0.17.2"))
 
