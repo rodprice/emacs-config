@@ -52,8 +52,9 @@ Sentences end with a single space.
 No CRLF auto-translation in '~/.emacs.d'. See the variable
 [[help:w32-untranslated-filesystem-list][w32-untranslated-filesystem-list]].
 #+begin_src emacs-lisp
-  (w32-add-untranslated-filesystem
-   (expand-file-name user-emacs-directory))
+  (when (eq system-type 'windows-nt)
+    (w32-add-untranslated-filesystem
+     (expand-file-name user-emacs-directory)))
 #+end_src
 
 Always insert spaces, never tab characters.
