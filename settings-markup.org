@@ -331,6 +331,7 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
     (require 'org-tempo)
     (add-to-list 'org-structure-template-alist '("sh" . "src shell :tangle no"))
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist '("en" . "src emacs-lisp :tangel no"))
     (add-to-list 'org-structure-template-alist '("py" . "src python"))
     (add-to-list 'org-structure-template-alist '("rc" . "src restclient")))
 #+end_src
