@@ -43,6 +43,13 @@
 ;; Set up packaging
 (require 'package)
 (setq package-enable-at-startup nil)
+
+;; See https://emacs.stackexchange.com/questions/60278/gpg-no-public-key.
+;; The MSYS2 version of `gpg' doesn't like Windows paths, so we
+;; substitute a Unix-like path that `gpg' can deal with.
+(when (eq system-type 'windows-nt)
+  (setq package-gnupghome-dir (concat package-user-dir "/gnupg")))
+
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
 (add-to-list 'package-archives
@@ -51,12 +58,6 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
-;; See https://emacs.stackexchange.com/questions/60278/gpg-no-public-key.
-;; The MSYS2 version of `gpg' doesn't like Windows paths, so we
-;; substitute a Unix-like path that `gpg' can deal with.
-(when (eq system-type 'windows-nt)
-  (setq package-gnupghome-dir (concat package-user-dir "/gnupg")))
-
 ;; See https://elpa.gnu.org/packages/gnu-elpa-keyring-update.html.
 ;; package.el uses keys to verify packages upon installation, but
 ;; these keys are only good for a year. The `gnu-elpa-keyring-update'
@@ -64,9 +65,9 @@
 (unless (package-installed-p 'gnu-elpa-keyring-update)
   (let ((package-check-signature nil))  ;; keys are expired already
     (package-install 'gnu-elpa-keyring-update)))
-(require 'use-package)
 
 ;; Bootstrap `use-package'
+(require 'use-package)
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 (package-refresh-contents)

@@ -151,7 +151,8 @@ following line into =init.el=:
 
 #+begin_src emacs-lisp
   (defvar quotes-of-the-day-saturday
-    '(("Woo girl, need to kick off your shoes / Got to take a deep breath, time to focus on you." . "Lizzo")
+    '(("Great fleas have little fleas / upon their backs to bite 'em / And little fleas have lesser fleas / and so ad infinitum" . "De Morgan")
+      ("Woo girl, need to kick off your shoes / Got to take a deep breath, time to focus on you." . "Lizzo")
       ("To live is the rarest thing in the world. Most people exist, that is all." . "Oscar Wilde")
       ("Rivers know this: There is no hurry. We shall get there some day." . "A.A. Milne")
       ("It takes courage to grow up and become who you really are." . "e.e. cummings")
