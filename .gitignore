@@ -9,6 +9,7 @@ server/
 site/
 junkyard/
 pkgs/
+elpa/
 transient/
 url/
 *.elc
