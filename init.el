@@ -40,6 +40,13 @@
    ns-control-modifier 'control
    ns-function-modifier 'super))
 
+;; Patch for "invalid image type 'svg'" error. See
+;; https://github.com/caldwell/build-emacs/issues/126
+(when (and
+       (< emacs-major-version 29)
+       (eq system-type 'darwin))
+  (add-to-list 'image-types 'svg))
+
 ;; Set up packaging
 (require 'package)
 (setq package-enable-at-startup nil)
