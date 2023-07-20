@@ -184,9 +184,8 @@ Optional argument FLAGS py.test command line flags."
          (tests (cond ((not tests) (list "."))
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
-         (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
+         (tnames (mapconcat (apply-partially 'format "%s") tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags)))
-    (message (format "tests = %s" tests))
     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
 ;; (defun pytest-get-command (tests flags)
@@ -204,18 +203,21 @@ Optional argument FLAGS py.test command line flags."
 ;;     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
 (defun pytest-start-command(command)
-  (let* ((use-comint (s-contains? "--pdb" command))
-         (temp-buffer-name (pytest-get-temp-buffer-name))
-         (origin-window (selected-window))
-         (buffer (compilation-start command
-                                    use-comint
-                                    (lambda (mode) temp-buffer-name))))
-    (puthash temp-buffer-name command pytest-last-commands)
-    (with-current-buffer buffer
-      (pytest-compilation-mode (if pytest-enable-minor-mode 1 -1))
-      (setq pytest-window-origin origin-window)
-      (when use-comint
-	(inferior-python-mode)))))
+  (let ((command (if (eq system-type 'windows-nt)
+                     (subst-char-in-string ?/ ?\\ command)
+                   command)))
+    (let* ((use-comint (s-contains? "--pdb" command))
+           (temp-buffer-name (pytest-get-temp-buffer-name))
+           (origin-window (selected-window))
+           (buffer (compilation-start command
+                                      use-comint
+                                      (lambda (mode) temp-buffer-name))))
+      (puthash temp-buffer-name command pytest-last-commands)
+      (with-current-buffer buffer
+        (pytest-compilation-mode (if pytest-enable-minor-mode 1 -1))
+        (setq pytest-window-origin origin-window)
+        (when use-comint
+	  (inferior-python-mode))))))
 
 ;; (defun pytest-start-command(command)
 ;;   (let ((use-comint (s-contains? "--pdb" command))
