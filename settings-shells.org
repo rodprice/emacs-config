@@ -153,6 +153,17 @@ If SHELL-NAME is nil, use \"bash\"."
 #+end_src
 
 #+begin_src emacs-lisp
+  (defun my-shell (arg)
+    (interactive "p")
+    (let ((explicit-bash.exe-args
+           (if (equal arg 1)
+               explicit-bash.exe-args
+             (append explicit-bash.exe-args
+                     (list "--rcfile ~/.bash_noconda")))))
+      (call-interactively #'shell)))
+#+end_src
+
+#+begin_src emacs-lisp
   (use-package shell
     :defer t
     :custom

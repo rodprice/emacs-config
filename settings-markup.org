@@ -42,6 +42,28 @@ Bring up common configuration files in =conf-mode=.
      ("/\\.inputrc\\'" . sh-mode)))
 #+end_src
 
+Poorly documented [[https://github.com/juergenhoetzel/pkgbuild-mode/tree/master][mode]] for PKGBUILD files.
+#+begin_src emacs-lisp
+  (use-package pkgbuild-mode
+    :ensure t
+    :defer t
+    :custom
+    ((pkgbuild-update-sums-on-save nil)
+     (pkgbuild-read-makepkg-command nil)
+     (pkgbuild-makepkg-command "makepkg-mingw --cleanbuild --syncdeps --force --noconfirm"))
+    :mode ("/PKGBUILD$" . pkgbuild-mode)
+    :hook (pkgbuild-mode . (lambda () (flymake-mode -1))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package cmake-mode
+    :ensure t
+    :defer t
+    :mode
+    (("/CMakeLists.txt\\'" . cmake-mode)
+     ("\\.cmake\\'" . cmake-mode)))
+#+end_src
+
 * HTML
 
 Tidy up the HTML in the region. Adapted from [[https://www.masteringemacs.org/article/executing-shell-commands-emacs][Mastering Emacs]].

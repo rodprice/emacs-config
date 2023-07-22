@@ -62,8 +62,7 @@
 (add-to-list 'package-archives
              '("org" . "https://orgmode.org/elpa/"))
 (package-initialize)
-(when (not package-archive-contents)
-  (package-refresh-contents))
+(package-refresh-contents)
 
 ;; See https://elpa.gnu.org/packages/gnu-elpa-keyring-update.html.
 ;; package.el uses keys to verify packages upon installation, but
@@ -74,14 +73,13 @@
     (package-install 'gnu-elpa-keyring-update)))
 
 ;; Bootstrap `use-package'
-(require 'use-package)
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
-(package-refresh-contents)
+(require 'use-package)
 
 ;; Decide whether to turn on debugging for use-package. From
 ;; https://github.com/jwiegley/use-package/issues/768
-(defvar init-file-debug t)
+(defvar init-file-debug nil)
 (if init-file-debug
     (setq use-package-verbose t
           use-package-expand-minimally nil

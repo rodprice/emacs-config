@@ -7,6 +7,9 @@
 (let ((load-path (list (expand-file-name "lisp/" user-emacs-directory))))
  (require 'my-functions))
 
+(setq user-full-name "Rodney Price")
+(setq user-mail-address "price-rodney@zai.com")
+
 (defvar my-default-font "Consolas-12")
 
 (defvar my-apps-dir "c:/Users/rdprice/Apps")
