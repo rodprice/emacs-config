@@ -283,7 +283,7 @@ on Windows.
     :load-path "lisp"
     :custom
     (pytest-global-name "pytest")
-    (pytest-cmd-flags "-x -s --disable-warnings")
+    (pytest-cmd-flags "-rx --disable-warnings")
     (pytest-enable-minor-mode t)
     :bind (:map python-mode-map
                 ("C-c a" . pytest-all)
