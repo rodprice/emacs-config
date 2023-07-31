@@ -88,6 +88,13 @@
   (setq use-package-verbose nil
         use-package-expand-minimally t))
 
+;; Set up exec-path, unless on Windows
+(when (memq window-system '(mac ns x))
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize)))
+
 (use-package org
   :ensure t
   :pin manual
