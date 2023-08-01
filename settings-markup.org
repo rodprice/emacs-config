@@ -91,7 +91,9 @@ Tidy up the HTML in the region. Adapted from [[https://www.masteringemacs.org/ar
 
 * Markdown
 
-Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]].
+Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]]. Another approach
+to live preview is on this guy's [[https://blog.meain.io/2021/offline-markdown-preview/][blog]], using =pandoc= and a bit of
+JavaScript. Just overlook the sloppy grammar and spelling.
 
 Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]]. This uses [[https://pandoc.org/][pandoc]] rather than the
 default multimarkdown, so it can run on Windows. A cheat sheet for

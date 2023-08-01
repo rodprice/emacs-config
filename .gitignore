@@ -12,6 +12,8 @@ pkgs/
 elpa/
 transient/
 url/
+request/
+*.cache
 *.elc
 custom.el
 places

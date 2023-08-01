@@ -371,6 +371,10 @@ A code folding package, found [[https://github.com/gregsexton/origami.el][here]]
     :hook (origami-mode . my-add-origami-emacs-lisp-parser))
 #+end_src
 
+** Ts-fold package (disabled)
+
+A code folding package using treesitter, found [[https://github.com/emacs-tree-sitter/ts-fold][here]].
+
 ** Hide-show package (disabled)
 
 Code from [[https://karthinks.com/software/simple-folding-with-hideshow/][karthinks]] blog.

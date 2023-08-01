@@ -123,6 +123,15 @@ Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
     (engine-mode t))
 #+end_src
 
+* RSS
+
+Get a random [[https://github.com/gonewest818/adafruit-wisdom.el][quote]] from [[https://adafruit.com][adafruit.com]] and display it.
+#+begin_src emacs-lisp
+  (use-package adafruit-wisdom
+    :ensure t
+    :defer t)
+#+end_src
+
 * Notes
 
 Compiling Emacs 29 on Windows with Msys2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]].
