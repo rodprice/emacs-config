@@ -313,6 +313,18 @@ on Windows.
         (call-interactively #'pytest-one))))
 #+end_src
 
+** List Python function names
+
+#+begin_src emacs-lisp
+  (defun my-python-function-name ()
+    "Return the name of the Python function definition containing point."
+    (save-excursion
+      (when (python-nav-beginning-of-defun)
+        (let ((start (progn (search-forward "def ") (point)))
+              (end (progn (search-forward "(") (- (point) 1))))
+          (buffer-substring-no-properties start end)))))
+#+end_src
+
 ** Find monitor and frame attributes
 
 #+begin_src emacs-lisp
