@@ -274,6 +274,22 @@ Tell =lsp-pyright= about conda environments, from [[https://github.com/emacs-lsp
 
 ** Pytest
 
+In order to run tests that generate plots, the following should appear in the
+=pyproject.toml= file:
+
+#+begin_quote
+[tool.pytest.ini_options]
+pythonpath = [".", "tests"]
+testpaths  = ["tests"]
+markers    = ["plot: mark a test that generates a plot."]
+#+end_quote
+
+The decoration
+#+begin_src python
+@pytest.mark.plot
+#+end_src
+marks a function as one that generates a plot. See =pytest= [[https://doc.pytest.org/en/latest/example/markers.html#mark-examples][docs]].
+
 My own modified version of the pytest package. The original doesn't work well
 on Windows.
 #+begin_src emacs-lisp
@@ -286,31 +302,39 @@ on Windows.
     (pytest-cmd-flags "-rx --disable-warnings")
     (pytest-enable-minor-mode t)
     :bind (:map python-mode-map
-                ("C-c a" . pytest-all)
-                ("C-c m" . pytest-module)
-                ("C-c d" . pytest-directory)
-                ("C-c o" . pytest-one))
+                ("C-c a"   . my-pytest-all-tests)
+                ("C-c C-a" . my-pytest-all-plots)
+                ("C-c m"   . my-pytest-module-tests)
+                ("C-c C-m" . my-pytest-module-plots)
+                ("C-c d"   . my-pytest-directory-tests)
+                ("C-c C-d" . my-pytest-directory-plots)
+                ("C-c o"   . pytest-one)
+                ("C-c C-o" . pytest-one))
     :init
-    (defun my-pytest-all (arg)
-      (interactive "P")
-      (if arg
-          (call-interactively #'pytest-pdb-all)
-        (call-interactively #'pytest-all)))
-    (defun my-pytest-directory (arg)
-      (interactive "P")
-      (if arg
-          (call-interactively #'pytest-pdb-directory)
-        (call-interactively #'pytest-directory)))
-    (defun my-pytest-module (arg)
-      (interactive "P")
-      (if arg
-          (call-interactively #'pytest-pdb-module)
-        (call-interactively #'pytest-module)))
-    (defun my-pytest-one (arg)
-      (interactive "P")
-      (if arg
-          (call-interactively #'pytest-pdb-one)
-        (call-interactively #'pytest-one))))
+    (defun my-pytest-all-tests ()
+      "Run all tests, skipping functions marked 'plot'."
+      (interactive)
+      (pytest-all (concat "-m \"not plot\" " pytest-cmd-flags)))
+    (defun my-pytest-all-plots ()
+      "Run all tests, running only functions marked 'plot'."
+      (interactive)
+      (pytest-all (concat "-m plot " pytest-cmd-flags)))
+    (defun my-pytest-module-tests ()
+      "Run pytest on a module, skipping functions marked 'plot'."
+      (interactive)
+      (pytest-module (concat "-m \"not plot\" " pytest-cmd-flags)))
+    (defun my-pytest-module-plots ()
+      "Run pytest on a module, running only functions marked 'plot'."
+      (interactive)
+      (pytest-module (concat "-m plot " pytest-cmd-flags)))
+    (defun my-pytest-directory-tests ()
+      "Run pytest on a directory, skipping functions marked 'plot'."
+      (interactive)
+      (pytest-directory (concat "-m \"not plot\" " pytest-cmd-flags)))
+    (defun my-pytest-directory-plots ()
+      "Run pytest on a directory, running only functions marked 'plot'."
+      (interactive)
+      (pytest-directory (concat "-m plot " pytest-cmd-flags))))
 #+end_src
 
 ** List Python function names
@@ -437,6 +461,29 @@ Set the =popper= display function.
 #+end_src
 
 ** Junkyard
+
+#+begin_src emacs-lisp :tangle no
+    (defun my-pytest-all (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-all)
+        (call-interactively #'pytest-all)))
+    (defun my-pytest-directory (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-directory)
+        (call-interactively #'pytest-directory)))
+    (defun my-pytest-module (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-module)
+        (call-interactively #'pytest-module)))
+    (defun my-pytest-one (arg)
+      (interactive "P")
+      (if arg
+          (call-interactively #'pytest-pdb-one)
+        (call-interactively #'pytest-one)))
+#+end_src
 
 From [[https://e17i.github.io/articles-emacs-display-1/][Configuring the emacs display system]].
 #+begin_src emacs-lisp :tangle no
