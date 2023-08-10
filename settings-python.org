@@ -113,7 +113,7 @@ Close the IPython window without killing its buffer.
     (interactive)
     (let ((buffer (current-buffer)))
       (unless (eq
-               (alist-get'major-mode (buffer-local-variables buffer))
+               (alist-get 'major-mode (buffer-local-variables buffer))
                'inferior-python-mode)
         (user-error "Buffer '%s' is not running a Python interpreter." buffer))
       (let ((window (get-buffer-window buffer)))

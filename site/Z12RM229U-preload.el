@@ -150,8 +150,14 @@
    my-windows-paths)
   "Complete path for MSYS2.")
 
+(defun my-replace-in-string (old new s)
+  "Replaces OLD with NEW in S."
+  (declare (pure t) (side-effect-free t))
+  (replace-regexp-in-string (regexp-quote old) new s t t))
+
 (setq exec-path my-exec-path-msystem)
 (setenv "PATH" (string-join exec-path path-separator))
+;; (setenv "PATH" (my-replace "/" "\\" (string-join exec-path path-separator)))
 
 ;; (setenv "BASH_ENV" (expand-file-name "site/bash-env.sh" user-emacs-directory))
 ;; (my-write-bash-env-file my-exec-path-msystem 'nospaces)  ;; just in case

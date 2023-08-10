@@ -1,0 +1,85 @@
+#+title: Emacs configuration for Octave/Matlab
+#+startup: overview indent
+
+* Notes
+
+On Windows with PATH pointing to an MSYS2 installation, =M-x run-octave=
+will immediately die after startup. It seems happier running with PATH
+pointing to a Git for Windows installation, even though I have =octave=
+itself installed in MSYS2. (Running =octave= in the stand-alone Mingw64
+=bash= shell works just fine, however.)
+
+The problem seems to have something to do with one of the site-wide
+startup files, found in =/mingw64/share/octave/8.2.0/m/startup/octaverc=.
+Commenting out the line
+#+begin_quote
+makeinfo_program (sprintf ("%s && cd %s && perl makeinfo", tempval(1:2), strtrim (tempval)));
+#+end_quote
+allows =octave= to keep running after startup, but then there is no prompt,
+and I have no idea whether other things in the interpreter will be
+damaged. I prefer to keep the file as it is, since I don't understand it.
+
+See the emacs lisp function =my-run-octave= below for further information.
+The function relies on the variable =my-git-extra-paths= to be set in the
+site preload file, found in =.emacs.d/site=.
+
+* Octave mode
+
+Octave mode is built into Emacs.
+#+begin_src emacs-lisp
+  (use-package octave-mode
+    :defer t
+    :mode "\\.m\\'"
+    :custom
+    ((inferior-octave-startup-args '("-i" "--no-line-editing" "-q")))
+    :bind
+    (("<f8>" . my-run-octave)
+     (:map inferior-octave-mode-map
+           ("<f8>" . my-close-octave-window)))
+    :hook
+    ((inferior-octave-mode . my-add-kill-buffer-sentinel)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-run-octave ()
+    "If on Windows, run Octave in the Git for Windows environment."
+    (interactive)
+    (message "Starting Octave REPL")
+    (if (eq system-type 'windows-nt)
+        (let ((path (string-join my-git-extra-paths path-separator)))
+          (with-environment-variables (("PATH" path))
+            (call-interactively #'run-octave)))
+      (call-interactively #'run-octave)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-octave-version ()
+    "Return a short version string for the Octave interpreter."
+    (interactive)
+    (let ((long (shell-command-to-string "octave --version")))
+      (car (split-string long "\n"))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-close-octave-window ()
+    "Close the octave window without killing its buffer or process."
+    (interactive)
+    (let ((buffer (current-buffer)))
+      (unless (eq
+               (buffer-local-value 'major-mode buffer)
+               'inferior-octave-mode)
+        (user-error "Buffer '%s' is not running an octave process." buffer))
+      (let ((window (get-buffer-window buffer)))
+        ;; Borrowed from popper.el
+        (when (window-valid-p window)
+          (cond
+           ((window-parent window)
+            (if (window-parameter window 'window-side)
+                (delete-window window)
+              (quit-window nil window)))
+           ((frame-parent) (delete-frame))
+           (t (quit-window nil window)))))))
+#+end_src
+
+variable inferior-octave-process
+function inferior-octave-process-live-p
