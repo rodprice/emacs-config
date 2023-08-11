@@ -101,10 +101,19 @@ Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/ques
     (interactive)
     (if (python-shell-get-process)
         (python-shell-switch-to-shell)
-      (progn
+      (let ((default-directory (my-python-repl-dir)))
         (message "Starting %s REPL" python-shell-interpreter)
         (run-python (python-shell-calculate-command) t t)
         (python-shell-switch-to-shell))))
+#+end_src
+
+If in a project, the Python REPL should start in the project root.
+#+begin_src emacs-lisp
+  (defun my-python-repl-dir ()
+    "Return the directory the Python REPL should be started in."
+    (if (project-current)
+        (project-root (project-current))
+      default-directory))
 #+end_src
 
 Close the IPython window without killing its buffer.
