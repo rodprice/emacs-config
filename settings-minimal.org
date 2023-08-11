@@ -776,6 +776,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             "\\*Tidy Error Buffer\\*"
             "\\*Pyinspect:"
             "\\*Find\\*"
+            ("\\*Quail Completions\\*" . hide)
             ("\\*Compile-Log\\*" . hide)
             ("\\*Warnings\\*" . hide)
             help-mode

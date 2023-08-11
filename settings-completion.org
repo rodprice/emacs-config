@@ -380,6 +380,7 @@ These buffers will be ignored by the consult-buffer command (C-x b)
   (defvar my-hidden-buffers '("\\`\\*Compile-Log\\*\\'"
                               "\\`\\*Async-native-compile-log\\*\\'"
                               "\\`\\*Flycheck errors\\*\\'"
+                              "\\`\\*Quail Completions\\*\\'"
                               "\\`\\*Flycheck error messages\\*\\'"
                               "\\`\\*EGLOT.*\\*\\'"
                               "\\`\\*Native-compile-Log\\*\\'"
