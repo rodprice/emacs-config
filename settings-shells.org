@@ -152,7 +152,7 @@ If SHELL-NAME is nil, use \"bash\"."
     (face-remap-set-base 'comint-highlight-prompt :inherit nil))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun my-shell (arg)
     (interactive "p")
     (let ((explicit-bash.exe-args
@@ -161,6 +161,22 @@ If SHELL-NAME is nil, use \"bash\"."
              (append explicit-bash.exe-args
                      (list "--rcfile ~/.bash_noconda")))))
       (call-interactively #'shell)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-shell-start ()
+    (interactive)
+    (let ((default-directory (my-shell-dir)))
+      (call-interactively #'shell)))
+#+end_src
+
+If in a project, the shell should start in the project root.
+#+begin_src emacs-lisp
+  (defun my-shell-dir ()
+    "Return the directory the shell should be started in."
+    (if (project-current)
+        (project-root (project-current))
+      default-directory))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -177,7 +193,7 @@ If SHELL-NAME is nil, use \"bash\"."
     (setq system-uses-terminfo t)  ;; has no effect, apparently
     (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
     :bind
-    (("<f6>" . shell)
+    (("<f6>" . my-shell-start)
      (:map shell-mode-map
            ("<f6>" . my-close-shell-window)))
     :hook
