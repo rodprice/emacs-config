@@ -89,6 +89,58 @@ Emacs Docker package [[https://github.com/Silex/docker.el][here]].
 
 From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mastodon][here]].
 #+begin_src emacs-lisp
+  (defun my-mastodon-toot-public-string (message)
+    (interactive "sMessage: ")
+    (let* ((endpoint (mastodon-http--api "statuses"))
+           (args `(("status" . ,message)
+                   ("visibility" . "public"))))
+      (mastodon-http--post endpoint args nil)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-mastodon-show-my-followers ()
+    (interactive)
+    (mastodon-profile--make-profile-buffer-for
+     (mastodon-profile--lookup-account-in-status (mastodon-auth--get-account-name) nil)
+     "followers"
+     #'mastodon-profile--add-author-bylines))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-yank-mastodon-link ()
+    (interactive)
+    (let* ((url (current-kill 0))
+           (url-parsed (url-generic-parse-url url))
+           (user (file-name-base (url-filename url-parsed))))
+      (cond
+       ((derived-mode-p 'oddmuse-mode) (insert "[" url " " user
+                                               "@" (url-host url-parsed) "]"))
+       ((derived-mode-p 'org-mode) (insert "[[" url "][" user
+                                           "@" (url-host url-parsed) "]]"))
+       (t (insert url)))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (autoload 'mastodon-notifications--get-mentions "mastodon-notifications" nil t)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package mastodon
+    :ensure t
+    :bind
+    (:map mastodon-mode-map
+          ("g" . mastodon-tl--update)
+          ;; see org-capture-templates addition
+          ("o" . (lambda () (interactive) (org-capture nil "m"))))
+    :commands (mastodon-http--api
+               mastodon-http--post
+               mastodon-mode
+               mastodon-http--get-search-json
+               mastodon-tl--get-local-timeline)
+    :config
+    (mastodon-discover)
+    (setq mastodon-instance-url "https://mathstodon.xyz"
+          mastodon-active-user "rodprice"))
 #+end_src
 
 * Search engines
