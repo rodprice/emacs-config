@@ -37,6 +37,30 @@ server [[https://github.com/emacs-lsp/lsp-mode/issues/3876][here]]. Ruff docs, s
 
 A list of Python links, [[https://xenodium.com/python-bookmarks/][here]].
 
+The [[https://davidadrian.cc/definitive-data-scientist-setup/]["definitive" data scientist environment setup]], an article about setting
+up Python, R, conda, etc on a Ubuntu laptop. Also, wierdly, [[https://whiteboxml.com/blog/the-definitive-data-scientist-environment-setup][here]].
+
+A really excellent article, [[https://martibosch.github.io/jupyter-emacs-universe/][Jupyter in the Emacs universe]], comparing various
+approaches to running Jupyter notebooks in Emacs. Conclusion: all of them
+have serious drawbacks. :-( Another article, [[https://sqrtminusone.xyz/posts/2021-05-01-org-python/][Replacing Jupyter Notebook
+with Org Mode]], covers a lot of ground, too.
+
+Another "definitive" [[https://whiteboxml.com/blog/the-definitive-guide-to-python-virtual-environments-with-conda][article]], a guide to using =conda=, includes detailed
+installation instructions for Windows, Linux, and MacOS. It also has a
+section on installing Jupyter using =conda=, and instructions for using the
+=conda-pack= for packaging up a complete =conda= environment.
+
+Here's an [[https://github.com/martibosch/snakemacs][Emacs setup for Python with conda/mamba]].
+
+[[https://github.com/mwouts/jupytext][Jupytext]] is a Python library for converting Jupyter notebooks to text and
+vice-versa. They discuss "paired notebooks," where =.py= and =.ipynb= files
+encode the same notebook. The Jupyter [[https://github.com/mwouts/jupytext/blob/main/docs/paired-notebooks.md][documentation]] explains how to pair
+files from JupyterLab. The Emacs package [[https://github.com/astoff/code-cells.el][code-cells.el]] is an alternative.
+
+A [[https://www.youtube.com/watch?v=2NPUDYAOgW0][YouTube video]] about editing live notebook cells with Emacs. Perhaps this
+is the way to go, if only I can make it through the guy's really irritating
+presentation style. Another [[https://www.youtube.com/watch?v=RD0o2pkJBaI][video]], Jupyter in scimacs, might be worthwhile.
+
 * Python mode
 
 Set up Python interpreters, code folding, etc.
