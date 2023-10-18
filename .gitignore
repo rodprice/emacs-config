@@ -13,6 +13,8 @@ elpa/
 transient/
 url/
 request/
+persist/
+mastodon.*
 *.cache
 *.elc
 custom.el

@@ -55,7 +55,7 @@
 (defvar my-local-vars-header-text
   (propertize
    (concat
-    "'F7' pops to new frame ,"
+    "'F7' pops to new frame, "
     "'h' toggles help window, "
     "'q' kills this buffer.\n")
    'face 'my-local-vars-header-face)
@@ -406,6 +406,14 @@ in buffer TARGET."
          (directory-file-name
           (project-root project)))))))
 
+(defun my-local-vars-git-branch-name (target)
+  "Get the name of the current git branch for buffer TARGET."
+  (with-current-buffer target
+    (if vc-mode
+        (cadr (split-string
+               (substring-no-properties vc-mode) "[:-]+"))
+      "<none>")))
+
 (defun my-local-vars-conda-name (target)
   "Get the name of the Conda environment for buffer TARGET."
   (with-current-buffer target
@@ -482,6 +490,8 @@ struct."
           (my-local-vars-project-name target))
          (-conda-name
           (my-local-vars-conda-name target))
+         (-git-branch-name
+          (my-local-vars-git-branch-name target))
          (-process     ;; process running in buffer, if any
           (let ((proc (variables->process vars)))
             (if (null proc) "<none>" (process-name proc))))
@@ -506,6 +516,7 @@ struct."
      (my-local-vars--refresh-line "Buffer name"  tabstop -name)
      (my-local-vars--refresh-line "Project name" tabstop -project-name)
      (my-local-vars--refresh-line "Conda env"    tabstop -conda-name)
+     (my-local-vars--refresh-line "Git branch"   tabstop -git-branch-name)
      (my-local-vars--refresh-line "Process"      tabstop -process)
      (propertize "\nBuffer-local variables\n" 'face 'my-local-vars-doc-face)
      (my-local-vars--refresh-line "Major mode"   tabstop -major-mode)

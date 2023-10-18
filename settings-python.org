@@ -107,8 +107,7 @@ window and kills the REPL buffer.
     ;; (python-shell-completion-native-enable nil)
     (python-shell-buffer-name "IPython")
     (python-shell-interpreter "ipython")
-    (python-shell-interpreter-args
-     "-i --simple-prompt --pprint --InteractiveShell.warn_venv=False")
+    (python-shell-interpreter-args (my-python-repl-args))
     :bind
     ((:map python-mode-map
            ("<f5>" . my-python-start-or-switch-repl))
@@ -138,6 +137,26 @@ If in a project, the Python REPL should start in the project root.
     (if (project-current)
         (project-root (project-current))
       default-directory))
+#+end_src
+
+Construct all arguments to the Python REPL, including a pointer to a
+Python configuration file in the project itself.
+#+begin_src emacs-lisp
+  (defun my-python-repl-args ()
+    "Return the arguments the Python REPL should be given."
+    (let* ((args
+            '("-i"
+              "--simple-prompt"
+              "--pprint"
+              "--InteractiveShell.warn_venv=False"))
+           (ipython-exec-files
+            (format "--InteractiveShell.exec_files=['%s.ipython/startup.py']"
+                    (my-python-repl-dir))))
+      (if (and
+           (string= python-shell-interpreter "ipython")
+           (project-current))
+          (add-to-list 'args ipython-exec-files t))
+      (string-join args " ")))
 #+end_src
 
 Close the IPython window without killing its buffer.
