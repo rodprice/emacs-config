@@ -101,13 +101,15 @@ window and kills the REPL buffer.
     :init
     (add-to-list 'popper-reference-buffers "\\*IPython\\*")
     (add-to-list 'popper-reference-buffers 'inferior-python-mode)
+    :config
+    (add-to-list 'python-shell-completion-native-disabled-interpreters
+                 "ipython")
     (popper--set-reference-vars)
     :custom
     ;; (python-shell-interpreter "python3")
     ;; (python-shell-completion-native-enable nil)
     (python-shell-buffer-name "IPython")
     (python-shell-interpreter "ipython")
-    (python-shell-interpreter-args (my-python-repl-args))
     :bind
     ((:map python-mode-map
            ("<f5>" . my-python-start-or-switch-repl))
@@ -124,8 +126,12 @@ Open a dedicated Python REPL window. From [[https://emacs.stackexchange.com/ques
     (interactive)
     (if (python-shell-get-process)
         (python-shell-switch-to-shell)
-      (let ((default-directory (my-python-repl-dir)))
-        (message "Starting %s REPL" python-shell-interpreter)
+      (let ((default-directory (my-python-repl-dir))
+            (msg "Starting %s REPL in '%s'")
+            (python-shell-interpreter-args (my-python-repl-args)))
+        (message msg
+                 python-shell-interpreter
+                 (my-python-repl-dir))
         (run-python (python-shell-calculate-command) t t)
         (python-shell-switch-to-shell))))
 #+end_src
@@ -150,8 +156,9 @@ Python configuration file in the project itself.
               "--pprint"
               "--InteractiveShell.warn_venv=False"))
            (ipython-exec-files
-            (format "--InteractiveShell.exec_files=['%s.ipython/startup.py']"
-                    (my-python-repl-dir))))
+            (format
+             "--InteractiveShellApp.exec_files=%sstartup.py"
+             (expand-file-name (my-python-repl-dir)))))
       (if (and
            (string= python-shell-interpreter "ipython")
            (project-current))
