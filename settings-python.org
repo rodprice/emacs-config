@@ -154,7 +154,8 @@ Python configuration file in the project itself.
             '("-i"
               "--simple-prompt"
               "--pprint"
-              "--InteractiveShell.warn_venv=False"))
+              "--InteractiveShell.warn_venv=False"
+              "--InteractiveShell.display_page=True"))
            (ipython-exec-files
             (format
              "--InteractiveShellApp.exec_files=%sstartup.py"
