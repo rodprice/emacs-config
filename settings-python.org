@@ -86,6 +86,17 @@ Set up Python interpreters, code folding, etc.
          "...\n"))
 #+end_src
 
+* Python documentation
+
+This works for system and environment modules, but flaky at project
+level. No idea why.
+#+begin_src emacs-lisp
+  (use-package pydoc
+    :ensure t
+    :bind
+    ((:map python-mode-map
+           ("C-h f" . pydoc-at-point))))
+#+end_src
 * Python REPL
 
 Set up the IPython interpreter. Hitting key F5 when the current buffer
