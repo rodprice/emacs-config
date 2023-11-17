@@ -211,7 +211,6 @@ From [[https://www.inc.com/glenn-leibowitz/50-quotes-from-famous-authors-that-wi
       ("If it sounds like writing, I rewrite it. Or, if proper usage gets in the way, it may have to go. I can't allow what we learned in English composition to disrupt the sound and rhythm of the narrative." . " Elmore Leonard")
       ("Writers live twice." . " Natalie Goldberg")
       ("To produce a mighty book, you must choose a mighty theme." . "Herman Melville")
-      ("Words are a lens to focus one's mind." . "Ayn Rand")
       ("I am irritated by my own writing. I am like a violinist whose ear is true, but whose fingers refuse to reproduce precisely the sound he hears within." . "Gustave Flaubert")
       ("Writing is its own reward." . "Henry Miller")
       ("A blank piece of paper is God's way of telling us how hard it is to be God." . "Sidney Sheldon")
@@ -261,6 +260,14 @@ From [[https://www.goodreads.com/author/quotes/14033.Winston_S_Churchill][Goodre
       ("To each there comes in their lifetime a special moment when they are figuratively tapped on the shoulder and offered the chance to do a very special thing, unique to them and fitted to their talents. What a tragedy if that moment finds them unprepared or unqualified for that which could have been their finest hour." . "Winston Churchill")))
 #+end_src
 
+** Others
+
+#+begin_src emacs-lisp
+  (defvar quotes-of-the-day-other
+    '(("It takes a thousand men to invent a telegraph, or a steam engine, or a phonograph, or a photograph, or a telephone or any other important thing -- and the last man gets the credit and we forget the others. He added his little mite -- that is all he did. These object lessons should teach us that ninety-nine parts of all things that proceed from the intellect are plagiarisms, pure and simple; and the lesson ought to make us modest. But nothing can do that." . "Mark Twain")
+      ))
+#+end_src
+
 * Code
 
 ** Initial quote insertion
@@ -275,7 +282,8 @@ From [[https://www.goodreads.com/author/quotes/14033.Winston_S_Churchill][Goodre
           (cons "friday"     quotes-of-the-day-friday)
           (cons "saturday"   quotes-of-the-day-saturday)
           (cons "on-writing" quotes-of-the-day-on-writing)
-          (cons "churchill"  quotes-of-the-day-churchill))
+          (cons "churchill"  quotes-of-the-day-churchill)
+          (cons "other"      quotes-of-the-day-other))
     "Alist of lists of quotes of the day.")
 #+end_src
 
