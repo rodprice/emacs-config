@@ -97,7 +97,16 @@ JavaScript. Just overlook the sloppy grammar and spelling.
 
 Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]]. This uses [[https://pandoc.org/][pandoc]] rather than the
 default multimarkdown, so it can run on Windows. A cheat sheet for
-Github-flavored Markdown is [[https://github.github.com/gfm/][here]].
+Github-flavored Markdown is [[https://github.github.com/gfm/][here]]. A guide to using a CSS stylesheet
+is [[https://jblevins.org/log/custom-css][here]]. The Github Markdown CSS stylesheet is in this Github [[https://github.com/sindresorhus/github-markdown-css][repo]].
+
+#+begin_src emacs-lisp
+  (defvar my-markdown-css-path
+    (expand-file-name
+     "static/css/github-markdown.css"
+     user-emacs-directory))
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package markdown-mode
     :ensure t
@@ -107,6 +116,7 @@ Github-flavored Markdown is [[https://github.github.com/gfm/][here]].
     (markdown-enable-math t)
     (markdown-live-preview-delete-export 'delete-on-export)
     (markdown-asymmetric-header t)
+    (markdown-css-paths (list my-markdown-css-path))
     :config
     (setq markdown-command
           (concat
@@ -117,6 +127,36 @@ Github-flavored Markdown is [[https://github.github.com/gfm/][here]].
            " --quiet"
            )))
 #+end_src
+
+#+begin_src emacs-lisp
+  (defvar my-markdown-style
+    (format
+    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+<link rel=\"stylesheet\" href=\"%s\">
+<style>
+  .markdown-body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 45px;
+  }
+
+  @media (max-width: 767px) {
+    .markdown-body {
+      padding: 15px;
+    }
+  }
+</style>
+"
+  my-markdown-css-path)
+  "Markdown style to include in rendered Markdown.")
+#+end_src
+
+<article class="markdown-body">
+  <h1>Unicorns</h1>
+  <p>All the things</p>
+</article>
 
 [[https://github.com/Fanael/edit-indirect/][Edit code blocks]] in a new buffer, like =org-mode=.
 #+begin_src emacs-lisp

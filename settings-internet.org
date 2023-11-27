@@ -73,6 +73,21 @@ From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
     ;;     (add-to-list 'exec-path my-putty-directory)))
 #+end_src
 
+* ERC
+
+A quickie [[https://systemcrafters.net/chatting-with-emacs/irc-basics-with-erc/][introduction]] to the Emacs IRC client.
+#+begin_src emacs-lisp
+  (setq erc-server "irc.libera.chat"
+        erc-nick "rodprice"
+        erc-user-full-name "Rodney D. Price"
+        erc-track-shorten-start 8   ;; length of tracker in mode line
+        erc-autojoin-channels-alist ;; channels to join automatically
+        '(("irc.libera.chat" "#emacs"))
+        erc-join-buffer nil         ;; display ERC buffer in this window
+        erc-kill-buffer-on-part t   ;; kill the ERC buffer when you quit
+        erc-auto-query 'window)     ;; pops up new window for private message
+#+end_src
+
 * Docker
 
 Notes: Run Emacs from inside Docker; instructions [[https://github.com/JAremko/docker-emacs][here]]. Someone else

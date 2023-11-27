@@ -390,7 +390,7 @@ to advise its initialization function. This function does that.
     "Set a process sentinel that kills the buffer when the process exits."
     (let ((process
            (get-buffer-process
-            (shell-maker-buffer shell-maker-config))))
+            (shell-maker-buffer shell-maker--config))))
       (unless (null process)
         (let ((sentinel (process-sentinel process)))
           (set-process-sentinel
@@ -405,7 +405,7 @@ to advise its initialization function. This function does that.
                     (quit-window t (get-buffer-window buffer)))))))))))
 #+end_src
 
-See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping Secrets in Emacs]]. This package can be found on [[https://github.com/xenodium/chatgpt-shell][Github]].
+See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping Secrets in Emacs]]. The =chatgpt-shell= package can be found [[https://github.com/xenodium/chatgpt-shell][here]].
 #+begin_src emacs-lisp
   (use-package chatgpt-shell
     :ensure t
@@ -417,6 +417,8 @@ See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth
     (chatgpt-shell-openai-key
      (lambda ()
        (auth-source-pick-first-password :host "api.openai.com")))
+    (chatgpt-shell-welcome-function nil)
+    (chatgpt-shell-system-prompt nil)
     :config
     (when (featurep 'popper)
       (add-to-list 'popper-reference-buffers "\\*chatgpt\\*")
