@@ -780,6 +780,9 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             ("\\*Compile-Log\\*" . hide)
             ("\\*Warnings\\*" . hide)
             help-mode
+            ;; todo-mode
+            ;; todo-archive-mode
+            ;; todo-filtered-items-mode
             compilation-mode))
     (setq popper-display-control nil)
     (setq switch-to-buffer-obey-display-actions t)
@@ -831,6 +834,33 @@ Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
                            :popup t :align 'below :size 0.35 :select t)))
     (setq shackle-default-rule '(:select t))
     (shackle-mode 1))
+#+end_src
+
+* Todo lists
+
+#+begin_src emacs-lisp
+  (use-package todo-mode
+    :ensure nil
+    :init
+    (add-to-list 'display-buffer-alist
+                 '(my-todo-mode-p
+                   display-buffer-at-bottom
+                   (window-height . fit-window-to-buffer)))
+    :bind
+    (("C-c t" . todo-show)
+     ("C-c j" . todo-jump-to-category)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-todo-mode-p (&optional buffer)
+    "Returns the major mode of BUFFER if it is one of the `todo`
+  modes; otherwise returns nil."
+    (let ((buf (if buffer buffer (current-buffer))))
+      (with-current-buffer buf
+        (when (memq major-mode '(todo-mode
+                                 todo-archive-mode-map
+                                 todo-filtered-items-mode))
+          major-mode))))
 #+end_src
 
 * Debugging
