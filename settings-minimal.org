@@ -19,6 +19,11 @@ This configuration requires packages
   - which-key
   - whole-line-or-region
 
+* Notes
+
+Emacs 29 only: New user option 'calc-kill-line-numbering'.
+Set it to nil to exclude line numbering from kills and copies.
+
 * Defaults
 
 #+begin_src emacs-lisp
@@ -693,6 +698,17 @@ Restore emacs' windows and buffers ([[https://bmag.github.io/2015/12/26/desktop.
     (add-hook 'window-setup-hook #'desktop-read))
   (setq desktop-save t)  ;; always save
   (desktop-save-mode)
+#+end_src
+
+The option 'desktop-load-locked-desktop' can now be set to the value
+'check-pid', which means to allow loading a locked ".emacs.desktop"
+file if the Emacs process which locked it is no longer running on the
+local machine.  This allows avoiding questions about locked desktop
+files when the Emacs session which locked it crashes, or was otherwise
+interrupted and didn't exit gracefully.
+#+begin_src emacs-lisp
+  (when (>= emacs-major-version 29)
+    (setq desktop-load-locked-desktop 'check-pid))
 #+end_src
 
 #+begin_src emacs-lisp

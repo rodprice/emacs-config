@@ -15,6 +15,7 @@ url/
 request/
 persist/
 todo/
+tree-sitter/
 mastodon.*
 *.cache
 *.elc

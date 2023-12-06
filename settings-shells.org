@@ -53,6 +53,15 @@ This guy [[https://www.masteringemacs.org/article/running-shells-in-emacs-overvi
 
 A useful StackExchange answer about ANSI color escape codes is [[https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences][here]].
 
+Emacs 29 only: New user option 'shell-kill-buffer-on-exit'. Enabling
+this will automatically kill a "*shell*" buffer as soon as the shell
+session terminates.
+
+Emacs 29 only: New minor mode 'shell-highlight-undef-mode'.
+Customize 'shell-highlight-undef-enable' to t if you want to enable
+this minor mode in "*shell*" buffers.  It will highlight undefined
+commands with a warning face as you type.
+
 * Comint processes
 
 Close the window containing the interpreter and kill its buffer when

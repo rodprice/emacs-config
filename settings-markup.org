@@ -166,6 +166,81 @@ is [[https://jblevins.org/log/custom-css][here]]. The Github Markdown CSS styles
     :load-path "mode")
 #+end_src
 
+* TOML
+
+Use the 'pyproject.toml' file in a project to set various defaults for
+the project. A useful StackOverflow discussion of this file is [[https://stackoverflow.com/questions/62983756/what-is-pyproject-toml-file-for][here]].
+
+A [[https://github.com/gongo/emacs-toml][package]] to read TOML files.
+#+begin_src emacs-lisp
+  (use-package toml
+    :ensure t)
+#+end_src
+
+Use the tree sitter-enabled major mode for TOML files.
+#+begin_src emacs-lisp :tangle no
+  ;; toml-mode is not currently installed
+  (unless (< emacs-major-version 29)
+    (add-to-list 'major-mode-remap-alist
+                 '(toml-mode . toml-ts-mode)))
+#+end_src
+
+Read a toml file into an alist.
+#+begin_src emacs-lisp
+  (defun my-toml-read-file (dirname &optional filename)
+    "Read a TOML file found in directory DIRNAME and return its
+  contents. If FILENAME is not specified, use `pyproject.py'."
+    (let* ((dirpath (file-name-as-directory (expand-file-name dirname)))
+           (filepath (concat dirpath (or filename "pyproject.toml"))))
+      (unless (file-exists-p filepath)
+        (user-error "Can't find file at %s" filepath))
+      (unless (file-readable-p filepath)
+        (user-error "File at %s is not readable" filepath))
+      (toml:read-from-file filepath)))
+#+end_src
+
+Query the toml alist.
+#+begin_src emacs-lisp
+  (defun my-toml-get-setting (toml-obj setting)
+    "Query TOML-OBJ using SETTING, which is either a string or a list
+  of strings containing keys found in TOML-OBJ."
+    (let* ((path (if (listp setting) setting (list setting)))
+           (result (toml:assoc path toml-obj)))
+      (cdr-safe result)))
+#+end_src
+
+Get the settings under =[tool.pytest.ini_options]=.
+#+begin_src emacs-lisp
+  (defun my-toml-settings-pytest (dirname &optional key)
+    "Get the pytest settings in the pyproject.py file in directory
+  DIRNAME."
+    (let ((toml (my-toml-read-file dirname))
+          (path '("tool" "pytest" "ini_options")))
+      (my-toml-get-setting
+       toml
+       (append path (if key (list key) '())))))
+#+end_src
+
+Get the settings under =[tool.pyright]=.
+#+begin_src emacs-lisp
+  (defun my-toml-settings-pyright (dirname &optional key)
+    "Get the pyright settings in the pyproject.py file in directory
+  DIRNAME."
+    (let ((toml (my-toml-read-file dirname))
+          (path '("tool" "pyright")))
+      (my-toml-get-setting
+       toml
+       (append path (if key (list key) '())))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-toml-ignored-dirs (dirname)
+    ""
+    (let ((ignore (my-toml-settings-pyright dirname "ignore"))
+          (exclude (my-toml-settings-pyright dirname "exclude")))
+      (mapcar 'expand-file-name (append ignore exclude))))
+#+end_src
+
 * YAML
 
 A major mode for =YAML= files is found [[https://github.com/yoshiki/yaml-mode/blob/master/yaml-mode.el][here]]. There's a linter called
@@ -177,12 +252,26 @@ A major mode for =YAML= files is found [[https://github.com/yoshiki/yaml-mode/bl
     (yaml-parse-string yaml-encode))
 #+end_src
 
+Use the tree sitter-enabled major mode for YAML.
+#+begin_src emacs-lisp
+  (unless (< emacs-major-version 29)
+    (add-to-list 'major-mode-remap-alist
+                 '(yaml-mode . yaml-ts-mode)))
+#+end_src
+
 * JSON
 
 #+begin_src emacs-lisp
   (use-package json-mode
     :ensure t
     :defer t)
+#+end_src
+
+Use the tree sitter-enabled major mode for JSON.
+#+begin_src emacs-lisp
+  (unless (< emacs-major-version 29)
+    (add-to-list 'major-mode-remap-alist
+                 '(json-mode . json-ts-mode)))
 #+end_src
 
   [[https://github.com/taku0/json-par][json-par]] is a package that says it's "ctrl-less, yet mode-less". The

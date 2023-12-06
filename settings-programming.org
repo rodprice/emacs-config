@@ -20,6 +20,113 @@ External programs that should be on =exec-path= are
 The file =settings-minimal.org= should be loaded before loading this
 file.
 
+* Notes
+
+** Tree sitter (Emacs 29+)
+
+New major modes based on the tree-sitter library.
+These new major modes are available if Emacs was built with the
+tree-sitter library.  They provide support for font-locking,
+indentation, and navigation by defuns based on parsing the buffer text
+by a tree-sitter parser.  Some major modes also offer support for
+Imenu and 'which-func'.
+
+The new modes based on tree-sitter are for now entirely optional, and
+you must turn them on manually, or load them in your init file, or
+customize 'auto-mode-alist' to turn them on automatically for certain
+files.  You can also customize 'major-mode-remap-alist' to
+automatically turn on some tree-sitter based modes for the same files
+for which a "built-in" mode would be turned on.  For example:
+
+    (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
+
+If you try these modes and don't like them, you can go back to the
+"built-in" modes by restarting Emacs.  (If you use desktop.el to save
+and restore Emacs sessions, make sure no buffer under these modes is
+recorded in the desktop file, before restarting.)  But please tell us
+why you didn't like the tree-sitter based modes, so that we could try
+improving them.
+
+Each major mode based on tree-sitter needs a language grammar library,
+usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
+MS-Windows), where LANG is the corresponding language name.  Emacs
+looks for these libraries in the following places:
+
+ . in the directories mentioned in the list 'treesit-extra-load-path'
+ . in the "tree-sitter" subdirectory of your 'user-emacs-directory'
+   (by default, "~/.emacs.d/tree-sitter")
+ . in the standard system directories where other shared libraries are
+   usually installed
+
+We recommend to install these libraries in one of the standard system
+locations (the last place in the above list).
+
+If a language grammar library required by a mode is not found in any
+of the above places, the mode will display a warning when you try to
+turn it on.
+
+* Tree sitter
+
+Tree sitter is a library that transforms source code into a concrete
+syntax tree, first included in Emacs version 29. See [[https://www.masteringemacs.org/article/how-to-get-started-tree-sitter][here]] for a nice
+introduction. Also read [[https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html][Tree-sitter in Emacs 29 and Beyond]] and the
+[[https://archive.casouri.cc/note/2023/tree-sitter-starter-guide/index.html][Tree-sitter Starter Guide]] from the developers.
+
+Tree sitter requires a grammar for each language it can
+process, which must be compiled from source into a library (i.e. .so)
+file. These are not included in Emacs, but must be obtained elsewhere.
+Here is a list current as of 5 Dec 2023:
+#+begin_src emacs-lisp
+  (unless (< emacs-major-version 29)
+    (setq treesit-language-source-alist
+          '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+            (cmake "https://github.com/uyha/tree-sitter-cmake")
+            (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+            (css "https://github.com/tree-sitter/tree-sitter-css")
+            (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+            (embedded-template "https://github.com/tree-sitter/tree-sitter-embedded-template")
+            (go "https://github.com/tree-sitter/tree-sitter-go")
+            (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+            (html "https://github.com/tree-sitter/tree-sitter-html")
+            (java "https://github.com/tree-sitter/tree-sitter-java")
+            (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+            (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc")
+            (json "https://github.com/tree-sitter/tree-sitter-json")
+            (julia "https://github.com/tree-sitter/tree-sitter-julia")
+            (make "https://github.com/alemuller/tree-sitter-make")
+            (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+            (python "https://github.com/tree-sitter/tree-sitter-python")
+            (regex "https://github.com/tree-sitter/tree-sitter-regex")
+            (toml "https://github.com/tree-sitter/tree-sitter-toml")
+            (tsq "https://github.com/tree-sitter/tree-sitter-tsq")
+            (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+            (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+            (yaml "https://github.com/ikatyang/tree-sitter-yaml"))))
+#+end_src
+
+These can be compiled by hand with =M-x treesit-install-language-grammar=
+or installed all at once with
+#+begin_src emacs-lisp :tangle no
+  ;; Doesn't appear to do anything...
+  (unless (< emacs-major-version 29)
+    (mapc #'treesit-install-language-grammar
+          (mapcar #'car treesit-language-source-alist)))
+#+end_src
+
+The following variable shadows the generic mode listed with the Tree
+sitter-enabled version.
+#+begin_src emacs-lisp :tangle no
+  (unless (< emacs-major-version 29)
+    (setq major-mode-remap-alist
+          '((yaml-mode . yaml-ts-mode)
+            (bash-mode . bash-ts-mode)
+            (js2-mode . js-ts-mode)
+            (typescript-mode . typescript-ts-mode)
+            (json-mode . json-ts-mode)
+            (css-mode . css-ts-mode)
+            (python-mode . python-ts-mode))))
+#+end_src
+
 * Version control
 
 ** VC package
@@ -91,73 +198,6 @@ The package [[https://github.com/radian-software/apheleia][apheleia]] handles co
 [[https://clang.llvm.org/docs/ClangFormat.html][clang-format]] for C/C++ in a language-independent way. See an example
 configuration [[https://gitlab.com/gSwag/emacs-configuration/-/blob/master/.emacs-config.org][here]]. There's a convenient web app to set =clang-format=
 options [[https://clang.llvm.org/docs/ClangFormat.html][here]].
-
-* TOML
-
-Use the 'pyproject.toml' file in a project to set various defaults for
-the project. A useful StackOverflow discussion of this file is [[https://stackoverflow.com/questions/62983756/what-is-pyproject-toml-file-for][here]].
-
-A [[https://github.com/gongo/emacs-toml][package]] to read TOML files.
-#+begin_src emacs-lisp
-  (use-package toml
-    :ensure t)
-#+end_src
-
-Read a toml file into an alist.
-#+begin_src emacs-lisp
-  (defun my-toml-read-file (dirname &optional filename)
-    "Read a TOML file found in directory DIRNAME and return its
-  contents. If FILENAME is not specified, use `pyproject.py'."
-    (let* ((dirpath (file-name-as-directory (expand-file-name dirname)))
-           (filepath (concat dirpath (or filename "pyproject.toml"))))
-      (unless (file-exists-p filepath)
-        (user-error "Can't find file at %s" filepath))
-      (unless (file-readable-p filepath)
-        (user-error "File at %s is not readable" filepath))
-      (toml:read-from-file filepath)))
-#+end_src
-
-Query the toml alist.
-#+begin_src emacs-lisp
-  (defun my-toml-get-setting (toml-obj setting)
-    "Query TOML-OBJ using SETTING, which is either a string or a list
-  of strings containing keys found in TOML-OBJ."
-    (let* ((path (if (listp setting) setting (list setting)))
-           (result (toml:assoc path toml-obj)))
-      (cdr-safe result)))
-#+end_src
-
-Get the settings under =[tool.pytest.ini_options]=.
-#+begin_src emacs-lisp
-  (defun my-toml-settings-pytest (dirname &optional key)
-    "Get the pytest settings in the pyproject.py file in directory
-  DIRNAME."
-    (let ((toml (my-toml-read-file dirname))
-          (path '("tool" "pytest" "ini_options")))
-      (my-toml-get-setting
-       toml
-       (append path (if key (list key) '())))))
-#+end_src
-
-Get the settings under =[tool.pyright]=.
-#+begin_src emacs-lisp
-  (defun my-toml-settings-pyright (dirname &optional key)
-    "Get the pyright settings in the pyproject.py file in directory
-  DIRNAME."
-    (let ((toml (my-toml-read-file dirname))
-          (path '("tool" "pyright")))
-      (my-toml-get-setting
-       toml
-       (append path (if key (list key) '())))))
-#+end_src
-
-#+begin_src emacs-lisp
-  (defun my-toml-ignored-dirs (dirname)
-    ""
-    (let ((ignore (my-toml-settings-pyright dirname "ignore"))
-          (exclude (my-toml-settings-pyright dirname "exclude")))
-      (mapcar 'expand-file-name (append ignore exclude))))
-#+end_src
 
 * Project
 
@@ -373,7 +413,22 @@ A code folding package, found [[https://github.com/gregsexton/origami.el][here]]
 
 ** Ts-fold package (disabled)
 
-A code folding package using treesitter, found [[https://github.com/emacs-tree-sitter/ts-fold][here]].
+A code folding package using treesitter, found [[https://github.com/emacs-tree-sitter/ts-fold][here]]. It doesn't use
+Emacs 29's built-in tree-sitter code, but instead uses a package
+documented [[https://emacs-tree-sitter.github.io/][here]]. This [[https://github.com/emacs-tree-sitter/ts-fold/issues/61][issue]] explains why.
+#+begin_src emacs-lisp :tangle no
+  (unless (< emacs-major-version 29)
+    (use-package tree-sitter
+      :ensure t)
+    (use-package tree-sitter-langs
+      :ensure t)
+    (use-package ts-fold
+      :load-path "lisp"
+      :ensure t
+      :config
+      (require 'ts-fold)
+      (global-ts-fold-mode)))
+#+end_src
 
 ** Hide-show package (disabled)
 

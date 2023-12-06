@@ -61,6 +61,21 @@ A [[https://www.youtube.com/watch?v=2NPUDYAOgW0][YouTube video]] about editing l
 is the way to go, if only I can make it through the guy's really irritating
 presentation style. Another [[https://www.youtube.com/watch?v=RD0o2pkJBaI][video]], Jupyter in scimacs, might be worthwhile.
 
+Installing Anaconda on Windows with MSYS2: I can find no way to tell =conda=
+to look in the MSYS2 home directory =/home/rdprice= for its =.condarc= config
+file. Instead, it looks in =C:\Users\rdprice=, so that's where I've left it.
+No =condarc= files are created when Anaconda is installed. This [[https://stackoverflow.com/questions/70980562/where-does-conda-get-the-default-configuration-values-without-a-condarc][post]] shows
+where to find the initial configuration variables in the Conda source.
+
+Emacs 29 only: Project shells and a new user option 'python-shell-dedicated'.
+When called with a prefix argument, 'run-python' now offers the choice
+of creating a shell dedicated to the current project.  This shell runs
+in the project root directory and is shared among all project buffers.
+
+Without a prefix argument, the kind of shell (buffer-dedicated,
+project-dedicated or global) is specified by the new
+'python-shell-dedicated' user option.
+
 * Python mode
 
 Set up Python interpreters, code folding, etc.
