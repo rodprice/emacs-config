@@ -242,6 +242,16 @@ If in a project, the shell should start in the project root.
      (shell-mode . my-fix-shell-prompt-colors)))
 #+end_src
 
+** Shell completion
+
+Enable completion in the bash shell. From [[https://github.com/szermatt/emacs-bash-completion][here]].
+#+begin_src emacs-lisp
+  (use-package bash-completion
+    :ensure t
+    :config
+    (bash-completion-setup))
+#+end_src
+
 ** Shell commands
 
 If you want the output buffer for asynchronous shell commands to be
