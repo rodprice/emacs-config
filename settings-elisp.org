@@ -18,6 +18,14 @@ External programs that should be on =exec-path= are
 The file =settings-minimal.org= should be loaded before loading this
 file.
 
+* Notes
+
+There are a bunch of =debug-on-*= messages that allow you to set a kind
+of breakpoint in elisp code. For instance, =debug-on-message= lets you do
+#+begin_src emacs-lisp :tangle no
+  (setq debug-on-message "Package cl is deprecated")
+#+end_src
+
 * Code folding
 
 #+begin_src emacs-lisp

@@ -150,15 +150,28 @@ File location for saving cursor state.
 
 Info directory locations. On Windows, for no apparent reason, the
 Emacs manual and all the other defaults vanished from the top-level
-info node. This puts the defaults back in.
+info node. This puts the defaults back in. Use this only if you are
+running the Emacs for Windows downloaded from the [[https://www.gnu.org/software/emacs/download.html][GNU website]].
 #+begin_src emacs-lisp
-  (when (eq system-type 'windows-nt)
+  (when (and
+         (eq system-type 'windows-nt)
+         (not (string= system-configuration "x86_64-w64-mingw32")))
     (use-package info
       :commands Info-default-dirs
       :init
       (dolist (dir (Info-default-dirs))
         (when (file-directory-p dir)
           (add-to-list 'Info-directory-list dir t)))))
+#+end_src
+
+See this StackExchange [[https://emacs.stackexchange.com/a/51396][answer]] for details on MSYS2 behavior with
+respect to INFOPATH. It's an [[https://github.com/msys2/MINGW-packages/issues/631][MSYS2 bug]]. First reported in 2015, it's
+still not fixed. The following should be run in whichever MSYS2
+shell this copy of Emacs is installed in.
+#+begin_src shell :tangle no
+  for f in $MINGW_PREFIX/share/info/* ;
+    do install-info $f $MINGW_PREFIX/share/info/dir ;
+  done
 #+end_src
 
 ** Buffer defaults

@@ -20,51 +20,6 @@ External programs that should be on =exec-path= are
 The file =settings-minimal.org= should be loaded before loading this
 file.
 
-* Notes
-
-** Tree sitter (Emacs 29+)
-
-New major modes based on the tree-sitter library.
-These new major modes are available if Emacs was built with the
-tree-sitter library.  They provide support for font-locking,
-indentation, and navigation by defuns based on parsing the buffer text
-by a tree-sitter parser.  Some major modes also offer support for
-Imenu and 'which-func'.
-
-The new modes based on tree-sitter are for now entirely optional, and
-you must turn them on manually, or load them in your init file, or
-customize 'auto-mode-alist' to turn them on automatically for certain
-files.  You can also customize 'major-mode-remap-alist' to
-automatically turn on some tree-sitter based modes for the same files
-for which a "built-in" mode would be turned on.  For example:
-
-    (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
-
-If you try these modes and don't like them, you can go back to the
-"built-in" modes by restarting Emacs.  (If you use desktop.el to save
-and restore Emacs sessions, make sure no buffer under these modes is
-recorded in the desktop file, before restarting.)  But please tell us
-why you didn't like the tree-sitter based modes, so that we could try
-improving them.
-
-Each major mode based on tree-sitter needs a language grammar library,
-usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
-MS-Windows), where LANG is the corresponding language name.  Emacs
-looks for these libraries in the following places:
-
- . in the directories mentioned in the list 'treesit-extra-load-path'
- . in the "tree-sitter" subdirectory of your 'user-emacs-directory'
-   (by default, "~/.emacs.d/tree-sitter")
- . in the standard system directories where other shared libraries are
-   usually installed
-
-We recommend to install these libraries in one of the standard system
-locations (the last place in the above list).
-
-If a language grammar library required by a mode is not found in any
-of the above places, the mode will display a warning when you try to
-turn it on.
-
 * Tree sitter
 
 Tree sitter is a library that transforms source code into a concrete
@@ -126,6 +81,49 @@ sitter-enabled version.
             (css-mode . css-ts-mode)
             (python-mode . python-ts-mode))))
 #+end_src
+
+** Emacs 29 release note
+
+New major modes based on the tree-sitter library.
+These new major modes are available if Emacs was built with the
+tree-sitter library.  They provide support for font-locking,
+indentation, and navigation by defuns based on parsing the buffer text
+by a tree-sitter parser.  Some major modes also offer support for
+Imenu and 'which-func'.
+
+The new modes based on tree-sitter are for now entirely optional, and
+you must turn them on manually, or load them in your init file, or
+customize 'auto-mode-alist' to turn them on automatically for certain
+files.  You can also customize 'major-mode-remap-alist' to
+automatically turn on some tree-sitter based modes for the same files
+for which a "built-in" mode would be turned on.  For example:
+
+    (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
+
+If you try these modes and don't like them, you can go back to the
+"built-in" modes by restarting Emacs.  (If you use desktop.el to save
+and restore Emacs sessions, make sure no buffer under these modes is
+recorded in the desktop file, before restarting.)  But please tell us
+why you didn't like the tree-sitter based modes, so that we could try
+improving them.
+
+Each major mode based on tree-sitter needs a language grammar library,
+usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
+MS-Windows), where LANG is the corresponding language name.  Emacs
+looks for these libraries in the following places:
+
+ . in the directories mentioned in the list 'treesit-extra-load-path'
+ . in the "tree-sitter" subdirectory of your 'user-emacs-directory'
+   (by default, "~/.emacs.d/tree-sitter")
+ . in the standard system directories where other shared libraries are
+   usually installed
+
+We recommend to install these libraries in one of the standard system
+locations (the last place in the above list).
+
+If a language grammar library required by a mode is not found in any
+of the above places, the mode will display a warning when you try to
+turn it on.
 
 * Version control
 
@@ -401,7 +399,8 @@ Make flycheck play nice with eldoc. From
 
 ** Origami mode
 
-A code folding package, found [[https://github.com/gregsexton/origami.el][here]].
+A code folding package, found [[https://github.com/gregsexton/origami.el][here]]. It's buggy, but I haven't found
+anything better.
 #+begin_src emacs-lisp
   (use-package origami
     :ensure t
@@ -409,6 +408,21 @@ A code folding package, found [[https://github.com/gregsexton/origami.el][here]]
                 ("C-<tab>" . origami-recursively-toggle-node)
                 ("C-S-<tab>" . origami-toggle-all-nodes))
     :hook (origami-mode . my-add-origami-emacs-lisp-parser))
+#+end_src
+
+** Treesit-fold package (disabled)
+
+A code folding package using Tree-sitter, found [[https://github.com/abougouffa/treesit-fold][here]]. The author says
+that it's not production-quality, but it works for him.
+#+begin_src emacs-lisp :tangle no
+  (when (>= emacs-major-version 29)
+    (use-package fringe-helper
+      :ensure t)
+    (use-package treesit-fold
+      :load-path "lisp")
+    (use-package treesit-fold-indicators
+      :after treesit-fold
+      :load-path "lisp"))
 #+end_src
 
 ** Ts-fold package (disabled)

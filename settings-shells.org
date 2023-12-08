@@ -115,24 +115,56 @@ starts with error message "no job control in this shell"; there's a
 discussion on [[https://emacs.stackexchange.com/questions/71487/mingw-shell-in-emacs][StackExchange]]. Another possible hint involving
 =system-uses-terminfo= [[https://stackoverflow.com/questions/39761234/git-bash-for-windows-not-working-lein-repl-command][here]].
 
-** Shell package
+** Shell selection
+
+If running Emacs compiled under MSYS2, you may need to do things
+differently, depending on which MSYS2 environment you want to use
+when you run a bash shell. For instance, on my work computer, I
+have a different version of =git= in the =MINGW64= environment than in
+the =UCRT64= environment. (See my =.bash_profile= for details.) The
+=MINGW64= version of =git= handles Windows paths correctly, whereas the
+=UCRT64= version does not. On the other hand, the version of Emacs
+found in the =MINGW64= environment does not recognize the =libgnutls=
+library found in the =MINGW64= environment, and thus cannot access
+the network when it needs to. The version of Emacs running under
+=UCRT64= does not have this problem, so I run the =UCRT64= Emacs, but
+I need Emacs to access the =MINGW64= bash shell.
+
+In order to accomplish this, I need to manipulate the =MSYSTEM=
+environment variable, setting it before bash is run. (The MSYS2
+bash executable uses this variable to select the MSYS2 environment,
+so by the time any of the Bash init files run, it's too late.)
 
 #+begin_src emacs-lisp
-  (defun my-get-shell-file-name (&optional shell-name)
-    "Return the explicit path to SHELL-NAME, based on `system-type'
-and the variables defined in the `site/<hostname>-preload.el' file.
-If SHELL-NAME is nil, use \"bash\"."
-      (let ((shell-name (or shell-name "bash")))
-        (cond ((eq system-type 'windows-nt)
-               (if (bound-and-true-p my-msystem-dir)
-                   (expand-file-name
-                    (concat
-                     (file-name-directory my-msystem-dir)
-                     (format "usr/bin/%s.exe" shell-name)))
-                 (user-error "Site-specific variable 'my-msystem-dir is undefined.")))
-              (t
-               (executable-find shell-name)))))
+  (defun my-emacs-msys2-p ()
+    "Returns non-nil if this is an MSYS2 Emacs."
+    (string-match-p "x86_64-w64-mingw32" (emacs-version)))
 #+end_src
+
+#+begin_src emacs-lisp
+  (defvar my-desired-msystem-env
+    "MINGW64"
+    "The MSYS2 environment in which Emacs calls shell commands.")
+#+end_src
+
+#+begin_src emacs-lisp
+  (defvar my-original-msystem-env
+    (when (and
+           (eq system-type 'windows-nt)
+           (my-emacs-msys2-p))
+      (getenv "MSYSTEM"))
+    "The MSYS2 environment in which Emacs started, if any.")
+#+end_src
+
+When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
+#+begin_src emacs-lisp
+  (when (and
+         (eq system-type 'windows-nt)
+         (my-emacs-msys2-p))
+    (setenv "MSYSTEM" my-desired-msystem-env))
+#+end_src
+
+** Shell package
 
 #+begin_src emacs-lisp
   (defun my-close-shell-window ()
@@ -195,7 +227,7 @@ If in a project, the shell should start in the project root.
     (shell-command-default-error-buffer "*Shell Errors*")
     :config
     (setenv "PID" nil)  ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
-    (setq explicit-shell-file-name (my-get-shell-file-name))
+    (setq explicit-shell-file-name (executable-find "bash"))
     (setq shell-file-name explicit-shell-file-name)
     (setenv "SHELL" explicit-shell-file-name)
     (setq explicit-bash.exe-args (list "-i" "-l"))

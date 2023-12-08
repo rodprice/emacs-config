@@ -62,7 +62,9 @@
 (add-to-list 'package-archives
              '("org" . "https://orgmode.org/elpa/"))
 (package-initialize)
-(package-refresh-contents)
+(if (gnutls-available-p)
+    (package-refresh-contents)
+  (warn "Can't reach repositories: GnuTLS is not available"))
 
 ;; See https://elpa.gnu.org/packages/gnu-elpa-keyring-update.html.
 ;; package.el uses keys to verify packages upon installation, but
