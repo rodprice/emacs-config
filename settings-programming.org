@@ -144,11 +144,10 @@ turn it on.
 Note: An example =magit= configuration can be found [[https://gist.github.com/soonhokong/235ae79cb0639b15f8b1][here]].
 
 In spite of all the rave reviews, I'm not sure this package is worth
-having.
-#+begin_src emacs-lisp :tangle no
+having. [[https://www.masteringemacs.org/article/introduction-magit-emacs-mode-git][This]] is a nice introductory article.
+#+begin_src emacs-lisp
   (use-package magit
     :ensure t
-    :pin nongnu
     :init
     (setq magit-git-executable my-git-executable))
 #+end_src
