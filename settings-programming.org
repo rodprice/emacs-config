@@ -142,6 +142,8 @@ turn it on.
 ** Magit package
 
 Note: An example =magit= configuration can be found [[https://gist.github.com/soonhokong/235ae79cb0639b15f8b1][here]].
+Note: Magit uses a package =with-editor.el= to find an editor when
+committing from Emacs. [[https://magit.vc/manual/with-editor/Using-the-With_002dEditor-package.html][Here]] is some documentation.
 
 In spite of all the rave reviews, I'm not sure this package is worth
 having. [[https://www.masteringemacs.org/article/introduction-magit-emacs-mode-git][This]] is a nice introductory article.
@@ -149,7 +151,10 @@ having. [[https://www.masteringemacs.org/article/introduction-magit-emacs-mode-g
   (use-package magit
     :ensure t
     :init
-    (setq magit-git-executable my-git-executable))
+    (setq magit-git-executable my-git-executable)
+    :config
+    (remove-hook 'server-switch-hook 'magit-commit-diff)
+    (remove-hook 'with-editor-filter-visit-hook 'magit-commit-diff))
 #+end_src
 
 ** Status display

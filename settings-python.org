@@ -112,6 +112,7 @@ level. No idea why.
     ((:map python-mode-map
            ("C-h f" . pydoc-at-point))))
 #+end_src
+
 * Python REPL
 
 Set up the IPython interpreter. Hitting key F5 when the current buffer
