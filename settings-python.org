@@ -81,6 +81,8 @@ project-dedicated or global) is specified by the new
 Set up Python interpreters, code folding, etc.
 #+begin_src emacs-lisp
   (use-package python
+    :mode ("\\.py[iw]?\\'" . python-mode)
+    :interpreter ("python" . python-mode)
     ;; :config
     ;; (require 'dap-python)
     :custom

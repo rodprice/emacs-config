@@ -31,7 +31,7 @@ Tree sitter requires a grammar for each language it can
 process, which must be compiled from source into a library (i.e. .so)
 file. These are not included in Emacs, but must be obtained elsewhere.
 Here is a list current as of 5 Dec 2023:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (unless (< emacs-major-version 29)
     (setq treesit-language-source-alist
           '((bash "https://github.com/tree-sitter/tree-sitter-bash")
