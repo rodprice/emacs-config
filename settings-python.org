@@ -177,7 +177,7 @@ If in a project, the Python REPL should start in the project root.
 Construct all arguments to the Python REPL, including a pointer to a
 Python configuration file in the project itself.
 #+begin_src emacs-lisp
-  (defun my-python-repl-args ()
+  (defun my-python-repl-args (&optional file-name)
     "Return the arguments the Python REPL should be given."
     (let* ((args
             '("-i"
@@ -185,11 +185,14 @@ Python configuration file in the project itself.
               "--pprint"
               "--InteractiveShell.warn_venv=False"
               "--InteractiveShell.display_page=True"))
+           (file-name (if file-name file-name "startup.py"))
+           (startup-file
+            (expand-file-name file-name (my-python-repl-dir)))
            (ipython-exec-files
-            (format
-             "--InteractiveShellApp.exec_files=%sstartup.py"
-             (expand-file-name (my-python-repl-dir)))))
+            (when (file-exists-p startup-file)
+              (format "--InteractiveShellApp.exec_files=%s" startup-file))))
       (if (and
+           ipython-exec-files
            (string= python-shell-interpreter "ipython")
            (project-current))
           (add-to-list 'args ipython-exec-files t))
