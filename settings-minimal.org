@@ -790,6 +790,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
           '("\\*Messages\\*"
             "Output\\*$"
             "\\*Async Shell Command\\*"
+            "\\*Shell Command Output\\*"
             "\\*grep\\*"
             "\\*Backtrace\\*"
             "\\*Completions\\*"

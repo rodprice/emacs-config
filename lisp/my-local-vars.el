@@ -422,6 +422,15 @@ in buffer TARGET."
           "<none>"
         conda-env))))
 
+(defun my-local-vars-popper-status (target)
+  "If popper-mode is non-nil, get popper status for buffer TARGET."
+  (if (null (bound-and-true-p popper-mode))
+      "popper-mode not in use"
+    (with-current-buffer target
+      (if (boundp 'popper-popup-status)
+          popper-popup-status
+        "<none>"))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Formatting
 
@@ -495,6 +504,8 @@ struct."
          (-process     ;; process running in buffer, if any
           (let ((proc (variables->process vars)))
             (if (null proc) "<none>" (process-name proc))))
+         (-popper-status
+          (my-local-vars-popper-status target))
          (-major-mode  ;; major mode of the buffer
           (variables->major-mode vars))
          (-minor-modes ;; list of buffer-local minor modes
@@ -509,24 +520,25 @@ struct."
           (variables->functions vars))
          (-conda-vars
           (my-local-vars--shell-env "CONDA"))
-         (tabstop 12))
+         (tabstop 13))
     (concat
      my-local-vars-header-text
      (propertize "\nBuffer\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Buffer name"  tabstop -name)
-     (my-local-vars--refresh-line "Project name" tabstop -project-name)
-     (my-local-vars--refresh-line "Conda env"    tabstop -conda-name)
-     (my-local-vars--refresh-line "Git branch"   tabstop -git-branch-name)
-     (my-local-vars--refresh-line "Process"      tabstop -process)
+     (my-local-vars--refresh-line "Buffer name"   tabstop -name)
+     (my-local-vars--refresh-line "Project name"  tabstop -project-name)
+     (my-local-vars--refresh-line "Conda env"     tabstop -conda-name)
+     (my-local-vars--refresh-line "Git branch"    tabstop -git-branch-name)
+     (my-local-vars--refresh-line "Process"       tabstop -process)
      (propertize "\nBuffer-local variables\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Major mode"   tabstop -major-mode)
-     (my-local-vars--refresh-line "Minor modes"  tabstop -minor-modes)
-     (my-local-vars--refresh-line "Project"      tabstop -project)
-     (my-local-vars--refresh-line "Conda"        tabstop -conda)
-     (my-local-vars--refresh-line "Hooks"        tabstop -hooks)
-     (my-local-vars--refresh-line "Functions"    tabstop -functions)
+     (my-local-vars--refresh-line "Popper status" tabstop -popper-status)
+     (my-local-vars--refresh-line "Major mode"    tabstop -major-mode)
+     (my-local-vars--refresh-line "Minor modes"   tabstop -minor-modes)
+     (my-local-vars--refresh-line "Project"       tabstop -project)
+     (my-local-vars--refresh-line "Conda"         tabstop -conda)
+     (my-local-vars--refresh-line "Hooks"         tabstop -hooks)
+     (my-local-vars--refresh-line "Functions"     tabstop -functions)
      (propertize "\nShell environment\n" 'face 'my-local-vars-doc-face)
-     (my-local-vars--refresh-line "Conda vars"   tabstop -conda-vars)
+     (my-local-vars--refresh-line "Conda vars"    tabstop -conda-vars)
      )))
 
 (defun my-local-vars-refresh ()
