@@ -424,12 +424,16 @@ in buffer TARGET."
 
 (defun my-local-vars-popper-status (target)
   "If popper-mode is non-nil, get popper status for buffer TARGET."
-  (if (null (bound-and-true-p popper-mode))
-      "popper-mode not in use"
+  (cond
+   ((null (memq 'popper package-activated-list))
+    "<popper not available>")
+   ((null (bound-and-true-p popper-mode))
+    "<popper not in use>")
+   (t
     (with-current-buffer target
       (if (boundp 'popper-popup-status)
           popper-popup-status
-        "<none>"))))
+        "<none>")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Formatting
