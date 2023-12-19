@@ -435,6 +435,31 @@ in buffer TARGET."
           popper-popup-status
         "<none>")))))
 
+(defun my-local-vars--symbol< (a b)
+  (string< (symbol-name a) (symbol-name b)))
+
+(defun my-local-vars-active-local-modes (target)
+  ""
+  (let ((modes (buffer-local-value 'local-minor-modes target)))
+    (sort modes 'my-local-vars--symbol<)))
+
+;; https://stackoverflow.com/questions/1511737/how-do-you-list-the-active-minor-modes-in-emacs
+(defun my-local-vars-active-global-modes ()
+  "Give a message of which minor modes are enabled in the current buffer."
+  (interactive)
+  (let ((active-modes))
+    (mapc (lambda (mode) (condition-case nil
+                             (if (and
+                                  (symbolp mode)
+                                  (symbol-value mode)
+                                  (not (with-temp-buffer
+                                         (local-variable-if-set-p mode))))
+                                 (add-to-list 'active-modes mode))
+                           (error nil) ))
+          minor-mode-list)
+    (sort active-modes 'my-local-vars--symbol<)))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Formatting
 
@@ -512,8 +537,6 @@ struct."
           (my-local-vars-popper-status target))
          (-major-mode  ;; major mode of the buffer
           (variables->major-mode vars))
-         (-minor-modes ;; list of buffer-local minor modes
-          (variables->minor-modes vars))
          (-project
           (variables->project vars))
          (-conda
@@ -524,6 +547,11 @@ struct."
           (variables->functions vars))
          (-conda-vars
           (my-local-vars--shell-env "CONDA"))
+         (-local-minor-modes ;; list of buffer-local minor modes
+          (my-local-vars-active-local-modes target))
+          ;; (variables->minor-modes vars))
+         (-global-minor-modes ;; list of active global minor modes
+          (my-local-vars-active-global-modes))
          (tabstop 13))
     (concat
      my-local-vars-header-text
@@ -533,10 +561,12 @@ struct."
      (my-local-vars--refresh-line "Conda env"     tabstop -conda-name)
      (my-local-vars--refresh-line "Git branch"    tabstop -git-branch-name)
      (my-local-vars--refresh-line "Process"       tabstop -process)
+     (propertize "\nActive modes\n" 'face 'my-local-vars-doc-face)
+     (my-local-vars--refresh-line "Major mode"    tabstop -major-mode)
+     (my-local-vars--refresh-line "Local minors"  tabstop -local-minor-modes)
+     (my-local-vars--refresh-line "Global minors" tabstop -global-minor-modes)
      (propertize "\nBuffer-local variables\n" 'face 'my-local-vars-doc-face)
      (my-local-vars--refresh-line "Popper status" tabstop -popper-status)
-     (my-local-vars--refresh-line "Major mode"    tabstop -major-mode)
-     (my-local-vars--refresh-line "Minor modes"   tabstop -minor-modes)
      (my-local-vars--refresh-line "Project"       tabstop -project)
      (my-local-vars--refresh-line "Conda"         tabstop -conda)
      (my-local-vars--refresh-line "Hooks"         tabstop -hooks)
