@@ -110,6 +110,7 @@ level. No idea why.
 #+begin_src emacs-lisp
   (use-package pydoc
     :ensure t
+    :commands pydoc-at-point
     :bind
     ((:map python-mode-map
            ("C-h f" . pydoc-at-point))))
@@ -289,7 +290,7 @@ track of
     :ensure t)
 #+end_src
 
-This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package that works on Windows machines.
+This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package that works on Windows.
 #+begin_src emacs-lisp
   (use-package conda
     :ensure nil
@@ -302,7 +303,7 @@ This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package t
     :config
     (conda-env-initialize-interactive-shells)
     (conda-env-initialize-eshell)
-    (conda-env-autoactivate-mode 0)
+    (conda-env-autoactivate-mode 1)
     (add-hook 'find-file-hook
               (lambda ()
                 (when (bound-and-true-p conda-project-env-path)

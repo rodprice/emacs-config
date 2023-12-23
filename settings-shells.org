@@ -206,9 +206,16 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
 
 #+begin_src emacs-lisp
   (defun my-shell-start ()
+    "Start a new shell at the project root, with the current buffer's
+  conda environment activated."
     (interactive)
     (let ((default-directory (my-shell-dir)))
-      (call-interactively #'shell)))
+      (when (and
+             conda-env-autoactivate-mode
+             (bound-and-true-p conda-project-env-path))
+        (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
+      (call-interactively #'shell)
+      (setenv "CONDA_PROJECT_ENV")))
 #+end_src
 
 If in a project, the shell should start in the project root.
@@ -218,6 +225,22 @@ If in a project, the shell should start in the project root.
     (if (project-current)
         (project-root (project-current))
       default-directory))
+#+end_src
+
+In order to have a new shell automatically switch to the current buffer's
+Conda environment, the following code should be placed in =.bashrc=, or
+preferably =.bash_profile=, after the section that =conda init= puts there.
+#+begin_src shell :tangle no
+  if [ -n "$INSIDE_EMACS" ]; then
+      # Unwind the conda env stack
+      for i in $(seq 2 ${CONDA_SHLVL}); do
+          conda deactivate
+      done
+      # Activate the current buffer's conda env
+      if [ -n "$CONDA_PROJECT_ENV" ]; then
+          conda activate $CONDA_PROJECT_ENV
+      fi
+  fi
 #+end_src
 
 #+begin_src emacs-lisp

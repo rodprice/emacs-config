@@ -208,7 +208,7 @@ Set for the lifetime of the process.")
   "Update the environment from PARAMS."
   (let ((exports (or (conda-env-params-vars-export params) '())))
     (mapc (lambda (pair)
-            (message "About to set %s to %s" (car pair) (cdr pair))
+            ;; (message "About to set %s to %s" (car pair) (cdr pair))
             (setenv (format "%s" (car pair)) (format "%s" (cdr pair))))
           exports)))
 
