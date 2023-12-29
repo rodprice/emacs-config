@@ -27,7 +27,7 @@ Set it to nil to exclude line numbering from kills and copies.
 * Defaults
 
 #+begin_src emacs-lisp
-(message "starting defaults")
+(message "... starting defaults")
 #+end_src
 
 ** Text
@@ -218,7 +218,7 @@ the legacy Posix format, while Linux, etc. use the zoneinfo format.
 * GUI elements
 
 #+begin_src emacs-lisp
-(message "starting gui elements")
+(message "... starting gui elements")
 #+end_src
 
 ** Menu bar, tool bar, scroll bars
@@ -345,7 +345,7 @@ Don't ring the bell for these common events.
 * Fonts
 
 #+begin_src emacs-lisp
-(message "starting fonts")
+(message "... starting fonts")
 #+end_src
 
 ** Set the default font
@@ -400,7 +400,7 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
 * Themes
 
 #+begin_src emacs-lisp
-(message "starting themes")
+(message "... starting themes")
 #+end_src
 
 #+begin_src emacs-lisp
@@ -475,7 +475,7 @@ allows you to see the original text. See also [[http://endlessparentheses.com/us
 * Editing
 
 #+begin_src emacs-lisp
-(message "starting editing")
+(message "... starting editing")
 #+end_src
 
 ** Search
@@ -689,7 +689,7 @@ Configuration from [[https://github.com/daviwil/emacs-from-scratch/blob/master/E
 * Window management
 
 #+begin_src emacs-lisp
-(message "starting window management")
+(message "... starting window management")
 #+end_src
 
 ** Save the cursor position

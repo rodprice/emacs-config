@@ -342,7 +342,7 @@ is [[https://github.com/ROCKTAKEY/lsp-latex][lsp-latex]].
 * Org mode
 
 #+begin_src emacs-lisp
-(message "starting org mode")
+(message "... starting org mode")
 #+end_src
 
 ** Key bindings

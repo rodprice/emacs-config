@@ -113,7 +113,7 @@ level. No idea why.
     :commands pydoc-at-point
     :bind
     ((:map python-mode-map
-           ("C-h f" . pydoc-at-point))))
+           ("C-c f" . pydoc-at-point))))
 #+end_src
 
 * Python REPL

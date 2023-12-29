@@ -158,6 +158,53 @@ From Sacha Chua's configuration [[https://sachachua.com/dotemacs/index.html#mast
           mastodon-active-user "rodprice"))
 #+end_src
 
+Render LaTeX equations in Mastodon buffers; from [[https://blog.nawaz.org/posts/2022/Dec/rendering-latex-formulae-in-mastodonel/][here]].
+#+begin_src emacs-lisp :tangle no
+  (defun mn:preview-latex-toot (&optional arg)
+    "Toggle preview of the LaTeX fragments in Mastodon toots.
+
+  If the cursor is on a Mastodon toot, create the image and
+  overlay it over the source code.
+
+  With a `\\[universal-argument]' prefix argument ARG, display
+  image for all toots in the buffer.
+
+  With a `\\[universal-argument] \\[universal-argument]' prefix
+  argument ARG, clear images for the current toot.
+
+  With a `\\[universal-argument] \\[universal-argument] \
+  \\[universal-argument]' prefix argument ARG, clear images for the
+  whole buffer."
+    (interactive "P")
+    (let ((toot-begin
+           (previous-single-property-change
+            (point)
+            'byline
+            (current-buffer)))
+          (toot-end
+           (next-single-property-change
+            (point)
+            'byline
+            (current-buffer))))
+      (cond
+       ((not (display-graphic-p)) nil)
+       ;; Clear whole buffer.
+       ((equal arg '(64))
+        (org-clear-latex-preview (point-min) (point-max))
+        (message "LaTeX previews removed from buffer"))
+       ;; Clear current toot.
+       ((equal arg '(16))
+        (org-clear-latex-preview toot-begin toot-end))
+       ;; Preview whole buffer.
+       ((equal arg '(4))
+        (message "Creating LaTeX previews in buffer...")
+        (org--latex-preview-region (point-min) (point-max))
+        (message "Creating LaTeX previews in buffer... done."))
+       ((org--latex-preview-region toot-begin toot-end)))))
+
+  (define-key mastodon-mode-map (kbd "C-c C-x C-l") #'mn:preview-latex-toot)
+#+end_src
+
 * Search engines
 
 Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
