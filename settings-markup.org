@@ -100,6 +100,9 @@ default multimarkdown, so it can run on Windows. A cheat sheet for
 Github-flavored Markdown is [[https://github.github.com/gfm/][here]]. A guide to using a CSS stylesheet
 is [[https://jblevins.org/log/custom-css][here]]. The Github Markdown CSS stylesheet is in this Github [[https://github.com/sindresorhus/github-markdown-css][repo]].
 
+=karthink='s Markdown config has some possibly nice header rendering
+tweaks, [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-313][here]].
+
 #+begin_src emacs-lisp
   (defvar my-markdown-css-path
     (expand-file-name
@@ -492,6 +495,9 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
 ** LaTeX
 
 Note: An extensive configuration for AUCTeX is [[https://sqrtminusone.xyz/configs/emacs/#latex][here]].
+
+See =karthink='s cdlatex config [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-206][here]]. Also LaTeX fragments [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-229][here]].
+And lots more LaTeX config [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-292][here]].
 
 #+begin_src emacs-lisp :tangle no
   (add-hook 'org-mode-hook #'turn-on-org-cdlatex)

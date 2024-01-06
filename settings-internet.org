@@ -324,7 +324,9 @@ Get a random [[https://github.com/gonewest818/adafruit-wisdom.el][quote]] from [
 
 * Notes
 
-Compiling Emacs 29 on Windows with Msys2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]].
+Compiling Emacs 29 on Windows with MSYS2, [[https://readingworldmagazine.com/emacs/2022-02-24-compiling-emacs-29-from-source-on-windows/][here]] (a bit dated). Good
+advice on mixing Git for Windows, MSYS2, and MINGW Emacs [[https://lists.gnu.org/archive/html/help-gnu-emacs/2022-02/msg00230.html][here]]. I
+haven't followed it, unfortunately. Read the entire thread.
 
 The psychology of bad habits, [[https://iai.tv/video/the-psychology-of-bad-habits-susan-michie][here]].
 
@@ -345,4 +347,5 @@ Installing Doom Emacs through =git-bash=, [[https://earvingad.github.io/posts/do
 Really irritating name, [[https://github.com/p3r7/awesome-elisp][Awesome Elisp]], but a useful cookbook guide.
 
 Reproducible research and other things through [[https://github.com/jkitchin/scimax][Scimax]]. Python code
-from the same author to work with org-mode, etc, called [[https://github.com/jkitchin/pycse][pycse]].
+from the same author to work with org-mode, etc, called [[https://github.com/jkitchin/pycse][pycse]]. See
+also [[https://kitchingroup.cheme.cmu.edu/pycse/intro.html][pycse docs]].

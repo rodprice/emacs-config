@@ -620,7 +620,8 @@ Empty the mark ring if it gets too messy.
 
 ** Spelling
 
-Use =hunspell= for spell checking. See [[https://lucidmanager.org/productivity/emacs-windows/][here]].
+Use =hunspell= for spell checking. See [[https://lucidmanager.org/productivity/emacs-windows/][here]]. Dictionary downloads start
+[[http://app.aspell.net/create][here]].
 #+begin_src emacs-lisp
   (use-package ispell
     :ensure nil
