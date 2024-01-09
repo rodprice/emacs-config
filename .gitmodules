@@ -1,0 +1,3 @@
+[submodule "lisp/totp"]
+	path = lisp/totp
+	url = https://github.com/juergenhoetzel/emacs-totp
