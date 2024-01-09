@@ -3,6 +3,10 @@
 
 * Notes
 
+Since I've switched to running Emacs directly from the UCRT64 MSYS2
+environment, and installed octave in the MINGW64 environment, the
+problems described below seem to have gone away. Knock on wood.
+
 On Windows with PATH pointing to an MSYS2 installation, =M-x run-octave=
 will immediately die after startup. It seems happier running with PATH
 pointing to a Git for Windows installation, even though I have =octave=
@@ -29,7 +33,7 @@ Octave mode is built into Emacs.
 #+begin_src emacs-lisp
   (use-package octave-mode
     :defer t
-    :mode "\\.m\\'"
+    :mode ("\\.m\\'" "octaverc" "\\.octaverc")
     :custom
     ((inferior-octave-startup-args '("-i" "--no-line-editing" "-q")))
     :bind
@@ -40,7 +44,22 @@ Octave mode is built into Emacs.
     ((inferior-octave-mode . my-add-kill-buffer-sentinel)))
 #+end_src
 
+This function ensures that Octave avoids using conda-imposed paths.
 #+begin_src emacs-lisp
+  (defun my-run-octave ()
+    "If on Windows, run Octave in the MSYS2 mingw64 environment."
+    (interactive)
+    (if (bound-and-true-p my-exec-path-msystem)
+        (let ((exec-path my-exec-path-msystem)
+              (path (string-join my-exec-path-msystem path-separator)))
+          (with-environment-variables (("PATH" path))
+            (message "Starting Octave REPL in mingw64 environment")
+            (call-interactively #'run-octave)))
+      (message "Starting Octave REPL")
+      (call-interactively #'run-octave)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
   (defun my-run-octave ()
     "If on Windows, run Octave in the Git for Windows environment."
     (interactive)
