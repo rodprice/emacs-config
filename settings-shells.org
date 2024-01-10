@@ -164,7 +164,38 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
     (setenv "MSYSTEM" my-desired-msystem-env))
 #+end_src
 
+#+begin_src emacs-lisp
+  (defun my-remote-buffer-p (&optional buffer)
+    "Returns nil if BUFFER is local; `default-directory' if remote."
+    (let* ((buf (or buffer (current-buffer)))
+           (defdir (buffer-local-value 'default-directory buf)))
+      (when (file-remote-p defdir)
+        defdir)))
+#+end_src
+
 ** Shell package
+
+#+begin_src emacs-lisp
+  (use-package shell
+    :defer t
+    :custom
+    (shell-command-default-error-buffer "*Shell Errors*")
+    :config
+    (setenv "PID" nil)  ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
+    (setq explicit-shell-file-name (executable-find "bash"))
+    (setq shell-file-name explicit-shell-file-name)
+    (setenv "SHELL" explicit-shell-file-name)
+    (setq explicit-bash.exe-args (list "-i" "-l"))
+    (setq system-uses-terminfo t)  ;; has no effect, apparently
+    (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+    :bind
+    (("<f6>" . my-shell-start)
+     (:map shell-mode-map
+           ("<f6>" . my-close-shell-window)))
+    :hook
+    ((shell-mode . my-add-kill-buffer-sentinel)
+     (shell-mode . my-fix-shell-prompt-colors)))
+#+end_src
 
 #+begin_src emacs-lisp
   (defun my-close-shell-window ()
@@ -241,28 +272,6 @@ preferably =.bash_profile=, after the section that =conda init= puts there.
           conda activate $CONDA_PROJECT_ENV
       fi
   fi
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package shell
-    :defer t
-    :custom
-    (shell-command-default-error-buffer "*Shell Errors*")
-    :config
-    (setenv "PID" nil)  ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
-    (setq explicit-shell-file-name (executable-find "bash"))
-    (setq shell-file-name explicit-shell-file-name)
-    (setenv "SHELL" explicit-shell-file-name)
-    (setq explicit-bash.exe-args (list "-i" "-l"))
-    (setq system-uses-terminfo t)  ;; has no effect, apparently
-    (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
-    :bind
-    (("<f6>" . my-shell-start)
-     (:map shell-mode-map
-           ("<f6>" . my-close-shell-window)))
-    :hook
-    ((shell-mode . my-add-kill-buffer-sentinel)
-     (shell-mode . my-fix-shell-prompt-colors)))
 #+end_src
 
 ** Shell completion

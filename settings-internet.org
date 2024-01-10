@@ -99,9 +99,62 @@ passwords) [[https://www.masteringemacs.org/article/securely-generating-totp-tok
 
 * Tramp
 
-Note: A possibly useful blog post: [[https://www.eigenbahn.com/2020/07/08/painless-emacs-remote-shells][Painless Emacs remote shells]].
+** Notes
 
-From [[https://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82bhttps://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82b][init-tramp-plink.el]]
+Remember that =default-directory= is buffer-local.
+#+begin_src emacs-lisp :tangle no
+  (file-remote-p default-directory 'user)
+  (file-remote-p default-directory 'host)
+#+end_src
+
+** Windows (PuTTY)
+
+PuTTY documentation is [[https://the.earth.li/~sgtatham/putty/0.80/htmldoc/][here]].
+PuTTY documentation [[https://the.earth.li/~sgtatham/putty/0.80/htmldoc/Chapter8.html][Using public keys for SSH authentication]].
+
+First, be sure that you can log into the remote machine using PuTTY.
+My PuTTY configuration is named "ringer2" at IP address 172.20.130.251.
+
+From the Windows menu, start PuTTYgen, the PuTTY key generator. At the
+bottom of the PuTTYgen window, in the Parameters box, under "Type of
+key to generate," select RSA, and under "Number of bits in a generated
+key," type 2048. Then in the Actions section, press the Generate
+button and follow the instructions.
+
+If you choose, you can enter a key comment and key passphrase at this
+point. Save both the private and public key to disk using the buttons
+Save private key and Save public key. Also copy the public key found
+in the "Public key for pasting into OpenSSH authorized keys file" box.
+
+Use a text editor to paste the public key into a new file (named, for
+instance, "new-auth-key") on your local machine, then open PSFTP from
+the Windows menu. Type
+
+> open ringer2
+> lcd path-to-local-folder-holding-new-auth-key-file
+> put new-auth-key
+> bye
+
+Then use PuTTY to log into the remote machine ringer2, and type
+
+$ cd ~/.ssh
+$ cat ../new-auth-key >> authorized_keys
+$ rm ../new-auth-key
+$ exit
+
+Finally, open PuTTY again, select your configuration (mine is named
+"ringer2") and ensure that the "Host Name (or IP address)" text box
+contains username@172.20.130.251. In the Category box on the left,
+under "Connection", open "SSH", then "Auth", then "Credentials". Click
+the Browse button next to the "Private key file for authentication"
+text box, navigate to the private key file you saved earlier, and
+click "Open" to select it.
+
+Now you should be able to log into the remote machine without using
+your password.
+
+** Setup
+
 #+begin_src emacs-lisp
   (require 'tramp)
   (modify-coding-system-alist 'process "plink" 'utf-8-unix)
@@ -116,6 +169,12 @@ From [[https://gist.github.com/agumonkey/dc6e55e7e47de9b34980e933a346e82bhttps:/
 
   ;; ;; (add-to-list 'exec-path "C:/Program Files (x86)/PuTTY/")
   ;; (add-to-list 'exec-path (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)")))
+#+end_src
+
+#+begin_src emacs-lisp
+  (add-to-list 'tramp-connection-properties
+               (list (regexp-quote "/plinkx:ringer2:")
+                     "remote-shell" "/usr/bin/bash"))
 #+end_src
 
 Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers][Consult wiki]]
@@ -139,14 +198,14 @@ Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-n
   ;;       (plist-put consult--source-buffer :state #'consult-buffer-state-no-tramp))
 #+end_src
 
-From [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]]
+From the Emacs wiki [[https://www.emacswiki.org/emacs/Tramp_on_Windows][Tramp on Windows]] topic:
 #+begin_src emacs-lisp
-    ;; (when (eq window-system 'w32)
-    ;;   (setq tramp-default-method "plink")
-    ;;   (when (and (not (string-match my-putty-directory (getenv "PATH")))
-    ;; 	     (file-directory-p my-putty-directory))
-    ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
-    ;;     (add-to-list 'exec-path my-putty-directory)))
+  ;; (when (eq window-system 'w32)
+  ;;   (setq tramp-default-method "plink")
+  ;;   (when (and (not (string-match my-putty-directory (getenv "PATH")))
+  ;; 	     (file-directory-p my-putty-directory))
+  ;;     (setenv "PATH" (concat my-putty-directory ";" (getenv "PATH")))
+  ;;     (add-to-list 'exec-path my-putty-directory)))
 #+end_src
 
 * ERC
