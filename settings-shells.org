@@ -181,11 +181,6 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
     :custom
     (shell-command-default-error-buffer "*Shell Errors*")
     :config
-    (setenv "PID" nil)  ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
-    (setq explicit-shell-file-name (executable-find "bash"))
-    (setq shell-file-name explicit-shell-file-name)
-    (setenv "SHELL" explicit-shell-file-name)
-    (setq explicit-bash.exe-args (list "-i" "-l"))
     (setq system-uses-terminfo t)  ;; has no effect, apparently
     (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
     :bind
@@ -195,6 +190,36 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
     :hook
     ((shell-mode . my-add-kill-buffer-sentinel)
      (shell-mode . my-fix-shell-prompt-colors)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-shell-start ()
+    "Start a new shell at the project root, with the current buffer's
+  conda environment activated."
+    (interactive)
+    (cond
+     ((my-remote-buffer-p)
+      (setq explicit-shell-file-name "/usr/bin/bash")
+      (setq shell-file-name explicit-shell-file-name)
+      (setq explicit-bash-args (list "-i" "-l"))
+      (call-interactively #'shell))
+     (t
+      ;; Set up local bash shell
+      (setq explicit-shell-file-name (executable-find "bash"))
+      (setq shell-file-name explicit-shell-file-name)
+      (setenv "SHELL" explicit-shell-file-name)
+      (if (not (eq system-type 'windows-nt))
+          (setq explicit-bash-args (list "-i" "-l"))
+        (setq explicit-bash.exe-args (list "-i" "-l"))
+        ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
+        (setenv "PID" nil))
+      (let ((default-directory (my-shell-dir)))
+        (when (and
+               conda-env-autoactivate-mode
+               (bound-and-true-p conda-project-env-path))
+          (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
+        (call-interactively #'shell)
+        (setenv "CONDA_PROJECT_ENV")))))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -233,20 +258,6 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
              (append explicit-bash.exe-args
                      (list "--rcfile ~/.bash_noconda")))))
       (call-interactively #'shell)))
-#+end_src
-
-#+begin_src emacs-lisp
-  (defun my-shell-start ()
-    "Start a new shell at the project root, with the current buffer's
-  conda environment activated."
-    (interactive)
-    (let ((default-directory (my-shell-dir)))
-      (when (and
-             conda-env-autoactivate-mode
-             (bound-and-true-p conda-project-env-path))
-        (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
-      (call-interactively #'shell)
-      (setenv "CONDA_PROJECT_ENV")))
 #+end_src
 
 If in a project, the shell should start in the project root.

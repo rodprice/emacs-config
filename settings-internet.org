@@ -162,13 +162,6 @@ your password.
         tramp-completion-without-shell-p t
         tramp-verbose 10
         tramp-debug-buffer t)
-
-  ;; (let ((path (getenv "PATH"))
-  ;;       (plink (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)"))))
-  ;;   (setenv "PATH" (concat plink path-separator path)))
-
-  ;; ;; (add-to-list 'exec-path "C:/Program Files (x86)/PuTTY/")
-  ;; (add-to-list 'exec-path (expand-file-name "PuTTY" (getenv "ProgramFiles(x86)")))
 #+end_src
 
 #+begin_src emacs-lisp
