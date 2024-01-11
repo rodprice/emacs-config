@@ -109,8 +109,8 @@ Remember that =default-directory= is buffer-local.
 
 ** Windows (PuTTY)
 
-PuTTY documentation is [[https://the.earth.li/~sgtatham/putty/0.80/htmldoc/][here]].
-PuTTY documentation [[https://the.earth.li/~sgtatham/putty/0.80/htmldoc/Chapter8.html][Using public keys for SSH authentication]].
+PuTTY documentation table of contents is [[https://the.earth.li/~sgtatham/putty/0.80/htmldoc/][here]].
+See PuTTY documentation [[https://the.earth.li/~sgtatham/putty/0.80/htmldoc/Chapter8.html][Using public keys for SSH authentication]].
 
 First, be sure that you can log into the remote machine using PuTTY.
 My PuTTY configuration is named "ringer2" at IP address 172.20.130.251.
@@ -155,19 +155,26 @@ your password.
 
 ** Setup
 
+If on Windows, use the =plink= function provided by PuTTY.
 #+begin_src emacs-lisp
   (require 'tramp)
-  (modify-coding-system-alist 'process "plink" 'utf-8-unix)
-  (setq tramp-default-method "plink"
-        tramp-completion-without-shell-p t
-        tramp-verbose 10
-        tramp-debug-buffer t)
+  (when (eq system-type 'windows-nt)
+    (unless (executable-find "plink")
+      (user-error "Cannot find 'plink.exe'. Have you installed PuTTY?"))
+    (modify-coding-system-alist 'process "plink" 'utf-8-unix)
+    (setq tramp-default-method "plink"
+          tramp-completion-without-shell-p t
+          tramp-verbose 10
+          tramp-debug-buffer t)
+    (add-to-list 'tramp-connection-properties
+                 (list (regexp-quote "/plinkx:ringer2:")
+                       "remote-shell" "/usr/bin/bash")))
 #+end_src
 
 #+begin_src emacs-lisp
-  (add-to-list 'tramp-connection-properties
-               (list (regexp-quote "/plinkx:ringer2:")
-                     "remote-shell" "/usr/bin/bash"))
+  (defun ringer2 ()
+    ""
+    )
 #+end_src
 
 Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers][Consult wiki]]

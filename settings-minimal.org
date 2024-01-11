@@ -540,6 +540,15 @@ Move point to mark efficiently ([[http://endlessparentheses.com/faster-pop-to-ma
   (advice-add 'pop-to-mark-command :around #'modi/multi-pop-to-mark)
 #+end_src
 
+** Mouse
+
+Make right-click bring up [[info:Emacs#imenu][Imenu]].
+#+begin_src emacs-lisp
+  (use-package imenu
+    :bind
+    (("<mouse-3>" . imenu)))
+#+end_src
+
 ** Bookmarks
 
 The [[help:visible-mode][visible-mode]] bookmarks package, described [[https://pragmaticemacs.wordpress.com/2016/07/22/use-visible-bookmarks-to-quickly-jump-around-a-file/][here]].
