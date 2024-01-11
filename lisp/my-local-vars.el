@@ -353,6 +353,7 @@ frame, and show buffer-local variables in that frame."
 ;; Data
 
 (cl-defstruct (variables (:type list))
+  >path        ;; buffer default-directory
   >name        ;; buffer name
   >process     ;; name of process running in buffer
   >major-mode  ;; current major mode for the buffer
@@ -368,6 +369,7 @@ in buffer TARGET."
   (with-current-buffer target
     (let ((vars (buffer-local-variables)))
       (make-variables
+       :>path        (buffer-local-value 'default-directory target)
        :>name        (buffer-name target)
        :>process     (get-buffer-process target)
        :>major-mode  (alist-get 'major-mode vars)
@@ -522,6 +524,8 @@ struct."
           (if (null target) (current-buffer) (get-buffer target)))
          (vars         ;; buffer-local variables
           (my-local-vars-find-variables target))
+         (-path        ;; buffer default-directory
+          (variables->path vars))
          (-name        ;; buffer name
           (variables->name vars))
          (-project-name
@@ -556,6 +560,7 @@ struct."
     (concat
      my-local-vars-header-text
      (propertize "\nBuffer\n" 'face 'my-local-vars-doc-face)
+     (my-local-vars--refresh-line "Buffer path"   tabstop -path)
      (my-local-vars--refresh-line "Buffer name"   tabstop -name)
      (my-local-vars--refresh-line "Project name"  tabstop -project-name)
      (my-local-vars--refresh-line "Conda env"     tabstop -conda-name)
