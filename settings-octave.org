@@ -3,6 +3,10 @@
 
 * Notes
 
+The Emacs manual for =octave-mode= is [[info:octave-mode#Top][here]].
+
+** Octave help command
+
 Since I've switched to running Emacs directly from the UCRT64 MSYS2
 environment, and installed octave in the MINGW64 environment, the
 problems described below seem to have gone away. Knock on wood.
@@ -27,6 +31,14 @@ See the emacs lisp function =my-run-octave= below for further information.
 The function relies on the variable =my-git-extra-paths= to be set in the
 site preload file, found in =.emacs.d/site=.
 
+** Octave mode keybindings
+
+Octave mode, out of the box, uses [[info:octave-mode#Running Octave from Within Emacs][keybindings]] that include the "C-i"
+key, which brings up a thorny problem: back in the day, pressing "C-i"
+on the keyboards then extant sent "TAB" rather than "C-i". Emacs still
+interprets "C-i" as "TAB". A useful discussion of Emacs' archaic
+behavior, and how it can be fixed, is found [[https://emacs.stackexchange.com/questions/220/][here]].
+
 * Octave mode
 
 Octave mode is built into Emacs.
@@ -35,7 +47,8 @@ Octave mode is built into Emacs.
     :defer t
     :mode ("\\.m\\'" "octaverc" "\\.octaverc")
     :custom
-    ((inferior-octave-startup-args '("-i" "--no-line-editing" "-q")))
+    ((inferior-octave-startup-args '("-i" "--no-line-editing" "-q"))
+     (octave-eldoc-message-style 'oneline))
     :bind
     (("<f8>" . my-run-octave)
      (:map inferior-octave-mode-map
