@@ -734,6 +734,8 @@ interrupted and didn't exit gracefully.
     (setq desktop-load-locked-desktop 'check-pid))
 #+end_src
 
+Variable [[help:desktop-buffer-mode-handlers][desktop-buffer-mode-handlers]]. Default is [[help:desktop-restore-file-buffer][desktop-restore-file-buffer]].
+
 #+begin_src emacs-lisp
   (defun my-desktop-after-read-hook ()
     (message "--- Running `desktop-after-read-hook'")

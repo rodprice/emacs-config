@@ -277,6 +277,8 @@ be no Windows-compatible version.
 
 * Virtual environments
 
+** Notes
+
 Note: Another possibly interesting approach is [[https://github.com/10sr/with-venv-el][with-venv.el]], which
 sets up a macro =(with-venv BODY)= that ensures that =BODY= runs in the
 correct virtual environment. The function =conda-with-env= in conda.el
@@ -285,12 +287,16 @@ claims to do this as well.
 Note: Here's an emacs [[https://sqrtminusone.xyz/configs/emacs/#anaconda][config]] that advises conda.el functions to keep
 track of
 
+** Conda setup
+
+Make sure that prerequisites are available.
 #+begin_src emacs-lisp
   (use-package pythonic
     :ensure t)
 #+end_src
 
-This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package that works on Windows.
+This uses a modified [[file:lisp/conda.el][conda.el]] package that works on Windows, not the
+one found in Melpa. I've forked it on Github [[https://github.com/rodprice/conda.el][here]].
 #+begin_src emacs-lisp
   (use-package conda
     :ensure nil
@@ -304,10 +310,50 @@ This uses a modified [[https://github.com/necaris/conda.el][conda.el]] package t
     (conda-env-initialize-interactive-shells)
     (conda-env-initialize-eshell)
     (conda-env-autoactivate-mode 1)
+    ;; Set conda environment when file is opened
     (add-hook 'find-file-hook
               (lambda ()
                 (when (bound-and-true-p conda-project-env-path)
-                  (conda-env-activate-for-buffer)))))
+                  (conda-env-activate-for-buffer))))
+    ;; Set conda environment when desktop-mode restores file
+    (add-to-list 'desktop-locals-to-save 'conda-project-env-path))
+#+end_src
+
+[[info:elisp#Desktop Save Mode][Desktop Save Mode]] saves the current state of Emacs' buffers and
+windows at shutdown in a file [[file:.emacs.desktop][.emacs.desktop]]. Some buffer-local
+variables are saved, but not all. Here I assume that any file buffer
+from a Conda environment has a value for [[help:conda-project-env-path][conda-project-env-path]], which
+points to the relevant Conda environment for the project. (This
+buffer-local variable is usually set in a [[info:emacs#Directory Variables][.dir-locals.el]] file found at
+the project level.)
+
+I ensure that =desktop-mode= saves this variable by adding it to the
+list [[help:desktop-locals-to-save][desktop-locals-to-save]], and I then advise the default function
+[[help:desktop-restore-file-buffer][desktop-restore-file-buffer]] that =desktop-mode= uses to restore files,
+such that it calls [[help:conda-env-activate-for-buffer][conda-env-activate-for-buffer]] after restoring the
+buffer. This advice follows:
+
+#+begin_src emacs-lisp
+  (advice-add
+   'desktop-restore-file-buffer :after
+   (defalias 'my-desktop-restore-conda-env
+     (lambda (file-name buffer-name desktop-misc)
+       (when (bound-and-true-p conda-project-env-path)
+         (conda-env-activate-for-buffer)))))
+#+end_src
+
+See code in this [[https://www.reddit.com/r/emacs/comments/162cjki/restore_desktop_for_cloned_indirect_buffers_that/][Reddit post]] for another example of advising the
+default function [[help:desktop-restore-file-buffer][desktop-restore-file-buffer]] that =desktop-mode= uses to
+restore configurations upon emacs startup.
+
+An earlier attempt that worked only for =python-mode=.
+#+begin_src emacs-lisp :tangle no
+  (defun my-restore-conda-env (file-name buffer-name desktop-misc)
+    "Run by 'desktop-read' to restore conda environment for buffer."
+    (let ((buffer (desktop-restore-file-buffer file-name buffer-name desktop-misc)))
+      (with-current-buffer buffer
+        (conda-env-activate-for-buffer))
+      buffer))
 #+end_src
 
 #+begin_src emacs-lisp

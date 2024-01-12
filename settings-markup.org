@@ -368,11 +368,13 @@ vi-like commands.
     (unbind-key "M-<down>" org-mode-map)
     (unbind-key "M-<left>" org-mode-map)
     (unbind-key "M-<right>" org-mode-map)
-    :bind (:map org-mode-map
-                ("C-S-<up>" . 'org-metaup)
-                ("C-S-<down>" . 'org-metadown)
-                ("C-S-<left>" . 'org-metaleft)
-                ("C-S-<right>" . 'org-metaright)))
+    :bind
+    (("C-c l" . 'org-store-link)
+     (:map org-mode-map
+           ("C-S-<up>" . 'org-metaup)
+           ("C-S-<down>" . 'org-metadown)
+           ("C-S-<left>" . 'org-metaleft)
+           ("C-S-<right>" . 'org-metaright))))
 #+end_src
 
 *** Function to check folding status
