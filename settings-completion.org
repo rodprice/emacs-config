@@ -413,6 +413,9 @@ Filter out unwanted buffers in list: [[https://www.reddit.com/r/emacs/comments/y
   (use-package consult
     :ensure t
     :after vertico
+    :custom
+    ;; Don't show buffer previews when switching buffers.
+    (consult-preview-key nil)
     :config
     ;; Make consult-buffer show only buffers initially
     (dolist (src consult-buffer-sources)
