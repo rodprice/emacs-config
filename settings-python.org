@@ -230,7 +230,7 @@ Inspect values in the IPython buffer. Github repo [[https://github.com/it-is-wed
           ("C-c i" . pyinspect-inspect-at-point)))
 #+end_src
 
-* Jupyter
+* Jupyter (disabled)
 
 Note: The package =emacs-jupyter= is [[https://github.com/nnicandro/emacs-jupyter][here]]. An article on setting up
 Jupyter with Conda is [[https://martinralbrecht.wordpress.com/2020/08/23/conda-jupyter-and-emacs/][here]].
@@ -257,7 +257,7 @@ Jupyter with Conda is [[https://martinralbrecht.wordpress.com/2020/08/23/conda-j
                jupyter-server-list-kernels))
 #+end_src
 
-* Environment variables
+* Environment variables (disabled)
 
 See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
 #+begin_src emacs-lisp
@@ -355,6 +355,8 @@ An earlier attempt that worked only for =python-mode=.
         (conda-env-activate-for-buffer))
       buffer))
 #+end_src
+
+** Junkyard
 
 #+begin_src emacs-lisp
   (defun my-conda-postactivate ()
