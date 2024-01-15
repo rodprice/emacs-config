@@ -17,6 +17,7 @@ persist/
 todo/
 tree-sitter/
 lisp/emacs-application-framework
+lisp/poetry
 mastodon.*
 *.cache
 *.elc
