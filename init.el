@@ -52,10 +52,12 @@
 (setq package-enable-at-startup nil)
 
 ;; See https://emacs.stackexchange.com/questions/60278/gpg-no-public-key.
+;; Also https://gnupg.org/gph/en/manual.html
 ;; The MSYS2 version of `gpg' doesn't like Windows paths, so we
 ;; substitute a Unix-like path that `gpg' can deal with.
 (when (eq system-type 'windows-nt)
   (setq package-gnupghome-dir (concat package-user-dir "/gnupg")))
+
 
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
