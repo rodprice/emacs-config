@@ -440,6 +440,11 @@ in buffer TARGET."
 (defun my-local-vars--symbol< (a b)
   (string< (symbol-name a) (symbol-name b)))
 
+(defun my-local-vars-file-local (target)
+  "List of file-local variables in buffer TARGET."
+  (with-current-buffer target
+    file-local-variables-alist))
+
 (defun my-local-vars-active-local-modes (target)
   ""
   (let ((modes (buffer-local-value 'local-minor-modes target)))
@@ -551,6 +556,8 @@ struct."
           (variables->functions vars))
          (-conda-vars
           (my-local-vars--shell-env "CONDA"))
+         (-file-vars   ;; list of file-local variables
+          (my-local-vars-file-local target))
          (-local-minor-modes ;; list of buffer-local minor modes
           (my-local-vars-active-local-modes target))
           ;; (variables->minor-modes vars))
@@ -576,6 +583,7 @@ struct."
      (my-local-vars--refresh-line "Conda"         tabstop -conda)
      (my-local-vars--refresh-line "Hooks"         tabstop -hooks)
      (my-local-vars--refresh-line "Functions"     tabstop -functions)
+     (my-local-vars--refresh-line "File-local"    tabstop -file-vars)
      (propertize "\nShell environment\n" 'face 'my-local-vars-doc-face)
      (my-local-vars--refresh-line "Conda vars"    tabstop -conda-vars)
      )))

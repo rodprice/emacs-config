@@ -173,8 +173,10 @@ If on Windows, use the =plink= function provided by PuTTY.
 
 #+begin_src emacs-lisp
   (defun ringer2 ()
-    ""
-    )
+    "Acts like `find-file' with remote default directory."
+    (interactive)
+    (let ((filename (read-file-name "Remote file: " "/plinkx:ringer2:~/")))
+      (find-file filename)))
 #+end_src
 
 Exclude Tramp buffers from preview: [[https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers][Consult wiki]]

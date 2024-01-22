@@ -183,6 +183,7 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
     :config
     (setq system-uses-terminfo t)  ;; has no effect, apparently
     (add-hook 'comint-output-filter-functions #'shell-filter-ring-bell nil t)
+    ;; (add-hook 'comint-output-filter-functions 'comint-osc-process-output)
     :bind
     (("<f6>" . my-shell-start)
      (:map shell-mode-map
@@ -243,6 +244,9 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
            (t (quit-window nil window)))))))
 #+end_src
 
+There's another package, [[https://github.com/atomontage/xterm-color][xterm-color]], that purports to colorize shell
+buffers better than [[https://www.emacswiki.org/emacs/AnsiColor][ansi-color]]. I don't use either one. See also
+Moostropfen's [[help:ansi-color-map][ansi-color-map]] [[https://www.reddit.com/r/emacs/comments/mxf7v6/how_to_display_colors_in_mx_shell/][settings]].
 #+begin_src emacs-lisp
   (defun my-fix-shell-prompt-colors ()
     "Leave comint buffer background in the prompt alone."
