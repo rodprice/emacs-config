@@ -916,6 +916,16 @@ information about the current buffer.
     :bind (("<f7>" . my-local-vars-show)))
 #+end_src
 
+* Encryption
+
+Set up encrypted password storage. See the section "Storing
+Credentials with the Auth Source Package" in the article [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping
+Secrets in Emacs]]. See also [[info:auth#Top][auth-sources]].
+#+begin_src emacs-lisp
+  (setq auth-sources
+        '((:source "~/.emacs.d/secrets/.authinfo.gpg")))
+#+end_src
+
 * Notes
 
 [[https://lucidmanager.org/productivity/more-productive-with-emacs/][More Productive with Emacs]] is a series of articles on Emacs. Here's the list:

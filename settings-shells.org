@@ -510,8 +510,6 @@ See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth
     :init
     (advice-add 'shell-maker--initialize :after #'my-add-shell-maker-sentinel)
     :custom
-    (auth-sources
-     '((:source "~/.emacs.d/secrets/.authinfo.gpg")))
     (chatgpt-shell-openai-key
      (lambda ()
        (auth-source-pick-first-password :host "api.openai.com")))

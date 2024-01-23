@@ -58,11 +58,80 @@ directory =Anaconda3.old=.
 
 ** Notes
 
+[[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping Secrets in Emacs]] gives a recipe for setting up [[info:auth#Top][auth-sources]].
+They note that Emacs 29 has a bug related to =gpg= v.2.4.1+. I found out
+the hard way. Trying to edit a gpg-encrypted file -- in this case,
+=.authinfo.gpg= -- leads to Emacs hanging when you try to save the file.
+
+To reproduce the problem, open =.authinfo.gpg= in Emacs, and edit the
+file. Execute =M-x toggle-debug-on-quit=, then try to save the file.
+Emacs will hang. Type =C-g= to get out, which will open a new window
+with a backtrace. You will see that Emacs is stuck in
+=epg-wait-for-status= waiting for =gpg= to return "BEGIN_DECRYPTION".
+
+There's a quick fix: execute =(fset 'epg-wait-for-status 'ignore)=. When
+first suggested, the Internet [[https://www.reddit.com/r/emacs/comments/18d6fmt/how_to_lock_yourself_out_of_a_gpg_encrypted_file/][reacted]] in horror. The problem is that
+if you're using symmetric encryption, the file you're editing will be
+garbled.
+
+Another fix was suggested by [[https://dev.gnupg.org/p/gniibe/][gniibe]], involving a [[https://dev.gnupg.org/T6481][patch]] to =epg.el=. It
+appears to do the same thing; that is, it stops Emacs from waiting for
+"BEGIN_DECRYPTION". I applied it anyway, by hand, leaving comments in
+the file to mark where I changed it. It didn't "take" right away; I
+had to run =M-x emacs-lisp-byte-compile= first.
+
+*** Patch
+
+#+begin_src emacs-lisp :tangle no
+  diff --git a/lisp/epg.el b/lisp/epg.el
+  index 9da5a36ba3d..aeefad83f6c 100644
+  --- a/lisp/epg.el
+  +++ b/lisp/epg.el
+  @@ -1443,10 +1443,7 @@ If you are unsure, use synchronous version of this function
+       (error "Not a file"))
+     (setf (epg-context-operation context) 'decrypt)
+     (setf (epg-context-result context) nil)
+  -  (epg--start context (list "--decrypt" "--" (epg-data-file cipher)))
+  -  ;; `gpgsm' does not read passphrase from stdin, so waiting is not needed.
+  -  (unless (eq (epg-context-protocol context) 'CMS)
+  -    (epg-wait-for-status context '("BEGIN_DECRYPTION"))))
+  +  (epg--start context (list "--decrypt" "--" (epg-data-file cipher))))
+
+   (defun epg--check-error-for-decrypt (context)
+     (let ((errors (epg-context-result-for context 'error)))
+  @@ -1642,9 +1639,6 @@ If you are unsure, use synchronous version of this function
+                        (epg-context-sig-notations context))
+                       (if (epg-data-file plain)
+                           (list "--" (epg-data-file plain)))))
+  -  ;; `gpgsm' does not read passphrase from stdin, so waiting is not needed.
+  -  (unless (eq (epg-context-protocol context) 'CMS)
+  -    (epg-wait-for-status context '("BEGIN_SIGNING")))
+     (when (epg-data-string plain)
+       (if (eq (process-status (epg-context-process context)) 'run)
+          (process-send-string (epg-context-process context)
+  @@ -1751,10 +1745,6 @@ If you are unsure, use synchronous version of this function
+                               recipients))
+                       (if (epg-data-file plain)
+                           (list "--" (epg-data-file plain)))))
+  -  ;; `gpgsm' does not read passphrase from stdin, so waiting is not needed.
+  -  (unless (eq (epg-context-protocol context) 'CMS)
+  -    (epg-wait-for-status context
+  -                         (if sign '("BEGIN_SIGNING") '("BEGIN_ENCRYPTION"))))
+     (when (epg-data-string plain)
+       (if (eq (process-status (epg-context-process context)) 'run)
+          (process-send-string (epg-context-process context)
+#+end_src
+
 ** Install
+
+The interface to =gpg= is [[info:epa#Top][EasyPG Assistant]].
 
 * Gpg4win
 
 ** Notes
+
+See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Keeping Secrets in Emacs]]. I've installed [[https://www.gpg4win.org/][Gpg4win]], but Emacs is
+using the =gpg.exe= provided by MSYS2.
 
 ** Install
 
