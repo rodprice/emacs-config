@@ -16,6 +16,7 @@ request/
 persist/
 todo/
 tree-sitter/
+newsticker/
 lisp/emacs-application-framework
 lisp/poetry
 mastodon.*
