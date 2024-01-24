@@ -324,7 +324,19 @@ Access search engines from emacs, [[https://github.com/hrs/engine-mode][here]].
 
 * RSS
 
+Chris Cundy has set up elfeed to sort through recent ArXiv entries,
+documented [[https://cundy.me/post/elfeed/][here]].
+
 #+begin_src emacs-lisp
+  (use-package elfeed
+    :ensure t
+    :config
+    (setq elfeed-feeds
+          '("https://www.johndcook.com/blog/feed"
+            "https://planet.emacslife.com/atom.xml")))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
   (use-package newsticker
     :ensure t
     :custom
