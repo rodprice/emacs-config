@@ -109,6 +109,8 @@ If on Windows, use the =plink= function provided by PuTTY.
           tramp-completion-without-shell-p t
           tramp-verbose 10
           tramp-debug-buffer t)
+    ;; (add-to-list 'tramp-default-proxies-alist
+    ;;              '("mstdev26.devnet.zai.com" nil "/plinkx:ringer2:"))
     ;; (add-to-list 'tramp-remote-path "~/.local/bin")
     (add-to-list 'tramp-connection-properties
                  (list (regexp-quote "/plinkx:ringer2:")
@@ -120,6 +122,15 @@ If on Windows, use the =plink= function provided by PuTTY.
     "Acts like `find-file' with remote default directory."
     (interactive)
     (let ((filename (read-file-name "Remote file: " "/plinkx:ringer2:~/")))
+      (find-file filename)))
+#+end_src
+
+Double-hop to GPU-enabled server on Zeta's devnet.
+#+begin_src emacs-lisp
+  (defun mstdev26 ()
+    "Acts like `find-file' with remote default directory."
+    (interactive)
+    (let ((filename (read-file-name "Remote file: " "/plinkx:ringer2|ssh:mstdev26:~/")))
       (find-file filename)))
 #+end_src
 
