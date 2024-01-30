@@ -117,6 +117,7 @@ If on Windows, use the =plink= function provided by PuTTY.
                        "remote-shell" "/usr/bin/bash")))
 #+end_src
 
+Direct access to devnet using PuTTY.
 #+begin_src emacs-lisp
   (defun ringer2 ()
     "Acts like `find-file' with remote default directory."

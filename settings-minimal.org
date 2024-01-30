@@ -572,6 +572,14 @@ The [[help:visible-mode][visible-mode]] bookmarks package, described [[https://p
            ("<left-fringe> <mouse-1>" . bm-toggle-mouse)))
 #+end_src
 
+#+begin_src emacs-lisp
+  (use-package bookmark
+    :custom
+    (bookmark-save-flag 1)
+    :config
+    (bookmark-bmenu-list))
+#+end_src
+
 ** Parentheses
 
 #+begin_src emacs-lisp :tangle no

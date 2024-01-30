@@ -39,6 +39,7 @@ Bring up common configuration files in =conf-mode=.
     :mode
     (("/\\.git[[:alnum:]]*\\'" . conf-mode)
      ("\\.minttyrc\\'" . conf-mode)
+     ("authorized_keys" . conf-mode)
      ("/\\.inputrc\\'" . sh-mode)))
 #+end_src
 
@@ -99,16 +100,13 @@ Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][h
 default multimarkdown, so it can run on Windows. A cheat sheet for
 Github-flavored Markdown is [[https://github.github.com/gfm/][here]]. A guide to using a CSS stylesheet
 is [[https://jblevins.org/log/custom-css][here]]. The Github Markdown CSS stylesheet is in this Github [[https://github.com/sindresorhus/github-markdown-css][repo]].
+A better cheatsheet is [[https://sindresorhus.com/github-markdown-css/][here]].
 
 =karthink='s Markdown config has some possibly nice header rendering
-tweaks, [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-313][here]].
+tweaks, [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-313][here]]. See also =pandoc-mode=, [[http://joostkremers.github.io/pandoc-mode/][here]].
 
-#+begin_src emacs-lisp
-  (defvar my-markdown-css-path
-    (expand-file-name
-     "static/css/github-markdown.css"
-     user-emacs-directory))
-#+end_src
+Inserting images from the clipboard seems to require configuration.
+A Windows-specific version is [[https://lists.gnu.org/archive/html/emacs-orgmode/2011-07/msg01292.html][here]]. Another is [[https://orgmode.org/worg/org-hacks.html#org27e4c45][here]].
 
 #+begin_src emacs-lisp
   (use-package markdown-mode
@@ -119,16 +117,28 @@ tweaks, [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org
     (markdown-enable-math t)
     (markdown-live-preview-delete-export 'delete-on-export)
     (markdown-asymmetric-header t)
-    (markdown-css-paths (list my-markdown-css-path))
+    ;; (markdown-css-paths (list my-markdown-css-path))
     :config
+    (setq imenu-auto-rescan t)
     (setq markdown-command
           (concat
            "pandoc"
-           " --from=markdown --to=html"
+           " --from=gfm --to=html5"
            " --standalone --mathjax --highlight-style=pygments"
-           " --css=pandoc.css"
+           ;; (format " --css=file:///%s" my-markdown-css-path)
            " --quiet"
-           )))
+           ))
+    (setq markdown-xhtml-header-content my-markdown-style)
+    :hook
+    (markdown-mode . imenu-add-menubar-index))
+#+end_src
+
+Github-flavored Markdown; found [[https://github.com/sindresorhus/github-markdown-css][here]].
+#+begin_src emacs-lisp
+  (defvar my-markdown-css-path
+    (expand-file-name
+     "static/css/github-markdown.css"
+     user-emacs-directory))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -341,6 +351,27 @@ In CSV mode, the following commands are available:
 
 There's an LSP server, [[https://github.com/latex-lsp/texlab][texlab]], for LaTeX, etc. The actual LSP client
 is [[https://github.com/ROCKTAKEY/lsp-latex][lsp-latex]].
+
+See Mike Zamansky [[https://www.youtube.com/watch?v=LFO2UbzbZhA][Using Emacs 44]] video at about 7:00 minutes in for a
+demo of =pdf-tools= and =org-mode=.
+
+The =pdf-tools= package requires access to an =epdfinfo= server, which in
+turn has some dependencies. The GitHub repo [[https://github.com/vedang/pdf-tools/][here]] provides the details.
+On Windows running MSYS2, in the =mingw64= shell, running
+#+begin_src shell :tangle no
+  pacman -S mingw-w64-x86_64-emacs-pdf-tools-server
+#+end_src
+does the right thing.
+
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :ensure t
+    :config
+    (if (null (executable-find "epdfinfo"))
+        (user-error "Cannot find epdfinfo server")
+      (pdf-info-check-epdfinfo)
+      (pdf-tools-install)))
+#+end_src
 
 * Org mode
 
