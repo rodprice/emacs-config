@@ -169,7 +169,16 @@ The function returns a string used to run the py.test command.  Here's an exampl
 Optional argument TESTS Tests to run.
 Optional argument FLAGS py.test command line flags."
   (interactive "fTest directory or file: \nspy.test flags: ")
-  (pytest-start-command (pytest-get-command tests flags)))
+  (let ((command (pytest-get-command tests flags)))
+    (message "pytest-run: command = \"%s\"" command)
+    (pytest-start-command command)))
+
+;; (defun pytest-run (&optional tests flags)
+;;   "Run pytest.
+;; Optional argument TESTS Tests to run.
+;; Optional argument FLAGS py.test command line flags."
+;;   (interactive "fTest directory or file: \nspy.test flags: ")
+;;   (pytest-start-command (pytest-get-command tests flags)))
 
 (defun pytest-get-command (tests flags)
   "Return the command to execute the tests.
@@ -209,9 +218,14 @@ Optional argument FLAGS py.test command line flags."
     (let* ((use-comint (s-contains? "--pdb" command))
            (temp-buffer-name (pytest-get-temp-buffer-name))
            (origin-window (selected-window))
-           (buffer (compilation-start command
-                                      use-comint
-                                      (lambda (mode) temp-buffer-name))))
+           (buffer (progn
+                     (message "pytest-start-command: command = \"%s\"" command)
+                     (message "pytest-start-command: use-comint = not \"%s\"" (null use-comint))
+                     (message "pytest-start-command: temp-buffer-name = \"%s\"" temp-buffer-name)
+                     (compilation-start command
+                                        use-comint
+                                        (lambda (mode) temp-buffer-name)))))
+      (message "pytest-start-command: buffer = \"%s\"" buffer)
       (puthash temp-buffer-name command pytest-last-commands)
       (with-current-buffer buffer
         (pytest-compilation-mode (if pytest-enable-minor-mode 1 -1))

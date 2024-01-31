@@ -873,7 +873,7 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+end_src
 
 Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package shackle
     :ensure t
     :demand t
