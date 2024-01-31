@@ -364,13 +364,14 @@ On Windows running MSYS2, in the =mingw64= shell, running
 does the right thing.
 
 #+begin_src emacs-lisp
-  (use-package pdf-tools
-    :ensure t
-    :config
-    (if (null (executable-find "epdfinfo"))
-        (user-error "Cannot find epdfinfo server")
-      (pdf-info-check-epdfinfo)
-      (pdf-tools-install)))
+  (when (eq system-type 'windows-nt)
+    (use-package pdf-tools
+      :ensure t
+      :config
+      (if (null (executable-find "epdfinfo"))
+          (user-error "Cannot find epdfinfo server")
+        (pdf-info-check-epdfinfo)
+        (pdf-tools-install))))
 #+end_src
 
 * Org mode
