@@ -703,4 +703,98 @@ buffer-local variables found in the current buffer."
                  (message "--- Buffer %s not found in frames list" buffer)))
               )))))
 
+(defun my-local-vars-dwim (&optional target)
+  ""
+  (interactive)
+  (let ((target (if (null target) (current-buffer) (get-buffer target)))
+        target-frame target-win
+        (display (get-buffer my-local-vars-buffer-name))
+        display-frame display-win)
+    (unless (buffer-live-p target)
+      (user-error "Target buffer %s appears to be dead" target))
+    (setq target-frame
+          (let ((target-frames (my-local-vars--buffer-frames target)))
+            (unless target-frames
+              (user-error "Can't find a frame for target buffer %s" target))
+            (car target-frames)))
+    (setq target-win (get-buffer-window target target-frame))
+    (unless (null display)
+      (unless (buffer-live-p display)
+        (user-error "Display buffer %s appears to be dead" display)))
+    (setq display-frame
+          (if (null display)
+              nil
+            (let ((display-frames (my-local-vars--buffer-frames display)))
+              (unless display-frames
+                (user-error "Can't find a frame for display buffer %s" display))
+              (car display-frames))))
+    (setq display-win
+          (if (null display)
+              nil
+            (get-buffer-window display display-frame)))
+    (cond
+     ;; No display buffer
+     ((null display)
+      (message "--- No display buffer")
+      (my-local-vars--show
+       (get-buffer-create my-local-vars-buffer-name)
+       target))
+     ;; Display buffer buried
+     ((and
+       (eq target-frame display-frame)
+       (null display-win))
+      (message "--- Display buffer buried")
+      (pop-to-buffer display))
+     ;; Display window not selected
+     ((and
+       (eq target-frame display-frame)
+       (not (eq (current-buffer) display)))
+      (message "--- Display window in same frame, not selected")
+      (select-window display-win))
+     ;; Display window selected
+     ((and
+       (eq target-frame display-frame)
+       (eq (current-buffer) display))
+      (message "--- Display window in same frame, selected")
+      (message "--- target-frame is %s" target-frame)
+      (message "--- display-frame is %s" display-frame)
+      (message "--- (current-buffer) is %s" (current-buffer))
+      (my-local-vars-pop-to-frame))
+     ;; Display window in separate frame, not selected
+     ((and
+       (not (eq target-frame display-frame))
+       (not (eq (current-buffer) display)))
+      (message "--- Display window in separate frame, not selected")
+      (select-frame-set-input-focus display-frame))
+     ;; Display window in separate frame, selected
+     ((and
+       (not (eq target-frame display-frame))
+       (eq (current-buffer) display))
+      (message "--- Display window in separate frame, selected")
+      (my-local-vars-close-window display-win)))
+    (list
+     (cons "target" target)
+     (cons "target-frame" target-frame)
+     (cons "target-win" target-win)
+     (cons "display" display)
+     (cons "display-frame" display-frame)
+     (cons "display-win" display-win)
+     (cons "current-buffer" (current-buffer)))
+    ))
+
+;;;###autoload
+(defun my-local-vars-show (&optional target)
+  "Show interesting buffer-local variables in a new window."
+  (interactive)
+  (let* ((target (if (null target) (current-buffer) (get-buffer target)))
+         (process (get-buffer-process target))
+         (buffer (get-buffer-create my-local-vars-buffer-name)))
+    (with-current-buffer buffer
+      (my-local-vars-mode)
+      (setq-local my-local-vars-target target)
+      (setq-local my-local-vars-process process)
+      (my-local-vars-refresh)
+      (origami-close-all-nodes buffer)
+      (pop-to-buffer buffer))))
+
 (provide 'my-local-vars)
