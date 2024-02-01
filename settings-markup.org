@@ -92,8 +92,10 @@ Tidy up the HTML in the region. Adapted from [[https://www.masteringemacs.org/ar
 
 * Markdown
 
-Note: Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]]. Another approach
-to live preview is on this guy's [[https://blog.meain.io/2021/offline-markdown-preview/][blog]], using =pandoc= and a bit of
+** Notes
+
+Live preview is possible using [[https://stackoverflow.com/questions/36183071/how-can-i-preview-markdown-in-emacs-in-real-time][impatient-mode]]. Another approach to
+live preview is on this guy's [[https://blog.meain.io/2021/offline-markdown-preview/][blog]], using =pandoc= and a bit of
 JavaScript. Just overlook the sloppy grammar and spelling.
 
 Configuration instructions are [[https://jblevins.org/projects/markdown-mode/][here]]. This uses [[https://pandoc.org/][pandoc]] rather than the
@@ -107,6 +109,13 @@ tweaks, [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org
 
 Inserting images from the clipboard seems to require configuration.
 A Windows-specific version is [[https://lists.gnu.org/archive/html/emacs-orgmode/2011-07/msg01292.html][here]]. Another is [[https://orgmode.org/worg/org-hacks.html#org27e4c45][here]].
+
+** Markdown mode setup
+
+=gfm-mode= operates on the Github-flavored version of Markdown.
+Rendering Markdown to a PDF file involves first exporting to HTML,
+then using the browser to print a PDF. Ugly hack. There has to be
+something better.
 
 #+begin_src emacs-lisp
   (use-package markdown-mode
@@ -133,7 +142,11 @@ A Windows-specific version is [[https://lists.gnu.org/archive/html/emacs-orgmode
     (markdown-mode . imenu-add-menubar-index))
 #+end_src
 
-Github-flavored Markdown; found [[https://github.com/sindresorhus/github-markdown-css][here]].
+Github-flavored Markdown style; found [[https://github.com/sindresorhus/github-markdown-css][here]]. This CSS file promises to
+render Markdown that looks like what you see on GitHub. Reality may
+not be quite up to the promises. Another CSS-and-JavaScript combo [[https://gitlab.com/spudlyo/dotfiles/-/tree/master/css/css/readtheorg?ref_type=heads][here]]
+promises to render Markdown that looks like ReadTheOrg. Maybe.
+
 #+begin_src emacs-lisp
   (defvar my-markdown-css-path
     (expand-file-name
@@ -141,6 +154,7 @@ Github-flavored Markdown; found [[https://github.com/sindresorhus/github-markdow
      user-emacs-directory))
 #+end_src
 
+The following HTML gets inserted into the HTML =header= section.
 #+begin_src emacs-lisp
   (defvar my-markdown-style
     (format
@@ -166,17 +180,86 @@ Github-flavored Markdown; found [[https://github.com/sindresorhus/github-markdow
   "Markdown style to include in rendered Markdown.")
 #+end_src
 
-<article class="markdown-body">
-  <h1>Unicorns</h1>
-  <p>All the things</p>
-</article>
-
 [[https://github.com/Fanael/edit-indirect/][Edit code blocks]] in a new buffer, like =org-mode=.
 #+begin_src emacs-lisp
   (use-package edit-indirect
     :ensure nil
     :after markdown-mode
     :load-path "mode")
+#+end_src
+
+** Junkyard
+
+These [[https://github.com/munen/emacs.d#convenience-functions-when-working-with-pdf-exports][functions]] come from [[https://github.com/munen][this guy's]] Emacs [[https://github.com/munen/emacs.d][configuration]], labeled
+"Convenience functions when working with PDF exports". He has a little
+[[https://www.youtube.com/watch?v=Pd0JwOqh-gI][screencast]] that looks impressive (if you can read the tiny font). He
+seems quite taken with himself. More videos from him [[https://www.youtube.com/watch?v=gfZDwYeBlO4][here]].
+
+#+begin_src emacs-lisp : tangle no
+(defun md-compile ()
+  "Compiles the currently loaded markdown file using pandoc into a PDF"
+  (interactive)
+  (save-buffer)
+  (shell-command (concat "pandoc " (buffer-file-name) " -o "
+                         (replace-regexp-in-string "md" "pdf" (buffer-file-name)))))
+#+end_src
+
+#+begin_src emacs-lisp : tangle no
+(defun update-other-buffer ()
+  (interactive)
+  (other-window 1)
+  (revert-buffer nil t)
+  (other-window -1))
+#+end_src
+
+#+begin_src emacs-lisp : tangle no
+(defun md-compile-and-update-other-buffer ()
+  "Has as a premise that it's run from a markdown-mode buffer and the
+   other buffer already has the PDF open"
+  (interactive)
+  (md-compile)
+  (update-other-buffer))
+#+end_src
+
+#+begin_src emacs-lisp : tangle no
+(defun latex-compile-and-update-other-buffer ()
+  "Has as a premise that it's run from a latex-mode buffer and the
+   other buffer already has the PDF open"
+  (interactive)
+  (save-buffer)
+  (shell-command (concat "pdflatex " (buffer-file-name)))
+  (switch-to-buffer (other-buffer))
+  (kill-buffer)
+  (update-other-buffer))
+#+end_src
+
+#+begin_src emacs-lisp : tangle no
+(defun org-compile-beamer-and-update-other-buffer ()
+  "Has as a premise that it's run from an org-mode buffer and the
+   other buffer already has the PDF open"
+  (interactive)
+  (org-beamer-export-to-pdf)
+  (update-other-buffer))
+#+end_src
+
+#+begin_src emacs-lisp : tangle no
+(defun org-compile-latex-and-update-other-buffer ()
+  "Has as a premise that it's run from an org-mode buffer and the
+   other buffer already has the PDF open"
+  (interactive)
+  (org-latex-export-to-pdf)
+  (update-other-buffer))
+#+end_src
+
+#+begin_src emacs-lisp : tangle no
+(eval-after-load 'latex-mode
+  '(define-key latex-mode-map (kbd "C-c r") 'latex-compile-and-update-other-buffer))
+
+(define-key org-mode-map (kbd "C-c lr") 'org-compile-latex-and-update-other-buffer)
+(define-key org-mode-map (kbd "C-c br") 'org-compile-beamer-and-update-other-buffer)
+
+(eval-after-load 'markdown-mode
+  '(define-key markdown-mode-map (kbd "C-c r") 'md-compile-and-update-other-buffer))
 #+end_src
 
 * TOML

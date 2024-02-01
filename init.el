@@ -113,7 +113,7 @@
   :ensure nil
   :config
   (progn
-    ;; load more languages for org-babel
+    ;; Load more languages for org-babel
     (org-babel-do-load-languages
      'org-babel-load-languages
      '((emacs-lisp . t)
@@ -123,6 +123,10 @@
        (C . t)
        (makefile . t)
        (jupyter . t)))          ; must be last
+
+    ;; Make org-babel fontify more languages
+    (add-to-list 'org-src-lang-modes
+                 '("conf" . conf))
 
     (setq org-babel-default-header-args:sh    '((:results . "output replace"))
           org-babel-default-header-args:bash  '((:results . "output replace"))
