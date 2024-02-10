@@ -99,6 +99,9 @@
     :config
     (exec-path-from-shell-initialize)))
 
+;; Temporary fix
+(setq help-window-select t)
+
 (use-package org
   :ensure t
   :pin manual

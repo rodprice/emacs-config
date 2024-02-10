@@ -143,9 +143,13 @@ File locations for custom settings.
 File location for saving cursor state.
 #+begin_src emacs-lisp
   (require 'saveplace)
-  (setq save-place-file (concat user-emacs-directory "places")
-        backup-directory-alist `(("." . ,(concat user-emacs-directory
-                                                 "backups"))))
+  (setq save-place-file (concat user-emacs-directory "places"))
+#+end_src
+
+File location for backups.
+#+begin_src emacs-lisp
+  (let ((filename (concat user-emacs-directory "backups")))
+    (setq backup-directory-alist (list `("." . ,filename))))
 #+end_src
 
 Info directory locations. On Windows, for no apparent reason, the
@@ -750,6 +754,10 @@ Variable [[help:desktop-buffer-mode-handlers][desktop-buffer-mode-handlers]]. De
     (list-buffers))
 #+end_src
 
+#+begin_src emacs-lisp
+(message "--- settings-minimal: entering desktop config")
+#+end_src
+
 #+begin_src emacs-lisp :tangle no
   (use-package desktop
     :preface
@@ -796,6 +804,10 @@ See [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][
 #+end_src
 
 ** Popup windows
+
+#+begin_src emacs-lisp
+(message "--- settings-minimal: entering popper config")
+#+end_src
 
 Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+begin_src emacs-lisp
@@ -887,6 +899,10 @@ Set rules for popup windows ([[https://depp.brause.cc/shackle/][shackle.el]]).
 #+end_src
 
 * Todo lists
+
+#+begin_src emacs-lisp
+(message "--- settings-minimal: entering todo lists config")
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package todo-mode

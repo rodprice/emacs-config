@@ -782,19 +782,4 @@ buffer-local variables found in the current buffer."
      (cons "current-buffer" (current-buffer)))
     ))
 
-;;;###autoload
-(defun my-local-vars-show (&optional target)
-  "Show interesting buffer-local variables in a new window."
-  (interactive)
-  (let* ((target (if (null target) (current-buffer) (get-buffer target)))
-         (process (get-buffer-process target))
-         (buffer (get-buffer-create my-local-vars-buffer-name)))
-    (with-current-buffer buffer
-      (my-local-vars-mode)
-      (setq-local my-local-vars-target target)
-      (setq-local my-local-vars-process process)
-      (my-local-vars-refresh)
-      (origami-close-all-nodes buffer)
-      (pop-to-buffer buffer))))
-
 (provide 'my-local-vars)

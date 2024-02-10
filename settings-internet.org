@@ -109,6 +109,8 @@ If on Windows, use the =plink= function provided by PuTTY.
           tramp-completion-without-shell-p t
           tramp-verbose 10
           tramp-debug-buffer t)
+    (add-to-list 'backup-directory-alist
+                 (cons tramp-file-name-regexp nil))
     ;; (add-to-list 'tramp-default-proxies-alist
     ;;              '("mstdev26.devnet.zai.com" nil "/plinkx:ringer2:"))
     ;; (add-to-list 'tramp-remote-path "~/.local/bin")
