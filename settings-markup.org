@@ -32,6 +32,10 @@ file.
 
 * Config files
 
+#+begin_src emacs-lisp
+  (message "--- settings-markup: config files")
+#+end_src
+
 Bring up common configuration files in =conf-mode=.
 #+begin_src emacs-lisp
   (use-package emacs
@@ -67,6 +71,10 @@ Poorly documented [[https://github.com/juergenhoetzel/pkgbuild-mode/tree/master]
 
 * HTML
 
+#+begin_src emacs-lisp
+  (message "--- settings-markup: html")
+#+end_src
+
 Tidy up the HTML in the region. Adapted from [[https://www.masteringemacs.org/article/executing-shell-commands-emacs][Mastering Emacs]].
 #+begin_src emacs-lisp
   (defun tidy-html ()
@@ -91,6 +99,10 @@ Tidy up the HTML in the region. Adapted from [[https://www.masteringemacs.org/ar
 #+end_src
 
 * Markdown
+
+#+begin_src emacs-lisp
+  (message "--- settings-markup: markdown")
+#+end_src
 
 ** Notes
 
@@ -264,6 +276,10 @@ seems quite taken with himself. More videos from him [[https://www.youtube.com/w
 
 * TOML
 
+#+begin_src emacs-lisp
+  (message "--- settings-markup: toml")
+#+end_src
+
 Use the 'pyproject.toml' file in a project to set various defaults for
 the project. A useful StackOverflow discussion of this file is [[https://stackoverflow.com/questions/62983756/what-is-pyproject-toml-file-for][here]].
 
@@ -339,6 +355,10 @@ Get the settings under =[tool.pyright]=.
 
 * YAML
 
+#+begin_src emacs-lisp
+  (message "--- settings-markup: yaml")
+#+end_src
+
 A major mode for =YAML= files is found [[https://github.com/yoshiki/yaml-mode/blob/master/yaml-mode.el][here]]. There's a linter called
 [[https://github.com/adrienverge/yamllint][yamllint]], with a flycheck adapter [[https://github.com/krzysztof-magosa/flycheck-yamllint][here]].
 #+begin_src emacs-lisp
@@ -356,6 +376,10 @@ Use the tree sitter-enabled major mode for YAML.
 #+end_src
 
 * JSON
+
+#+begin_src emacs-lisp
+  (message "--- settings-markup: json")
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package json-mode
@@ -397,6 +421,10 @@ Use the tree sitter-enabled major mode for JSON.
 
 * CSV
 
+#+begin_src emacs-lisp
+  (message "--- settings-markup: csv")
+#+end_src
+
 In CSV mode, the following commands are available:
 
 - C-c C-s (`csv-sort-fields') and C-c C-n (`csv-sort-numeric-fields')
@@ -432,8 +460,18 @@ In CSV mode, the following commands are available:
 
 * LaTeX
 
+#+begin_src emacs-lisp
+  (message "--- settings-markup: latex")
+#+end_src
+
 There's an LSP server, [[https://github.com/latex-lsp/texlab][texlab]], for LaTeX, etc. The actual LSP client
 is [[https://github.com/ROCKTAKEY/lsp-latex][lsp-latex]].
+
+** PDF tools
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: latex: pdf tools")
+#+end_src
 
 See Mike Zamansky [[https://www.youtube.com/watch?v=LFO2UbzbZhA][Using Emacs 44]] video at about 7:00 minutes in for a
 demo of =pdf-tools= and =org-mode=.
@@ -452,18 +490,78 @@ does the right thing.
       :ensure t
       :config
       (if (null (executable-find "epdfinfo"))
-          (user-error "Cannot find epdfinfo server")
+          (warn "Cannot find epdfinfo server")
         (pdf-info-check-epdfinfo)
         (pdf-tools-install))))
+#+end_src
+
+** CDLaTeX
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: latex: cdlatex")
+#+end_src
+
+Keyboard shortcuts for LaTeX. See the README file [[https://elpa.nongnu.org/nongnu/cdlatex.html][here]].
+#+begin_src emacs-lisp
+  (use-package cdlatex
+    :ensure t)
+#+end_src
+
+** AUCTeX
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: latex: auctex")
+#+end_src
+
+Note: An extensive configuration for AUCTeX is [[https://sqrtminusone.xyz/configs/emacs/#latex][here]]. Other advice is
+on the Emacs Wiki [[https://www.emacswiki.org/emacs/AUCTeX][here]]. The AUCTeX manual is [[https://www.gnu.org/software/auctex/manual/auctex/][here]]. [[https://www.gnu.org/software/auctex/reftex.html][RefTeX]] is also
+included in AUCTeX.
+
+This configuration uses [[https://miktex.org/][MikTeX]] running on Windows. I first tried
+installing [[https://tug.org/texlive/][TeXlive]] from MSYS2, but as of 12 Feb 2024, their TeXlive
+package is broken. Really broken. It does a partial install, then
+dies, so there are LaTeX executables and files scattered all over my
+MSYS2 installation, which =pacman= cannot uninstall since the install
+process crashed. My solution is to install MikTeX, making sure that
+the MikTeX files are found first in =exec-path= and =PATH=. That is done
+in my site-specific Emacs init file, in directory =~/.emacs.d/site/=.
+
+#+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+    (use-package auctex
+      :ensure t
+      :config
+      (setq-default TeX-auto-save t)
+      (setq-default TeX-parse-self t)
+      (setq-default TeX-master nil)
+      (setq-default TeX-engine 'xetex)
+      (require 'tex)
+      (TeX-PDF-mode)
+      ;; Tell Emacs how to display a PDF file
+      (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))
+      (setq TeX-source-correlate-start-server t)
+      ;; Update PDF buffers after successful LaTeX runs
+      (add-hook 'TeX-after-compilation-finished-functions
+                #'TeX-revert-document-buffer)
+      ;; Use CDLaTeX minor mode
+      (add-hook 'LaTeX-mode-hook #'turn-on-cdlatex)
+      ;; Use RefTeX for references
+      (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
+      (setq reftex-plug-into-AUCTeX t)
+      ))
 #+end_src
 
 * Org mode
 
 #+begin_src emacs-lisp
-(message "... starting org mode")
+  (message "--- settings-markup: org mode")
 #+end_src
 
 ** Key bindings
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: key bindings")
+#+end_src
 
 Note: [[https://www.reddit.com/r/orgmode/comments/ded3g8/orgmode_without_arrow_keysany_actual_better/][Org speed keys]] work only when point is at the beginning of a
 header line. Press '?' there to find out what they are. Another
@@ -564,6 +662,10 @@ or `not-folded'."
 
 ** Appearance
 
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: appearance")
+#+end_src
+
 Note: More customization can be found in the blog post [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][Beautifying Org Mode in Emacs]].
 Note: =org-modern= ignores =org-bullets= and friends, substituting its own bullets.
 
@@ -591,9 +693,17 @@ Hide markers for italics, bold, etc.
 
 ** Refile
 
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: refile")
+#+end_src
+
 See [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes with Refile]].
 
 ** Shortcuts
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: shortcuts")
+#+end_src
 
 Note: =org= motion commands are [[https://orgmode.org/org.html#Motion][here]].
 
@@ -613,17 +723,42 @@ Type "<el" and hit tab to get a source block ([[https://github.com/daviwil/emacs
 
 ** LaTeX
 
-Note: An extensive configuration for AUCTeX is [[https://sqrtminusone.xyz/configs/emacs/#latex][here]].
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: latex")
+#+end_src
 
 See =karthink='s cdlatex config [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-206][here]]. Also LaTeX fragments [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-229][here]].
 And lots more LaTeX config [[https://git.tecosaur.net/tec/emacs-config/src/branch/master/config.org#headline-292][here]].
 
-#+begin_src emacs-lisp :tangle no
+Below is partially from this [[https://dev.to/escribapetrus/pretty-writing-in-emacs-exporting-org-mode-files-to-pdf-372i][post]].
+#+begin_src emacs-lisp
   (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
   (setq org-highlight-latex-and-related '(latex))
+  (setq org-latex-compiler "xelatex")
+  (setq org-latex-pdf-process '("xelatex %f"))
+#+end_src
+
+** Drawing
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: drawing")
+#+end_src
+
+You can draw in an Emacs buffer! Github website [[https://github.com/misohena/el-easydraw][here]].
+#+begin_src emacs-lisp
+  (use-package edraw-org
+    :load-path "lisp/el-easydraw"
+    :after (org ox)
+    :config
+    (require 'edraw-org)
+    (edraw-org-setup-exporter))
 #+end_src
 
 ** Exporting
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: exporting")
+#+end_src
 
 Required for [[https://github.com/hniksic/emacs-htmlize][highlighting source code]] in exported HTML.
 #+begin_src emacs-lisp
@@ -652,9 +787,17 @@ I don't know if this is needed for export with =pandoc=, but here it is.
 
 ** Blogging
 
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: blogging")
+#+end_src
+
 Note: A possibly interesting setup using Hugo, [[https://andreyorst.gitlab.io/posts/2022-10-16-my-blogging-setup-with-emacs-and-org-mode/][here]].
 
 ** REST client
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: rest client")
+#+end_src
 
 Execute REST API calls in src blocks. From [[https://gitlab.com/gSwag/emacs-configuration/-/blob/master/.emacs-config.org][here]]. Its repo is [[https://github.com/alf/ob-restclient.el][here]].
 Uses [[https://github.com/pashky/restclient.el][restclient.el]] under the hood.
@@ -671,12 +814,16 @@ Uses [[https://github.com/pashky/restclient.el][restclient.el]] under the hood.
 
 ** Links
 
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: links")
+#+end_src
+
 Maybe use [[help:org-link-make-description][org-link-make-description]] to generate a link when the user
 types in something like 'help:function-name'. Point is at the end; the
 function searches backward for a colon, sets the mark, then searches
 backward again for white space, defining a region, etc.
 
-[[yhttps://stackoverflow.com/questions/19772394/elisp-function-select-argument-from-list][Choosing]] from a list or a popup window.
+[[https://stackoverflow.com/questions/19772394/elisp-function-select-argument-from-list][Choosing]] from a list or a popup window.
 #+begin_src emacs-lisp :tangle no
   (x-popup-menu
      (list '(50 50) (selected-frame)) ;; where to popup
@@ -704,6 +851,10 @@ If there is an active region, insert a help link.
 #+end_src
 
 ** Junkyard
+
+#+begin_src emacs-lisp
+  (message "------ settings-markup: org mode: junkyard")
+#+end_src
 
 Note: [[https://github.com/rksm/org-ai][org-ai]] is yet another emacs interface to ChatGPT, etc.
 
@@ -750,4 +901,8 @@ configuration; right now it steals TAB and behaves badly.
     :after outline
     :bind (:map outline-minor-mode-map
                 ("C-<tab>" . outline-cycle)))
+#+end_src
+
+#+begin_src emacs-lisp
+(message "... finished settings-markup")
 #+end_src

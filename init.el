@@ -83,14 +83,11 @@
 
 ;; Decide whether to turn on debugging for use-package. From
 ;; https://github.com/jwiegley/use-package/issues/768
-(defvar init-file-debug nil)
-(if init-file-debug
-    (setq use-package-verbose t
-          use-package-expand-minimally nil
-          use-package-compute-statistics t
-          debug-on-error t)
-  (setq use-package-verbose nil
-        use-package-expand-minimally t))
+(when init-file-debug
+  (setq use-package-verbose t
+        use-package-expand-minimally nil
+        use-package-compute-statistics t
+        debug-on-error t))
 
 ;; Set up exec-path, unless on Windows
 (when (memq window-system '(mac ns x))

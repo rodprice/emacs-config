@@ -37,7 +37,8 @@ passwords) [[https://www.masteringemacs.org/article/securely-generating-totp-tok
 
 ** Notes
 
-The Tramp manual is [[info:tramp#Top][here]].
+The Tramp manual is [[info:tramp#Top][here]]. This [[https://sqrtminusone.xyz/][guy's]] Tramp [[https://sqrtminusone.xyz/configs/emacs/#tramp-1][configuration]] looks
+interesting. He's mostly looking for speed-ups.
 
 Remember that =default-directory= is buffer-local.
 #+begin_src emacs-lisp :tangle no
