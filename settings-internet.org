@@ -104,7 +104,7 @@ If on Windows, use the =plink= function provided by PuTTY.
   (require 'tramp)
   (when (eq system-type 'windows-nt)
     (unless (executable-find "plink")
-      (user-error "Cannot find 'plink.exe'. Have you installed PuTTY?"))
+      (warn "Cannot find 'plink.exe'. Have you installed PuTTY?"))
     (modify-coding-system-alist 'process "plink" 'utf-8-unix)
     (setq tramp-default-method "plink"
           tramp-completion-without-shell-p t
