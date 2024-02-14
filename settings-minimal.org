@@ -767,6 +767,7 @@ Variable [[help:desktop-buffer-mode-handlers][desktop-buffer-mode-handlers]]. De
       (with-selected-frame frame
         (desktop-save-mode 1)
         (desktop-read)
+        ;; TODO Read the docs for `after-make-frame-functions'
         (remove-hook 'after-make-frame-functions 'my-restore-desktop)))
     :defer t
     :config
@@ -813,11 +814,13 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
 #+begin_src emacs-lisp
   (use-package popper
     :ensure t
+    :demand t
     :commands popper-popup-p
     :bind (("C-`"   . popper-toggle-latest)
            ("M-`"   . popper-cycle)
            ("C-M-`" . popper-toggle-type))
     :config
+    ;; (require 'popper)
     (setq popper-reference-buffers
           '("\\*Messages\\*"
             "Output\\*$"
@@ -841,15 +844,27 @@ Manage popup windows ([[https://github.com/karthink/popper][popper.el]])
             ("\\*Quail Completions\\*" . hide)
             ("\\*Compile-Log\\*" . hide)
             ("\\*Warnings\\*" . hide)
+            compilation-mode
+            "^\\*eshell.*\\*$"
+            eshell-mode
+            "^\\*shell.*\\*$"
+            shell-mode
+            "^\\*term.*\\*$"
+            term-mode
+            "^\\*vterm.*\\*$"
+            vterm-mode
             help-mode
             ;; todo-mode
             ;; todo-archive-mode
             ;; todo-filtered-items-mode
             compilation-mode))
-    (setq popper-display-control nil)
+    (when (eq system-type 'windows-nt)
+      (setq popper-window-height 32))
+    (setq popper-display-control t)
     (setq switch-to-buffer-obey-display-actions t)
     (popper-mode +1)
-    (popper-echo-mode +1))
+    (popper-echo-mode +1)
+    )
 #+end_src
 
 #+begin_src emacs-lisp :tangle no

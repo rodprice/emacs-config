@@ -309,7 +309,7 @@ one found in Melpa. I've forked it on Github [[https://github.com/rodprice/conda
     (conda-env-home-directory my-anaconda-dir)
     (conda-message-on-environment-switch nil)
     :config
-    (conda-env-initialize-interactive-shells)
+    ;; (conda-env-initialize-interactive-shells)
     (conda-env-initialize-eshell)
     (conda-env-autoactivate-mode 1)
     ;; Set conda environment when file is opened

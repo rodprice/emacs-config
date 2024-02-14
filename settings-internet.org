@@ -99,25 +99,28 @@ your password.
 
 ** Setup
 
-If on Windows, use the =plink= function provided by PuTTY.
+If on Windows, use the =ssh= function provided by either MSYS2 or Git
+for Windows. Entering C-x C-f /sshx:<hostname> should work if you have
+=~/.ssh/config= set up correctly to connect to =<hostname>=.
+
 #+begin_src emacs-lisp
   (require 'tramp)
   (when (eq system-type 'windows-nt)
-    (unless (executable-find "plink")
-      (warn "Cannot find 'plink.exe'. Have you installed PuTTY?"))
-    (modify-coding-system-alist 'process "plink" 'utf-8-unix)
-    (setq tramp-default-method "plink"
+    (unless (executable-find "ssh")
+      (warn "Cannot find 'ssh.exe'. Have you installed either MSYS2 or Git for Windows?"))
+    (modify-coding-system-alist 'process "ssh" 'utf-8-unix)
+    (setq tramp-default-method "ssh"
           tramp-completion-without-shell-p t
           tramp-verbose 10
           tramp-debug-buffer t)
     (add-to-list 'backup-directory-alist
-                 (cons tramp-file-name-regexp nil))
+                 (cons tramp-file-name-regexp nil)))
     ;; (add-to-list 'tramp-default-proxies-alist
     ;;              '("mstdev26.devnet.zai.com" nil "/plinkx:ringer2:"))
     ;; (add-to-list 'tramp-remote-path "~/.local/bin")
-    (add-to-list 'tramp-connection-properties
-                 (list (regexp-quote "/plinkx:ringer2:")
-                       "remote-shell" "/usr/bin/bash")))
+    ;; (add-to-list 'tramp-connection-properties
+    ;;              (list (regexp-quote "/plinkx:ringer2:")
+    ;;                    "remote-shell" "/usr/bin/bash")))
 #+end_src
 
 Direct access to devnet using PuTTY.
@@ -125,7 +128,7 @@ Direct access to devnet using PuTTY.
   (defun ringer2 ()
     "Acts like `find-file' with remote default directory."
     (interactive)
-    (let ((filename (read-file-name "Remote file: " "/plinkx:ringer2:~/")))
+    (let ((filename (read-file-name "Remote file: " "/sshx:ringer2:~/")))
       (find-file filename)))
 #+end_src
 
@@ -134,7 +137,7 @@ Double-hop to GPU-enabled server on Zeta's devnet.
   (defun mstdev26 ()
     "Acts like `find-file' with remote default directory."
     (interactive)
-    (let ((filename (read-file-name "Remote file: " "/plinkx:ringer2|ssh:mstdev26:~/")))
+    (let ((filename (read-file-name "Remote file: " "/sshx:ringer2|ssh:mstdev26:~/")))
       (find-file filename)))
 #+end_src
 

@@ -83,11 +83,13 @@
 
 ;; Decide whether to turn on debugging for use-package. From
 ;; https://github.com/jwiegley/use-package/issues/768
-(when init-file-debug
-  (setq use-package-verbose t
-        use-package-expand-minimally nil
-        use-package-compute-statistics t
-        debug-on-error t))
+(if init-file-debug
+    (setq use-package-verbose t
+          use-package-expand-minimally nil
+          use-package-compute-statistics t
+          debug-on-error t)
+  (setq use-package-verbose nil
+        use-package-expand-minimally t))
 
 ;; Set up exec-path, unless on Windows
 (when (memq window-system '(mac ns x))
@@ -152,6 +154,10 @@
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-octave.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
 ;; (org-babel-jupyter-override-src-block 'python)
+
+;; Put status and load time for use-package in a buffer
+(when init-file-debug
+  (use-package-report))
 
 ;; Load the site-specific postload file
 (load (concat (car (split-string (system-name) "\\.")) "-postload") 'noerror)

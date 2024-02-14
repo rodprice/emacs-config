@@ -200,27 +200,35 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
     (interactive)
     (cond
      ((my-remote-buffer-p)
+      ;; Assumes remote host is running Linux
       (setq explicit-shell-file-name "/usr/bin/bash")
       (setq shell-file-name explicit-shell-file-name)
-      (setq explicit-bash-args (list "-i" "-l"))
-      (call-interactively #'shell))
+      (setq explicit-bash-args (list "-i" "-l")))
+      ;; (call-interactively #'shell))
+     ((eq system-type 'windows-nt)
+      ;; Assumes MSYS2 is installed
+      (unless (bound-and-true-p my-msys2-dir)
+        (error "Site-local variable `my-msys2-dir' not set"))
+      (let ((msys2-bash (concat my-msys2-dir "/usr/bin/bash.exe")))
+        (setq explicit-shell-file-name msys2-bash)
+        (setq shell-file-name msys2-bash)
+        (setenv "SHELL" msys2-bash))
+      (setq explicit-bash.exe-args (list "-i" "-l"))
+      ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
+      (setenv "PID" nil))
      (t
-      ;; Set up local bash shell
+      ;; Assumes Unix-like OS
       (setq explicit-shell-file-name (executable-find "bash"))
       (setq shell-file-name explicit-shell-file-name)
       (setenv "SHELL" explicit-shell-file-name)
-      (if (not (eq system-type 'windows-nt))
-          (setq explicit-bash-args (list "-i" "-l"))
-        (setq explicit-bash.exe-args (list "-i" "-l"))
-        ;; https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Bash.html
-        (setenv "PID" nil))
-      (let ((default-directory (my-shell-dir)))
-        (when (and
-               conda-env-autoactivate-mode
-               (bound-and-true-p conda-project-env-path))
-          (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
-        (call-interactively #'shell)
-        (setenv "CONDA_PROJECT_ENV")))))
+      (setq explicit-bash-args (list "-i" "-l"))))
+    (let ((default-directory (my-shell-dir)))
+      (when (and
+             conda-env-autoactivate-mode
+             (bound-and-true-p conda-project-env-path))
+        (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
+      (call-interactively #'shell)
+      (setenv "CONDA_PROJECT_ENV")))
 #+end_src
 
 #+begin_src emacs-lisp
