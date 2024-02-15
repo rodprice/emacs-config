@@ -523,9 +523,9 @@ See [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth
        (auth-source-pick-first-password :host "api.openai.com")))
     (chatgpt-shell-welcome-function nil)
     (chatgpt-shell-system-prompt nil)
-    (shell-maker-transcript-default-path "~/working/tmp/")
-    :config
-    (when (featurep 'popper)
-      (add-to-list 'popper-reference-buffers "\\*chatgpt\\*")
-      (popper--set-reference-vars)))
+    (shell-maker-transcript-default-path "~/working/tmp/"))
+    ;; :config
+    ;; (when (featurep 'popper)
+    ;;   (add-to-list 'popper-reference-buffers "\\*chatgpt\\*")
+    ;;   (popper--set-reference-vars)))
 #+end_src
