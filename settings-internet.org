@@ -103,13 +103,17 @@ If on Windows, use the =ssh= function provided by either MSYS2 or Git
 for Windows. Entering C-x C-f /sshx:<hostname> should work if you have
 =~/.ssh/config= set up correctly to connect to =<hostname>=.
 
+Line ending conflicts (CRLF vs. LF) can cause problems when using
+Tramp from Windows to a remote host running Linux. A blog post [[https://stewart123579.github.io/blog/posts/emacs/emacs-on-windows-getting-tramp-to-work/][here]]
+recommends =(prefer-coding-system 'utf-8-unix)= everywhere.
+
 #+begin_src emacs-lisp
   (require 'tramp)
   (when (eq system-type 'windows-nt)
     (unless (executable-find "ssh")
       (warn "Cannot find 'ssh.exe'. Have you installed either MSYS2 or Git for Windows?"))
     (modify-coding-system-alist 'process "ssh" 'utf-8-unix)
-    (setq tramp-default-method "ssh"
+    (setq tramp-default-method "sshx"
           tramp-completion-without-shell-p t
           tramp-verbose 10
           tramp-debug-buffer t)
@@ -121,6 +125,18 @@ for Windows. Entering C-x C-f /sshx:<hostname> should work if you have
     ;; (add-to-list 'tramp-connection-properties
     ;;              (list (regexp-quote "/plinkx:ringer2:")
     ;;                    "remote-shell" "/usr/bin/bash")))
+#+end_src
+
+A fix for problems running =ssh= in =M-x shell= and =M-x eshell=, [[https://stewart123579.github.io/blog/posts/emacs/emacs-on-windows-getting-tramp-to-work/][here]].
+Doesn't fix the problem. =sshx= may do this [[https://www.gnu.org/software/emacs/manual/html_node/tramp/Inline-methods.html#index-method-sshx][already]].
+#+begin_src emacs-lisp :tangle no
+(when (eq system-type 'windows-nt)
+  ;; Get the tramp-methods variable populated
+  (require 'tramp)
+  ;; Add the '-tt' flag to the login arguments for "ssh" ONLY
+  (push '("-tt")
+        (cadr (assoc 'tramp-login-args
+                     (assoc "ssh" tramp-methods)))))
 #+end_src
 
 Direct access to devnet using PuTTY.

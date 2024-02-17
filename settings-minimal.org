@@ -32,14 +32,16 @@ Set it to nil to exclude line numbering from kills and copies.
 
 ** Text
 
-Character encodings default to utf-8. Xah Lee (bless his crooked
-little heart) [[http://xahlee.info/emacs/emacs/emacs_convert_line_ending.html][says]] you should use =utf-8-unix= rather than =utf-8=.
+Line ending conflicts (CRLF vs. LF) can cause problems when using
+Tramp from Windows to a remote host running Linux. A blog post [[https://stewart123579.github.io/blog/posts/emacs/emacs-on-windows-getting-tramp-to-work/][here]]
+recommends =(prefer-coding-system 'utf-8-unix)= everywhere.
+
 #+begin_src emacs-lisp
-  (prefer-coding-system 'utf-8)
   (set-language-environment 'utf-8)
-  (set-default-coding-systems 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8-unix)
+  (set-default-coding-systems 'utf-8-unix)
+  (set-terminal-coding-system 'utf-8-unix)
+  (set-selection-coding-system 'utf-8-unix)
 #+end_src
 
 See [[https://emacs.stackexchange.com/questions/31282/unicodeencodeerror-executing-python-in-emacs-not-in-terminal][UnicodeEncodeError executing Python in Emacs]].
