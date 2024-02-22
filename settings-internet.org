@@ -213,10 +213,26 @@ another way to run Docker, a Python script called [[https://github.com/jkitchin/
 
 Emacs Docker package [[https://github.com/Silex/docker.el][here]]. Tramp has its own interface to Docker; see
 the variable [[help:tramp-docker-method][tramp-docker-method]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package docker
     :ensure t
     :bind ("C-c d" . docker))
+#+end_src
+
+A simple mode for Dockerfiles without all the bells and whistles. You
+might want to add a line like this at the top of a Dockerfile.
+#+begin_src shell :tangle no
+## -*- dockerfile-image-name: "your-image-name-here" -*-
+#+end_src
+Then you won't be prompted for the image name when you build with
+"C-c C-b". Source for this mode is [[https://github.com/spotify/dockerfile-mode][here]].
+
+#+begin_src emacs-lisp
+  (use-package dockerfile-mode
+    :ensure t
+    :mode "\\Dockerfile\\'"
+    :config
+    (put 'dockerfile-image-name 'safe-local-variable #'stringp))
 #+end_src
 
 * Mastodon
