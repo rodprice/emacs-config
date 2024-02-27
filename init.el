@@ -152,7 +152,7 @@
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-javascript.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-julia.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-octave.org"))
-(org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
+;; (org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
 ;; (org-babel-jupyter-override-src-block 'python)
 
 ;; Put status and load time for use-package in a buffer
