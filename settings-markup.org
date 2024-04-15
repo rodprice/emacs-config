@@ -734,8 +734,12 @@ Below is partially from this [[https://dev.to/escribapetrus/pretty-writing-in-em
 #+begin_src emacs-lisp
   (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
   (setq org-highlight-latex-and-related '(latex))
-  (setq org-latex-compiler "xelatex")
-  (setq org-latex-pdf-process '("xelatex %f"))
+  (setq org-latex-compiler "latexmk")
+  ;; (setq org-latex-pdf-process
+  ;;       '("xelatex %f" "xelatex %f"))
+  (setq org-latex-pdf-process
+        '("latexmk -shell-escape -f -pdf %f"))
+  ;; (setq org-latex-pdf-process '("xelatex %f"))
 #+end_src
 
 ** Drawing
