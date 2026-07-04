@@ -21,6 +21,10 @@
 (require 'warnings)
 (setq warning-minimum-level :error)
 
+;; Start the Emacs server, if not already started
+;; (unless server-process
+;;   (server-start))
+
 ;; Have this available just in case
 (setq confirm-kill-emacs 'y-or-n-p)
 (defun server-shutdown ()
@@ -32,13 +36,38 @@
   (kill-emacs))
 (global-set-key (kbd "C-c x") 'server-shutdown)
 
-;; Sane modifier keys for MacOS
 (when (eq system-type 'darwin)
+  ;; Sane modifier keys for MacOS
   (setq
    ns-command-modifier 'control
    ns-option-modifier 'meta
    ns-control-modifier 'control
-   ns-function-modifier 'super))
+   ns-function-modifier 'super)
+  ;; Font smoothing, https://www.emacswiki.org/emacs/EmacsForMacOS#h5o-39
+  (setq
+   ns-antialias-text t
+   ns-use-thin-smoothing t))
+
+;; If Emacs can't access some folders, try this:
+;; https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac
+
+;; On macos, raise the emacsclient frame when called
+;; See https://korewanetadesu.com/emacs-on-os-x.html
+(when (featurep 'ns)
+  (defun ns-raise-emacs ()
+    "Raise Emacs."
+    (ns-do-applescript "tell application \"Emacs\" to activate"))
+
+  (defun ns-raise-emacs-with-frame (frame)
+    "Raise Emacs and select the provided frame."
+    (with-selected-frame frame
+      (when (display-graphic-p)
+        (ns-raise-emacs))))
+
+  (add-hook 'after-make-frame-functions 'ns-raise-emacs-with-frame)
+
+  (when (display-graphic-p)
+    (ns-raise-emacs)))
 
 ;; Patch for "invalid image type 'svg'" error. See
 ;; https://github.com/caldwell/build-emacs/issues/126
@@ -152,6 +181,8 @@
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-javascript.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-julia.org"))
 (org-babel-load-file (expand-file-name "~/.emacs.d/settings-octave.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-arduino.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/settings-ulisp.org"))
 ;; (org-babel-load-file (expand-file-name "~/.emacs.d/quote-of-the-day.org"))
 ;; (org-babel-jupyter-override-src-block 'python)
 

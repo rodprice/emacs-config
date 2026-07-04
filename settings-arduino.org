@@ -1,0 +1,53 @@
+#+TITLE: Emacs configuration for Arduino
+#+STARTUP: overview indent
+
+* Preliminaries
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-julia")
+#+end_src
+
+This configuration requires packages
+
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+
+* Arduino command-line interface
+
+| Key         | Command                              | Description            |
+|-------------+--------------------------------------+------------------------|
+| C-c C-a c   | arduino-cli-compile                  | Compile only           |
+| C-c C-a b   | arduino-cli-compile-and-upload       | Compile and upload     |
+| C-c C-a u   | arduino-cli-upload                   | Upload last build      |
+| C-c C-a n   | arduino-cli-new-sketch               | Create new sketch      |
+| C-c C-a l   | arduino-cli-board-list               | List connected boards  |
+| C-c C-a i   | arduino-cli-lib-install              | Install a library      |
+| C-c C-a U   | arduino-cli-lib-uninstall            | Uninstall a library    |
+| C-c C-a k   | arduino-cli-kill-arduino-connection  | Kill compilation       |
+| C-c C-a m   | arduino-cli-start-serial-monitor     | Start serial monitor   |
+| C-c C-a M   | arduino-cli-stop-serial-monitor      | Stop serial monitor    |
+
+#+begin_src emacs-lisp
+  (use-package arduino-cli-mode
+    :mode "\\.ino\\'"
+    :hook (c++-mode . arduino-cli-mode)
+    :config
+    (add-to-list 'exec-path "/Applications/Arduino IDE.app/Contents/Resources/app/lib/backend/resources")
+    (defun arduino-cli--board ()
+      "Return default board directly, bypassing auto-detection."
+      (arduino-cli--default-board))
+    :custom
+    (arduino-cli-default-fqbn "esp32:esp32:XIAO_ESP32C6")
+    (arduino-cli-default-port "/dev/cu.usbmodem214301")
+    (arduino-cli-verify nil)
+    (arduino-cli-warnings 'all)
+    (arduino-cli-verbosity 'verbose)
+    (arduino-cli-monitor-default-baud-rate 115200))
+#+end_src

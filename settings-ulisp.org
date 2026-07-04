@@ -1,0 +1,37 @@
+#+TITLE: Emacs configuration for uLisp
+#+STARTUP: overview indent
+
+* Preliminaries
+
+All functions below use lexical binding.
+#+begin_src emacs-lisp
+;; -*- coding: utf-8; lexical-binding: t -*-
+(message "... starting settings-julia")
+#+end_src
+
+This configuration requires packages
+
+
+External programs that should be on =exec-path= are
+
+
+The file =settings-minimal.org= should be loaded before loading this
+file.
+
+
+* uLisp programming
+
+The [[https://www.ulisp.com][uLisp]] language is a very small Lisp that runs on microcontrollers,
+including several ARM, ESP32, and Risc-V types.
+
+#+begin_src emacs-lisp
+  (use-package ulisp-mode
+    :load-path "~/.emacs.d/lisp"
+    :mode ("\\.ul\\'" . lisp-mode)
+    :hook (lisp-mode . ulisp-minor-mode)
+    :commands (ulisp-minor-mode ulisp-connect ulisp-setup)
+    :custom
+    (ulisp-serial-port "/dev/cu.usbmodem214301")
+    (ulisp-baud-rate 115200)
+    (ulisp-auto-connect nil))
+#+end_src
