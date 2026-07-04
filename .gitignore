@@ -1,11 +1,13 @@
 auto-save-list/
 backup/
+chatgpt/
 eln-cache/
 eshell/
 indium-chrome-profile/
 ltximg/
 org-persist/
 server/
+secrets/
 site/
 junkyard/
 pkgs/

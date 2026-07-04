@@ -18,7 +18,56 @@ External programs that should be on =exec-path= are
 The file =settings-minimal.org= should be loaded before loading this
 file.
 
+
 * Julia programming
+
+
+#+begin_src emacs-lisp :tangle no
+  (use-package julia-mode
+      :ensure t
+      :mode "\\.jl\\'"
+      :interpreter ("julia" . julia-mode)
+      :init
+      (setenv "JULIA_NUM_THREADS" "8")
+      :config
+      (add-hook 'julia-mode-hook 'eglot-jl-init)
+      (add-hook 'julia-mode-hook (lambda () (setq eglot-connect-timeout 120)))
+      (add-hook 'julia-mode-hook (lambda () (setq eglot-autoshutdown t)))
+      (add-hook 'julia-mode-hook 'julia-repl-mode)
+      (add-hook 'julia-mode-hook 'company-mode)
+      (add-hook 'julia-mode-hook #'yas-minor-mode)
+      (add-hook 'julia-mode-hook (lambda () (setq julia-repl-set-terminal-backend 'vterm))))
+#+end_src
+
+Testing Julia code, from [[https://discourse.julialang.org/t/help-testing-julia-tree-sitter-mode-in-emacs/92819/2][here]].
+#+begin_src emacs-lisp :tangle no
+  (use-package cov)
+  (defun maybe-cov-mode ()
+    "Activate cov-mode if the project root contains a coverage file
+    currently, the recognized coverage filenames are:
+      coverage-final.json
+      coverage-lcov.info file"
+    (if (or (file-exists-p (expand-file-name "coverage-final.json" (project-root (project-current))))
+            (file-exists-p (expand-file-name "coverage-lcov.info" (project-root (project-current)))))
+        (cov-mode)))
+  (add-hook 'prog-mode-hook #'maybe-cov-mode)
+  (defun project-abs-path ()
+    (expand-file-name (project-root (project-current))))
+  (defun julia-runtest()
+    (let* ((julia-project (project-abs-path))
+           (lcov-file (concat julia-project "coverage-lcov.info")))
+      (setq-local
+       cov-lcov-file-name lcov-file
+       compile-command
+       (concat "julia --startup=no --history-file=no "
+               " --project=" julia-project
+               " --code-coverage=@" julia-project "src "
+               " --code-coverage=" lcov-file " -tauto "
+               " -e'import TestEnv; TestEnv.activate(); "
+               " include(\"test/runtests.jl\")'"))))
+#+end_src
+
+* IJulia
 
 [[https://discourse.julialang.org/t/jupyter-integration-with-emacs/21496/5][Instructions]] from the Julia mailing list for installing Jupyter.
 #+begin_src emacs-lisp :tangle no

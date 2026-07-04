@@ -224,7 +224,7 @@ When the Emacs executable is from MSYS2, set the =MSYSTEM= variable.
       (setq explicit-bash-args (list "-i" "-l"))))
     (let ((default-directory (my-shell-dir)))
       (when (and
-             conda-env-autoactivate-mode
+             (bound-and-true-p conda-env-autoactivate-mode)
              (bound-and-true-p conda-project-env-path))
         (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
       (call-interactively #'shell)
@@ -436,6 +436,52 @@ Interactively make a list of =find= command strings.
 #+end_src
 
 * Vterm
+
+Use the [[https://github.com/akermu/emacs-libvterm][vterm]] library for a better Emacs shell.
+#+begin_src emacs-lisp
+  (unless (eq system-type 'windows-nt)
+    (use-package vterm
+      :ensure t
+      :bind
+      (("<f6>" . my-vterm-start)
+       (:map vterm-mode-map
+             ("<f6>" . my-vterm-close)))))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-vterm-start ()
+    "Start a new vterm at the project root, with the current buffer's
+  conda environment activated."
+    (interactive)
+    (let ((default-directory (my-shell-dir)))
+      (when (and
+             (bound-and-true-p conda-env-autoactivate-mode)
+             (bound-and-true-p conda-project-env-path))
+        (setenv "CONDA_PROJECT_ENV" conda-env-current-name))
+      (call-interactively #'vterm-other-window)
+      (setenv "CONDA_PROJECT_ENV")))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun my-vterm-close (&optional buffer)
+    "Close the vterm window without killing its buffer or process."
+    (interactive)
+    (let ((buffer (or buffer (current-buffer))))
+      (unless (eq
+               (buffer-local-value 'major-mode buffer)
+               'vterm-mode)
+        (user-error "Buffer '%s' is not running vterm." buffer))
+      (let ((window (get-buffer-window buffer)))
+        ;; Borrowed from popper.el
+        (when (window-valid-p window)
+          (cond
+           ((window-parent window)
+            (if (window-parameter window 'window-side)
+                (delete-window window)
+              (quit-window nil window)))
+           ((frame-parent) (delete-frame))
+           (t (quit-window nil window)))))))
+#+end_src
 
 Make =vterm= reuse windows. From Mastering Emacs, [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Demystifying Emacs' Window Manager]].
 #+begin_src emacs-lisp
